@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.36105.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRIS-CheckWise(ATMS)", "HRIS-CheckWise(ATMS).csproj", "{4FE9C952-101E-4CE3-BFE5-6B6BF35806C5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sound", "Sound", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		Sound\error.wav = Sound\error.wav
+		..\..\Users\USER\Downloads\success.wav = ..\..\Users\USER\Downloads\success.wav
+	EndProjectSection
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Fin-Attendance", "..\..\..\..\visual studio code\Fin-Attendance\Fin-Attendance.vdproj", "{333A1BAE-7514-01D3-9F73-38BA8B7D74FD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4FE9C952-101E-4CE3-BFE5-6B6BF35806C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FE9C952-101E-4CE3-BFE5-6B6BF35806C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FE9C952-101E-4CE3-BFE5-6B6BF35806C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FE9C952-101E-4CE3-BFE5-6B6BF35806C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{333A1BAE-7514-01D3-9F73-38BA8B7D74FD}.Debug|Any CPU.ActiveCfg = Debug
+		{333A1BAE-7514-01D3-9F73-38BA8B7D74FD}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F9E74973-402F-4996-9776-D847F9D791B4}
+	EndGlobalSection
+EndGlobal
