@@ -27,6 +27,12 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+// Public attendance page (no authentication required) - MUST BE BEFORE auth routes
+// This is a public route - no authentication needed
+Route::get('/attendance', function () {
+    return Inertia::render('public-attendance');
+})->name('public.attendance');
+
 // Employee routes are handled in employee_auth.php
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -137,7 +143,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(['permission:View Attendance'])->group(function () {
         Route::get('attendance/daily-checking', [AttendanceController::class, 'dailyChecking'])->name('attendance.daily-checking');
-        Route::resource('attendance', AttendanceController::class)->names('attendance');
+        Route::get('attendance/qr-scanner', function () {
+            return Inertia::render('attendance/qr-scanner');
+        })->name('attendance.qr-scanner');
+        // Exclude 'index' from resource since public route uses /attendance
+        Route::resource('attendance', AttendanceController::class)->names('attendance')->except(['index']);
+        // Manually define index route with different path to avoid conflict
+        Route::get('attendance/manage', [AttendanceController::class, 'index'])->name('attendance.index');
         Route::resource('attendance-session', AttendanceSessionController::class)->names('attendance-session');
     });
 

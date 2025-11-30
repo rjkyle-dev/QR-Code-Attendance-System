@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\AttendanceController as ApiAttendanceController;
 use App\Http\Controllers\Api\AttendanceSessionController;
 use App\Http\Controllers\Api\EvaluationController as ApiEvaluationController;
 use App\Http\Controllers\Api\DailyCheckingController;
+use App\Http\Controllers\Api\QrCodeController;
+use App\Http\Controllers\Api\QrAttendanceController;
 use App\Http\Controllers\GenderDevelopmentReportController;
 use Carbon\Carbon;
 
@@ -116,6 +118,21 @@ Route::get('/daily-checking/settings', [DailyCheckingController::class, 'getSett
 Route::post('/daily-checking/settings', [DailyCheckingController::class, 'saveSettings']);
 Route::get('/daily-checking/hr', [DailyCheckingController::class, 'getHR']);
 Route::get('/daily-checking/manager', [DailyCheckingController::class, 'getManager']);
+
+// QR Code API - Employee authentication required (via session)
+Route::middleware(['web', 'employee.auth'])->group(function () {
+    Route::get('/qr-code/generate', [QrCodeController::class, 'generate']);
+});
+
+// QR Code API - Admin can generate for any employee
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::post('/qr-code/generate-for-employee', [QrCodeController::class, 'generateForEmployee']);
+});
+
+// QR Code Attendance API - Public (no auth required for scanning)
+Route::post('/qr-attendance/scan', [QrAttendanceController::class, 'scan']);
+Route::post('/qr-attendance/record-by-employeeid', [QrAttendanceController::class, 'recordByEmployeeId']);
+Route::get('/qr-attendance/today', [QrAttendanceController::class, 'getTodayAttendance']);
 
 // Gender Development Report API
 Route::get('/gender-development/hr', [GenderDevelopmentReportController::class, 'getHR'])->middleware('web');

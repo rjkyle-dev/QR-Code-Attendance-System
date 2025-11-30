@@ -1,6 +1,9 @@
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Link } from '@inertiajs/react';
+import { ArrowRight, Clock } from 'lucide-react';
 
 interface Employee {
     id: number;
@@ -67,16 +70,28 @@ export function WelcomeBanner({ employee }: WelcomeBannerProps) {
                         </div>
                     </div>
 
-                    <div className="text-right">
-                        <p className="text-sm text-white/80">Today</p>
-                        <p className="text-lg font-semibold">
-                            {currentTime.toLocaleDateString('en-US', {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                            })}
-                        </p>
+                    <div className="flex flex-col items-end gap-3">
+                        <div className="text-right">
+                            <p className="text-sm text-white/80">Today</p>
+                            <p className="text-lg font-semibold">
+                                {currentTime.toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                })}
+                            </p>
+                        </div>
+                        <Link href="/employee-view/attendance">
+                            <Button
+                                size="lg"
+                                className="gap-2 border border-white/30 bg-white/20 text-white shadow-lg backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/30"
+                            >
+                                <Clock className="h-5 w-5" />
+                                <span className="font-semibold">Start Attendance</span>
+                                <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </CardContent>

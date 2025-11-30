@@ -442,6 +442,32 @@ class AuthEmployeeController extends Controller
     }
 
     /**
+     * Display employee QR code page
+     */
+    public function qrCode()
+    {
+        $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
+
+        if (!$employee) {
+            Session::forget(['employee_id', 'employee_name']);
+            return redirect()->route('employeelogin');
+        }
+
+        return Inertia::render('employee-view/qr-code', [
+            'employee' => [
+                'id' => $employee->id,
+                'employeeid' => $employee->employeeid,
+                'employee_name' => $employee->employee_name,
+                'firstname' => $employee->firstname,
+                'lastname' => $employee->lastname,
+                'department' => $employee->department,
+                'position' => $employee->position,
+                'picture' => $employee->picture,
+            ]
+        ]);
+    }
+
+    /**
      * Display employee evaluations
      */
     public function evaluations()

@@ -118,7 +118,22 @@ class PermissionSeeder extends Seeder
     ];
 
     foreach ($permissions as $permission) {
-      Permission::firstOrCreate(['name' => $permission]);
+      // Try to find existing permission by name (regardless of guard_name)
+      $permissionModel = Permission::where('name', $permission)->first();
+
+      if ($permissionModel) {
+        // Update guard_name if it's not 'web'
+        if ($permissionModel->guard_name !== 'web') {
+          $permissionModel->guard_name = 'web';
+          $permissionModel->save();
+        }
+      } else {
+        // Create new permission with guard_name
+        Permission::create([
+          'name' => $permission,
+          'guard_name' => 'web'
+        ]);
+      }
     }
 
     // Create roles and assign permissions
@@ -209,7 +224,23 @@ class PermissionSeeder extends Seeder
     ];
 
     foreach ($roles as $roleName => $rolePermissions) {
-      $role = Role::firstOrCreate(['name' => $roleName]);
+      // Try to find existing role by name (regardless of guard_name)
+      $role = Role::where('name', $roleName)->first();
+
+      if ($role) {
+        // Update guard_name if it's not 'web'
+        if ($role->guard_name !== 'web') {
+          $role->guard_name = 'web';
+          $role->save();
+        }
+      } else {
+        // Create new role with guard_name
+        $role = Role::create([
+          'name' => $roleName,
+          'guard_name' => 'web'
+        ]);
+      }
+
       $role->syncPermissions($rolePermissions);
     }
 

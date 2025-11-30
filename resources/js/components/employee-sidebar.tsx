@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { type NavItemEmployee } from '@/types';
 import { Link } from '@inertiajs/react';
-import { CalendarPlus2, FileChartColumnIncreasing, Fingerprint, LayoutGrid, NotebookPen, User2 } from 'lucide-react';
+import { CalendarPlus2, FileChartColumnIncreasing, Fingerprint, LayoutGrid, NotebookPen, QrCode, User2 } from 'lucide-react';
 import * as React from 'react';
 import AppLogo from './customize/app-logo';
 
@@ -23,6 +23,11 @@ const mainNavItems: NavItemEmployee[] = [
         title: 'My Attendance',
         href: '/employee-view/attendance',
         icon: Fingerprint,
+    },
+    {
+        title: 'My QR Code',
+        href: '/employee-view/qr-code',
+        icon: QrCode,
     },
     {
         title: 'My Evaluations',
