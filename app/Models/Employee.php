@@ -35,6 +35,7 @@ class Employee extends Model
         'zip_code',
         'picture',
         'pin',
+        'qr_code_secret',
         'gmail_password',
         'recommendation_letter',
         // HDMF fields
@@ -142,6 +143,11 @@ class Employee extends Model
         return $this->hasMany(ResumeToWork::class);
     }
 
+    public function qrTokens()
+    {
+        return $this->hasMany(EmployeeQrToken::class);
+    }
+
     /**
      * Get current year's leave credits
      */
@@ -176,5 +182,113 @@ class Employee extends Model
     {
         $credits = $this->getCurrentAbsenceCredits($year);
         return $credits->remaining_credits;
+    }
+
+    /**
+     * Generate or retrieve QR code secret
+     */
+    public function getOrGenerateQrSecret(): string
+    {
+        if (empty($this->qr_code_secret)) {
+            $this->qr_code_secret = bin2hex(random_bytes(32)); // 64 character hex string
+            $this->save();
+        }
+
+        return $this->qr_code_secret;
+    }
+
+    /**
+     * Generate a QR code token for attendance
+     * 
+     * @param int $expiresInSeconds Number of seconds until token expires (default: 60)
+     * @return EmployeeQrToken
+     */
+    public function generateQrToken(int $expiresInSeconds = 60): EmployeeQrToken
+    {
+        // Generate unique token
+        $token = bin2hex(random_bytes(32)); // 64 character hex string
+
+        // Create expiration time
+        $expiresAt = Carbon::now()->addSeconds($expiresInSeconds);
+
+        // Invalidate any existing valid tokens for this employee (prevent multiple active QR codes)
+        $this->qrTokens()
+            ->valid()
+            ->update(['used_at' => now()]);
+
+        // Create new token
+        $qrToken = $this->qrTokens()->create([
+            'token' => $token,
+            'expires_at' => $expiresAt,
+        ]);
+
+        return $qrToken;
+    }
+
+    /**
+     * Generate QR code data (payload for QR code)
+     * 
+     * @param int $expiresInSeconds Number of seconds until token expires
+     * @return array
+     */
+    public function generateQrCodeData(int $expiresInSeconds = 60): array
+    {
+        $qrToken = $this->generateQrToken($expiresInSeconds);
+        $secret = $this->getOrGenerateQrSecret();
+
+        // Create payload
+        $payload = [
+            'employee_id' => $this->id,
+            'employeeid' => $this->employeeid,
+            'token' => $qrToken->token,
+            'expires_at' => $qrToken->expires_at->toIso8601String(),
+        ];
+
+        // Generate HMAC signature
+        $signature = hash_hmac('sha256', json_encode($payload), $secret);
+        $payload['signature'] = $signature;
+
+        return [
+            'token' => $qrToken->token,
+            'expires_at' => $qrToken->expires_at->toIso8601String(),
+            'expires_in' => $expiresInSeconds,
+            'qr_data' => $payload,
+        ];
+    }
+
+    /**
+     * Validate QR code token
+     * 
+     * @param string $token
+     * @param string|null $signature
+     * @return EmployeeQrToken|null
+     */
+    public function validateQrToken(string $token, ?string $signature = null): ?EmployeeQrToken
+    {
+        $qrToken = $this->qrTokens()
+            ->where('token', $token)
+            ->first();
+
+        if (!$qrToken || !$qrToken->isValid()) {
+            return null;
+        }
+
+        // If signature provided, validate it
+        if ($signature) {
+            $secret = $this->getOrGenerateQrSecret();
+            $payload = [
+                'employee_id' => $this->id,
+                'employeeid' => $this->employeeid,
+                'token' => $qrToken->token,
+                'expires_at' => $qrToken->expires_at->toIso8601String(),
+            ];
+            $expectedSignature = hash_hmac('sha256', json_encode($payload), $secret);
+
+            if (!hash_equals($expectedSignature, $signature)) {
+                return null; // Signature mismatch
+            }
+        }
+
+        return $qrToken;
     }
 }

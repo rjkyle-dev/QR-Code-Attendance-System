@@ -20,6 +20,11 @@ class CheckPermission
       abort(403, 'Unauthorized action.');
     }
 
+    // Super Admin bypasses all permission checks
+    if ($user->hasRole('Super Admin')) {
+      return $next($request);
+    }
+
     // Support multiple permissions separated by '|' or ',' (OR semantics)
     $permissions = preg_split('/[\|,]/', $permission) ?: [];
     foreach ($permissions as $singlePermission) {
@@ -27,7 +32,8 @@ class CheckPermission
       if ($singlePermission === '') {
         continue;
       }
-      if ($user->hasPermissionTo($singlePermission)) {
+      // Check permission with explicit guard
+      if ($user->hasPermissionTo($singlePermission, 'web')) {
         return $next($request);
       }
     }

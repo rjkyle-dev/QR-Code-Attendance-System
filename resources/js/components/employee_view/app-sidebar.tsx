@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarDays, CalendarSync, ClipboardList, Clock, FileText, LayoutGrid } from 'lucide-react';
+import { CalendarDays, ClipboardList, Clock, FileText, LayoutGrid, QrCode } from 'lucide-react';
 import * as React from 'react';
 
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
@@ -53,6 +53,11 @@ const employeeNavItems: EmployeeNavItem[] = [
     //     href: '/employee-view/profile',
     //     icon: User,
     // },
+    {
+        title: 'My QR Code',
+        href: '/employee-view/qr-code',
+        icon: QrCode,
+    },
     {
         title: 'Evaluations',
         href: '/employee-view/evaluations',

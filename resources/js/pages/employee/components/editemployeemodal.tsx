@@ -10,7 +10,7 @@ import { Employee, Employees, initialEmployeeFormData } from '@/hooks/employees'
 import { usePermission } from '@/hooks/user-permission';
 import { useForm } from '@inertiajs/react';
 import { DialogDescription } from '@radix-ui/react-dialog';
-import { ChevronDownIcon, Fingerprint, User } from 'lucide-react';
+import { ChevronDownIcon, User } from 'lucide-react';
 import React, { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {
@@ -20,7 +20,7 @@ import {
     maritalStatus as maritalStatusData,
     workStatus as workStatusData,
 } from '../../../hooks/data';
-import FingerprintCapture from './fingerprintcapture';
+import EmployeeQrCodeModal from './employee-qr-code-modal';
 
 interface EditEmployeeModalProps {
     isOpen: boolean;
@@ -42,9 +42,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
     const [availablePositions, setAvailablePositions] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [savedEmployee, setSavedEmployee] = useState<any | null>(null);
-    const [fingerprintData, setFingerprintData] = useState<any | null>(null);
-    const [showFingerprintModal, setShowFingerprintModal] = useState(false);
-    const [wsFingerprintData, setWsFingerprintData] = useState<any | null>(null);
+    const [showQrCodeModal, setShowQrCodeModal] = useState(false);
 
     const { data, setData, errors, processing, reset, post } = useForm<Employees & { _method: string }>({
         ...initialEmployeeFormData,
@@ -107,20 +105,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
             }
         }
     }, [employee]);
-
-    // Add WebSocket logic to listen for fingerprint_data and display it
-    useEffect(() => {
-        const ws = new WebSocket('ws://localhost:8080');
-        ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'fingerprint_data') {
-                    setWsFingerprintData(data);
-                }
-            } catch {}
-        };
-        return () => ws.close();
-    }, []);
 
     // Generate unique Add Crew employee ID (AC + 6 digits)
     const generateAddCrewEmployeeId = async (): Promise<string> => {
@@ -221,10 +205,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
         setData('picture', file);
     };
 
-    const handleFingerprintCapture = (fingerprintData: any) => {
-        // TODO: integrate with form as needed
-    };
-
     const closeModalWithDelay = (delay: number = 1000) => {
         setTimeout(() => {
             onClose();
@@ -269,7 +249,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
         post(route('employee.update', employee?.id), {
             forceFormData: true,
             onSuccess: () => {
-                toast.success('Employee updated successfully! Now register fingerprint.');
+                toast.success('Employee updated successfully! Generating QR code...');
 
                 // Save employee data for fingerprint modal
                 if (employee) {
@@ -300,11 +280,11 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                     setPreview('');
                     setSelectedFile(null);
 
-                    // Close main modal and open fingerprint modal
+                    // Close main modal and open QR code modal
                     // Use setTimeout to ensure state is set before modal transition
                     setTimeout(() => {
                         onClose();
-                        setShowFingerprintModal(true);
+                        setShowQrCodeModal(true);
                     }, 100);
                 } else {
                     closeModalWithDelay(1200);
@@ -1007,99 +987,15 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                 </DialogContent>
             </Dialog>
 
-            {/* Fingerprint Registration Modal */}
-            <Dialog
-                open={showFingerprintModal && !!savedEmployee}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setShowFingerprintModal(false);
-                        setSavedEmployee(null);
-                        setFingerprintData(null);
-                        setWsFingerprintData(null);
-                    }
+            {/* QR Code Modal */}
+            <EmployeeQrCodeModal
+                isOpen={showQrCodeModal && !!savedEmployee}
+                onClose={() => {
+                    setShowQrCodeModal(false);
+                    setSavedEmployee(null);
                 }}
-            >
-                <DialogContent className="max-h-[90vh] min-w-2xl overflow-y-auto border-2 border-cfar-500 shadow-2xl">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-green-800">
-                            <Fingerprint className="h-5 w-5" />
-                            Fingerprint Registration
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        {savedEmployee && (
-                            <div className="mb-4 rounded-lg bg-green-50 p-4">
-                                <div className="font-semibold text-green-800">
-                                    {savedEmployee.employeeid ? (
-                                        <>
-                                            Employee ID: {savedEmployee.employeeid} {savedEmployee.work_status === 'Add Crew' && '(Auto-generated)'}{' '}
-                                            (#{savedEmployee.id})
-                                        </>
-                                    ) : (
-                                        <>
-                                            Employee: {savedEmployee.firstname} {savedEmployee.lastname} (ID: #{savedEmployee.id})
-                                        </>
-                                    )}
-                                </div>
-                                <div className="mt-1 text-sm text-green-700">
-                                    {savedEmployee.firstname} {savedEmployee.lastname}
-                                </div>
-                            </div>
-                        )}
-                        <FingerprintCapture
-                            onFingerprintCaptured={setFingerprintData}
-                            employeeId={savedEmployee?.employeeid}
-                            employeeDatabaseId={savedEmployee?.id}
-                            workStatus={savedEmployee?.work_status}
-                            employeeFingerprints={savedEmployee?.fingerprints || []}
-                            onStartCapture={() => toast.info('Starting fingerprint capture...')}
-                        />
-                        {wsFingerprintData && (
-                            <div className="mt-4 text-center">
-                                <div className="mb-2 font-medium text-green-800">Fingerprint Preview:</div>
-                                <img
-                                    src={`data:image/png;base64,${wsFingerprintData.fingerprint_image}`}
-                                    alt="Fingerprint Preview"
-                                    className="mx-auto h-32 w-32 border object-contain"
-                                />
-                                <div className="mt-2 text-xs text-green-600">
-                                    Captured at:{' '}
-                                    {wsFingerprintData.fingerprint_captured_at
-                                        ? new Date(wsFingerprintData.fingerprint_captured_at).toLocaleString()
-                                        : ''}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            type="button"
-                            onClick={() => {
-                                setShowFingerprintModal(false);
-                                setSavedEmployee(null);
-                                setFingerprintData(null);
-                                setWsFingerprintData(null);
-                            }}
-                        >
-                            Close
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="main"
-                            onClick={() => {
-                                setShowFingerprintModal(false);
-                                setSavedEmployee(null);
-                                setFingerprintData(null);
-                                setWsFingerprintData(null);
-                                toast.success('Fingerprint registration completed!');
-                            }}
-                        >
-                            Done
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                employee={savedEmployee}
+            />
         </>
     );
 };
