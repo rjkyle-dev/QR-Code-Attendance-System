@@ -1,15 +1,9 @@
-// hooks/useCompanyData.ts
-
 export const departments: string[] = [
-    'Management & Staff(Admin)',
-    'Packing Plant',
-    'Harvesting',
-    'Pest & Decease',
-    'Miscellaneous',
-    'Coop Area',
-    'Security Forces',
-    'Engineering',
-    'Utility',
+    'Accounting',
+    'Finance',
+    'Audit',
+    'Human Resources',
+    'Para Legal',
 ];
 export const evaluationDepartments: string[] = [
     'Management & Staff(Admin)',
@@ -21,87 +15,57 @@ export const evaluationDepartments: string[] = [
     'Utility',
 ];
 
-export const engineeringPositions: string[] = [
-     'N/A'
-];
-export const utilityPositions: string[] = [
-     'N/A'
-];
 
 // Department-specific positions
-export const managementAndStaffPositions: string[] = [
-    'Manager',
-    'Farm Superintendent',
-    'HR',
-    'Packing Plant Supervisor',
-    'Harvesting Supervisor',
-    'P&D Supervisor',
-    'M&S Supervisor',
+export const accountingPositions: string[] = [
     'Accounting Supervisor',
     'Cashier',
-    'Office Employees Main',
-    'Packing Plant Assistant',
-    'Packing Plant Maintenance',
-    'Driver',
-    'M&S Aide',
-    'Security Supervisor',
-    'Coop Area/Manage Coop Supervisor',
-    'Probationary Office Staff',
 ];
 
-export const packingPlantPositions: string[] = ['Regular Hired Workers', 'Fruit Recorder', 'Probitionary', 'Seasonal'];
-
-export const harvestingPositions: string[] = ['Regular Hired Workers', 'Probitionary', 'Spare'];
-
-export const pestDeceasePositions: string[] = ['Regular Hired Workers', 'Footbath Maintenance', 'Probitionary PDC', 'PDC Seasonal'];
-
-export const coopAreaPositions: string[] = ['Regular Hired Workers', 'Probitionary'];
-
-export const miscellaneousPositions: string[] = [
-    'Utility/Janitorial',
-    'Field Surveyor',
-    'Field Surveyor/Spare',
-    'Miscellaneous - Probitionary',
-    'Sigatoka Deleafer',
-    'Sigatoka Monitoring',
+export const auditingPositions: string[] = [
+    'Audit Supervisor',
+    'Audit Officer',
+    'Audit Assistant',
 ];
 
-export const securityForcesPositions: string[] = ['Security Guard: Agency-MINVITS', 'Security Guard: SECURUS', 'Spray Man (Main Gate)'];
+export const legalPositions: string[] = [
+    'Legal Supervisor',
+    'Legal Officer',
+    'Legal Assistant',
+];
 
-export const workStatus = ['Regular', 'Add Crew', 'Probationary'];
+export const workStatus = ['Regular', 'Probationary', 'Project Based'];
 
-export const maritalStatus = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated', 'Other'];
+export const maritalStatus = ['Single', 'Married', 'Widowed'];
 
 export const gender = ['Male', 'Female'];
 
-// Combined positions array from all departments
+
+export const financePositions: string[] = ['Finance Supervisor', 'Finance Officer', 'Finance Assistant', 'Probationary'];
+
+export const humanResourcesPositions: string[] = ['Human Resources Supervisor', 'Human Resources Officer', 'Human Resources Assistant', 'Probationary'];
+
 export const positions: string[] = [
-    ...managementAndStaffPositions,
-    ...packingPlantPositions,
-    ...harvestingPositions,
-    ...pestDeceasePositions,
-    ...coopAreaPositions,
-    ...miscellaneousPositions,
-    ...securityForcesPositions,
+    ...accountingPositions,
+    ...financePositions,
+    ...humanResourcesPositions,
+    ...auditingPositions,
+    ...legalPositions,
 ];
 
 // Helper function to get positions for a specific department
 export const getPositionsForDepartment = (department: string): string[] => {
     switch (department) {
         case 'Management & Staff(Admin)':
-            return managementAndStaffPositions;
-        case 'Packing Plant':
-            return packingPlantPositions;
-        case 'Harvesting':
-            return harvestingPositions;
-        case 'Pest & Decease':
-            return pestDeceasePositions;
-        case 'Coop Area':
-            return coopAreaPositions;
-        case 'Security Forces':
-            return securityForcesPositions;
-        case 'Miscellaneous':
-            return miscellaneousPositions;
+            return accountingPositions;
+        case 'Finance':
+            return financePositions;
+        case 'Human Resources':
+            return humanResourcesPositions;
+        case 'Audit':
+            return auditingPositions;
+        case 'Legal':
+            return legalPositions;
         default:
             return [];
     }

@@ -19,6 +19,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AdminManagementController;
 use App\Http\Controllers\SupervisorDepartmentController;
 use App\Http\Controllers\ResumeToWorkController;
+use App\Http\Controllers\PayrollController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -225,6 +226,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('evaluation/admin-management', [AdminManagementController::class, 'storeAdminAssignment'])->name('evaluation.admin-management.store');
         Route::put('evaluation/admin-management/{assignment}', [AdminManagementController::class, 'updateAdminAssignment'])->name('evaluation.admin-management.update');
         Route::delete('evaluation/admin-management/{assignment}', [AdminManagementController::class, 'destroyAdminAssignment'])->name('evaluation.admin-management.destroy');
+    });
+
+    // Payroll
+    Route::middleware(['permission:View Payroll'])->group(function () {
+        Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
     });
 });
 

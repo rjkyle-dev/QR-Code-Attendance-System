@@ -58,19 +58,16 @@ export default function PublicAttendancePage() {
     const isUnmountingRef = useRef(false);
     const isStoppingRef = useRef(false);
 
-    // Manual entry
     const [employeeId, setEmployeeId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState('scanner');
 
-    // Attendance records
     const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
     const [isLoadingAttendance, setIsLoadingAttendance] = useState(false);
 
-    // Cleanup scanner properly
     const stopScanner = useCallback(async () => {
         if (isStoppingRef.current) {
-            return; // Already stopping
+            return;
         }
 
         isStoppingRef.current = true;
@@ -85,11 +82,9 @@ export default function PublicAttendancePage() {
         setIsScanning(false);
 
         try {
-            // First, stop the scanner if it's running
             try {
                 await scanner.stop();
             } catch (stopError: any) {
-                // Ignore "not running" or "not started" errors - scanner might already be stopped
                 const errorMsg = stopError?.message || '';
                 if (
                     !errorMsg.includes('not running') &&
@@ -101,28 +96,21 @@ export default function PublicAttendancePage() {
                 }
             }
 
-            // Wait longer before clearing to ensure stop is complete and DOM is stable
             await new Promise((resolve) => setTimeout(resolve, 300));
 
-            // Then clear the scanner (must stop first)
             try {
                 await scanner.clear();
             } catch (clearError: any) {
-                // Ignore clear errors - scanner might already be cleared
                 const errorMsg = clearError?.message || '';
                 if (!errorMsg.includes('Cannot clear while scan is ongoing') && !errorMsg.includes('not found')) {
                     console.warn('Error clearing scanner:', clearError);
                 }
             }
 
-            // Force React to recreate the container by changing the key
-            // This prevents React from trying to clean up nodes that Html5Qrcode already removed
             setContainerKey((prev) => prev + 1);
 
-            // Wait a bit more for React to recreate the container
             await new Promise((resolve) => setTimeout(resolve, 200));
         } catch (error: any) {
-            // Ignore general errors
             console.warn('Error during scanner cleanup:', error);
         } finally {
             scannerRef.current = null;
@@ -130,19 +118,15 @@ export default function PublicAttendancePage() {
         }
     }, []);
 
-    // Reset scan result when modal opens
     useEffect(() => {
         if (showCameraModal) {
             setScanResult(null);
             setIsProcessing(false);
-            // Reset scanning state when modal opens
             setIsScanning(false);
-            // Create a new container key to force fresh DOM element
             setContainerKey((prev) => prev + 1);
         }
     }, [showCameraModal]);
 
-    // Fetch today's attendance records
     const fetchTodayAttendance = useCallback(async () => {
         setIsLoadingAttendance(true);
         try {
@@ -157,12 +141,10 @@ export default function PublicAttendancePage() {
         }
     }, []);
 
-    // Fetch attendance on mount and after successful attendance
     useEffect(() => {
         fetchTodayAttendance();
     }, [fetchTodayAttendance]);
 
-    // Cleanup on unmount
     useEffect(() => {
         isUnmountingRef.current = false;
         return () => {
@@ -185,10 +167,9 @@ export default function PublicAttendancePage() {
 
     const startScanning = useCallback(async () => {
         if (isScanning || isStoppingRef.current) {
-            return; // Don't start if already scanning or stopping
+            return;
         }
 
-        // Wait for any ongoing stop operation to complete
         let waitAttempts = 0;
         while (isStoppingRef.current && waitAttempts < 20) {
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -200,7 +181,6 @@ export default function PublicAttendancePage() {
             return;
         }
 
-        // Wait for container to be available in DOM
         let attempts = 0;
         while (!scannerContainerRef.current && attempts < 15) {
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -222,15 +202,12 @@ export default function PublicAttendancePage() {
             setScanResult(null);
             setIsProcessing(false);
 
-            // Wait for DOM to be fully ready and stable
             await new Promise((resolve) => setTimeout(resolve, 400));
 
-            // Verify element exists in DOM - wait a bit more if needed
             let container = scannerContainerRef.current;
             let elementById = document.getElementById(scanId);
 
             if (!container || !elementById) {
-                // Wait a bit more and try again
                 await new Promise((resolve) => setTimeout(resolve, 300));
                 container = scannerContainerRef.current;
                 elementById = document.getElementById(scanId);
@@ -240,8 +217,6 @@ export default function PublicAttendancePage() {
                 throw new Error('Scanner container element not found in DOM');
             }
 
-            // Ensure container is empty before starting
-            // Use replaceChildren for better React compatibility
             try {
                 if (container.replaceChildren) {
                     container.replaceChildren();
@@ -249,7 +224,6 @@ export default function PublicAttendancePage() {
                     container.innerHTML = '';
                 }
             } catch (e) {
-                // Fallback to innerHTML if replaceChildren not available
                 try {
                     container.innerHTML = '';
                 } catch (e2) {
@@ -272,7 +246,6 @@ export default function PublicAttendancePage() {
                     handleScanSuccess(decodedText);
                 },
                 (errorMessage) => {
-                    // Ignore scanning errors (they're normal while scanning)
                 },
             );
 
@@ -285,7 +258,6 @@ export default function PublicAttendancePage() {
                 try {
                     await scannerRef.current.clear();
                 } catch (e) {
-                    // Ignore cleanup errors
                 }
                 scannerRef.current = null;
             }
@@ -293,13 +265,12 @@ export default function PublicAttendancePage() {
     }, [isScanning, scanId]);
 
     const handleScanSuccess = async (decodedText: string) => {
-        if (isProcessing) return; // Prevent multiple simultaneous scans
+        if (isProcessing) return;
 
         try {
             setIsProcessing(true);
             await stopScanner();
 
-            // Parse QR code data
             let qrData;
             try {
                 qrData = JSON.parse(decodedText);
@@ -312,7 +283,6 @@ export default function PublicAttendancePage() {
                 return;
             }
 
-            // Send to API
             const response = await axios.post('/api/qr-attendance/scan', {
                 employee_id: qrData.employee_id,
                 token: qrData.token,
@@ -325,9 +295,7 @@ export default function PublicAttendancePage() {
 
             if (result.success) {
                 toast.success(result.message || 'Attendance recorded successfully!');
-                // Refresh attendance records
                 fetchTodayAttendance();
-                // Close modal after successful scan
                 setTimeout(() => {
                     setShowCameraModal(false);
                     setScanResult(null);
@@ -336,7 +304,6 @@ export default function PublicAttendancePage() {
             } else {
                 toast.error(result.message || 'Failed to record attendance');
                 setIsProcessing(false);
-                // Restart scanning after error
                 setTimeout(() => {
                     setScanResult(null);
                     startScanning();
@@ -353,7 +320,6 @@ export default function PublicAttendancePage() {
             });
 
             setIsProcessing(false);
-            // Restart scanning after error
             setTimeout(() => {
                 setScanResult(null);
                 startScanning();
@@ -372,7 +338,6 @@ export default function PublicAttendancePage() {
         setScanResult(null);
 
         try {
-            // Record attendance using employee ID
             const response = await axios.post('/api/qr-attendance/record-by-employeeid', {
                 employeeid: employeeId.trim(),
             });
@@ -382,8 +347,7 @@ export default function PublicAttendancePage() {
 
             if (result.success) {
                 toast.success(result.message || 'Attendance recorded successfully!');
-                setEmployeeId(''); // Clear the input
-                // Refresh attendance records
+                setEmployeeId('');
                 fetchTodayAttendance();
             } else {
                 toast.error(result.message || 'Failed to record attendance');
@@ -404,9 +368,7 @@ export default function PublicAttendancePage() {
 
     const handleModalOpenChange = async (open: boolean) => {
         if (!open) {
-            // Clean up scanner when modal closes - wait for it to complete
             await stopScanner();
-            // Wait a bit more to ensure cleanup is done before React unmounts
             await new Promise((resolve) => setTimeout(resolve, 200));
         }
         setShowCameraModal(open);
@@ -416,7 +378,6 @@ export default function PublicAttendancePage() {
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
             <Head title="Employee Attendance - CheckWise" />
 
-            {/* Header */}
             <div className="border-b bg-white shadow-sm">
                 <div className="container mx-auto flex items-center justify-between px-4 py-4">
                     <BackButton href="/" label="Back to Home" variant="ghost" className="text-gray-700 hover:text-gray-900" />
@@ -424,7 +385,7 @@ export default function PublicAttendancePage() {
                         <h1 className="text-2xl font-bold text-cfar-400">CheckWise</h1>
                         <p className="text-sm text-gray-600">Employee Attendance System</p>
                     </div>
-                    <div className="w-32"></div> {/* Spacer for centering */}
+                    <div className="w-32"></div>
                 </div>
             </div>
 
@@ -450,7 +411,6 @@ export default function PublicAttendancePage() {
                                 </TabsTrigger>
                             </TabsList>
 
-                            {/* QR Scanner Tab */}
                             <TabsContent value="scanner" className="space-y-6">
                                 <div className="flex flex-col items-center gap-6">
                                     <div className="text-center">
@@ -461,7 +421,6 @@ export default function PublicAttendancePage() {
                                         </Button>
                                     </div>
 
-                                    {/* Scan Result */}
                                     {scanResult && (
                                         <Card
                                             className={`w-full ${scanResult.success ? 'border-green-500 bg-green-50/50' : 'border-red-500 bg-red-50/50'}`}
@@ -508,7 +467,6 @@ export default function PublicAttendancePage() {
                                         </Card>
                                     )}
 
-                                    {/* Instructions */}
                                     <Card className="w-full border-blue-200 bg-blue-50/50">
                                         <CardContent className="pt-6">
                                             <div className="space-y-2 text-sm text-blue-900">
@@ -526,7 +484,6 @@ export default function PublicAttendancePage() {
                                 </div>
                             </TabsContent>
 
-                            {/* Manual Entry Tab */}
                             <TabsContent value="manual" className="space-y-6">
                                 <form onSubmit={handleManualSubmit} className="space-y-4">
                                     <div className="space-y-2">
@@ -558,7 +515,6 @@ export default function PublicAttendancePage() {
                                     </Button>
                                 </form>
 
-                                {/* Scan Result for Manual Entry */}
                                 {scanResult && (
                                     <Card
                                         className={`w-full ${scanResult.success ? 'border-green-500 bg-green-50/50' : 'border-red-500 bg-red-50/50'}`}
@@ -597,7 +553,6 @@ export default function PublicAttendancePage() {
                                     </Card>
                                 )}
 
-                                {/* Note about manual entry */}
                                 <Card className="border-blue-200 bg-blue-50/50">
                                     <CardContent className="pt-6">
                                         <div className="space-y-2 text-sm text-blue-900">
@@ -616,7 +571,6 @@ export default function PublicAttendancePage() {
                     </CardContent>
                 </Card>
 
-                {/* Today's Attendance Records */}
                 <Card className="mt-6 shadow-xl">
                     <CardHeader>
                         <div className="flex items-center justify-between">
@@ -714,7 +668,6 @@ export default function PublicAttendancePage() {
                 </Card>
             </div>
 
-            {/* Camera Scanner Modal */}
             <Dialog open={showCameraModal} onOpenChange={handleModalOpenChange}>
                 <DialogContent className="max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
@@ -725,7 +678,6 @@ export default function PublicAttendancePage() {
                         <DialogDescription>Position your QR code within the camera frame</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                        {/* Camera Preview Area */}
                         <div className="relative w-full">
                             <div
                                 key={`scanner-container-${containerKey}`}
@@ -743,7 +695,6 @@ export default function PublicAttendancePage() {
                                 )}
                             </div>
 
-                            {/* Processing Overlay */}
                             {isProcessing && (
                                 <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/90 backdrop-blur-sm">
                                     <div className="flex flex-col items-center gap-2">
@@ -754,7 +705,6 @@ export default function PublicAttendancePage() {
                             )}
                         </div>
 
-                        {/* Control Buttons */}
                         <div className="flex gap-3">
                             {!isScanning ? (
                                 <Button onClick={startScanning} size="lg" className="flex-1 gap-2" disabled={isProcessing}>

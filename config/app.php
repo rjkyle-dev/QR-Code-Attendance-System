@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'CFARBEMCO'),
+    'name' => env('APP_NAME', 'Amalgated Capital Inc'),
 
     /*
     |--------------------------------------------------------------------------

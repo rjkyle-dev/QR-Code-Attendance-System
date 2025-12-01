@@ -18,7 +18,7 @@ class PermissionSeeder extends Seeder
     $permissions = [
       // Dashboard permissions
       'View Dashboard',
-
+      'View Payroll',
       'View Admin Management',
       // Employee permissions
       'View Employee Details',

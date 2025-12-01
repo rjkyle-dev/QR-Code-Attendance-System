@@ -1,18 +1,7 @@
 import { Link } from '@inertiajs/react';
-import { Activity, CalendarPlus2, FileText, Fingerprint, LayoutGrid, NotebookPen, ShieldCheck, User2 } from 'lucide-react';
+import { Activity, CalendarPlus2, FileText, Fingerprint, LayoutGrid, NotebookPen, ShieldCheck, User2, BanknoteIcon } from 'lucide-react';
 import * as React from 'react';
-
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarRail,
-    useSidebar,
-} from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, useSidebar } from '@/components/ui/sidebar';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type NavItem } from '@/types';
 import AppLogo from './customize/app-logo';
@@ -30,7 +19,7 @@ const mainNavItems: NavItem[] = [
         permission: 'View Dashboard',
     },
     {
-        title: 'Employee',
+        title: 'Staff',
         href: '/employee',
         icon: User2,
         permission: 'View Employee',
@@ -41,29 +30,29 @@ const mainNavItems: NavItem[] = [
         icon: Fingerprint,
         permission: 'View Attendance',
     },
-    {
-        title: 'Evaluation',
-        href: '/evaluation',
-        icon: NotebookPen,
-        permission: 'View Evaluation',
-        items: [
-            {
-                title: 'Evaluation List',
-                href: '/evaluation',
-                permission: 'View Evaluation',
-            },
-            {
-                title: 'Department Evaluation',
-                href: '/evaluation/department-evaluation',
-                permission: 'View Evaluation By Department',
-            },
-            // {
-            //     title: 'Supervisor Management',
-            //     href: '/evaluation/supervisor-management',
-            //     permission: 'View Supervisor Management',
-            // },
-        ],
-    },
+    // {
+    //     title: 'Evaluation',
+    //     href: '/evaluation',
+    //     icon: NotebookPen,
+    //     permission: 'View Evaluation',
+    //     items: [
+    //         {
+    //             title: 'Evaluation List',
+    //             href: '/evaluation',
+    //             permission: 'View Evaluation',
+    //         },
+    //         {
+    //             title: 'Department Evaluation',
+    //             href: '/evaluation/department-evaluation',
+    //             permission: 'View Evaluation By Department',
+    //         },
+    //         // {
+    //         //     title: 'Supervisor Management',
+    //         //     href: '/evaluation/supervisor-management',
+    //         //     permission: 'View Supervisor Management',
+    //         // },
+    //     ],
+    // },
     {
         title: 'Leave',
         href: '/leave',
@@ -112,26 +101,26 @@ const mainNavItems: NavItem[] = [
         icon: User2,
         permission: 'View Admin Management',
     },
-    {
-        title: 'Service-Tenure',
-        // href: '/service-tenure/index',
-        href: '/service-tenure/employee',
-        icon: Activity,
-        permission: 'View Service Tenure Management',
-        // items: [
-        //     {
-        //         title: 'Service Tenure',
-        //         href: '/service-tenure/employee',
-        //         permission: 'View Service Tenure Employee',
-        //     },
+    // {
+    //     title: 'Service-Tenure',
+    //     // href: '/service-tenure/index',
+    //     href: '/service-tenure/employee',
+    //     icon: Activity,
+    //     permission: 'View Service Tenure Management',
+    //     // items: [
+    //     //     {
+    //     //         title: 'Service Tenure',
+    //     //         href: '/service-tenure/employee',
+    //     //         permission: 'View Service Tenure Employee',
+    //     //     },
 
-        //     {
-        //         title: 'Pay Advancement',
-        //         href: '/service-tenure/pay-advancement',
-        //         permission: 'View Service Tenure Pay Advancement',
-        //     },
-        // ],
-    },
+    //     //     {
+    //     //         title: 'Pay Advancement',
+    //     //         href: '/service-tenure/pay-advancement',
+    //     //         permission: 'View Service Tenure Pay Advancement',
+    //     //     },
+    //     // ],
+    // },
 
     {
         title: 'Access Management',
@@ -155,6 +144,12 @@ const mainNavItems: NavItem[] = [
                 permission: 'View Permission',
             },
         ],
+    },
+    {
+        title: 'Payroll',
+        href: '/payroll',
+        icon: BanknoteIcon,
+        permission: 'View Payroll',
     },
     {
         title: 'Reports',

@@ -34,17 +34,17 @@ const Hero = () => {
                             >
                                 <Clock className="h-5 w-5" />
                                 Start Attendance
-                                <ArrowRight className="h-4 w-4" />
+                                {/* <ArrowRight className="h-4 w-4" /> */}
                             </Button>
                         </Link>
-                        <Button
+                        {/* <Button
                             size="lg"
                             className="animate-pulse-green bg-cfar-400 px-8 py-3 text-lg text-white shadow-xl transition duration-500 ease-in-out hover:bg-cfar-500"
                             onClick={() => scrollToSection('features')}
                         >
                             <Fingerprint className="animate-scan mr-2 h-5 w-5" />
                             Get Started
-                        </Button>
+                        </Button> */}
                         <Button
                             variant="outline"
                             size="lg"

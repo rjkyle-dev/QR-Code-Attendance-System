@@ -68,7 +68,7 @@ const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
                             scale: { type: 'spring', visualDuration: 0.4, bounce: 0.5 },
                         }}
                     >
-                        <Link
+                        {/* <Link
                             href={route('employeelogin')}
                             className="m bg-main-600 hover:bg-main flex w-auto rounded-md border border-transparent p-2 px-5 py-1.5 text-lg leading-normal font-semibold text-white transition-all duration-300 ease-in-out hover:border-green-700 dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
                         >
@@ -76,7 +76,7 @@ const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
                                 <Users className="animate-shield-glow motion-rotate-in-45 mt-1 mr-2 h-4 w-4 text-cfar-400" />
                                 Employee
                             </div>
-                        </Link>
+                        </Link> */}
                         {auth.user ? (
                             <Link
                                 href={route('dashboard.index')}
