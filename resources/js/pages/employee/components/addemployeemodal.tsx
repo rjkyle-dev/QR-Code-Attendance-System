@@ -43,7 +43,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
     const [selectedRecommendationFile, setSelectedRecommendationFile] = useState<File | null>(null);
     const [recommendationFileName, setRecommendationFileName] = useState<string>('');
 
-    const [savedEmployee, setSavedEmployee] = useState<any | null>(null); // Store created employee object
+    const [savedEmployee, setSavedEmployee] = useState<any | null>(null);
     const [showQrCodeModal, setShowQrCodeModal] = useState(false);
 
     const { data, setData, errors, processing, reset, post } = useForm<Employees>(initialEmployeeFormData);
@@ -56,56 +56,46 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
     }
 
     const handleProfileImageUpload = () => {
-        // Create a file input element to upload the image
+        
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = 'image/*'; // Allow only image files
+        input.accept = 'image/*';
 
-        // When a file is selected, handle the file and update preview
+        
         input.onchange = (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             console.log('Selected file:', file);
             if (file) {
-                // Update the file state and show the image preview
                 setSelectedFile(file);
-
-                // Preview the image
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const result = e.target?.result as string;
                     console.log('Selected file:', result);
 
-                    setPreview(result); // Set the preview for the image
+                    setPreview(result);
                 };
                 reader.readAsDataURL(file);
-
-                // Attach the image to the form data
-                setData('picture', file); // Add image to the form data for submission
+                setData('picture', file);
             }
         };
 
-        input.click(); // Trigger the file input click to open file explorer
+        input.click();
     };
 
     const handleRecommendationLetterUpload = () => {
-        // Create a file input element to upload the recommendation letter
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.txt,.rtf'; // Allow various document and image formats
+        input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.txt,.rtf';
 
-        // When a file is selected, handle the file and update preview
         input.onchange = (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             console.log('Selected recommendation file:', file);
             if (file) {
-                // Validate file size (max 10MB)
-                const maxSize = 10 * 1024 * 1024; // 10MB
+                const maxSize = 10 * 1024 * 1024;
                 if (file.size > maxSize) {
                     toast.error('File size must be less than 10MB');
                     return;
                 }
-
-                // Validate file type
                 const allowedTypes = [
                     'application/pdf',
                     'application/msword',
@@ -125,11 +115,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                     return;
                 }
 
-                // Update the file state
                 setSelectedRecommendationFile(file);
                 setRecommendationFileName(file.name);
 
-                // Preview for images
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
@@ -138,33 +126,28 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                     };
                     reader.readAsDataURL(file);
                 } else {
-                    // For non-image files, show file info
                     setRecommendationPreview('');
                 }
 
-                // Attach the file to the form data
                 setData('recommendation_letter', file);
                 toast.success('Recommendation letter uploaded successfully!');
             }
         };
 
-        input.click(); // Trigger the file input click to open file explorer
+        input.click();
     };
 
-    // Generate unique Add Crew employee ID (AC + 4 digits)
     const generateAddCrewEmployeeId = async (): Promise<string> => {
         const maxAttempts = 100;
         let attempts = 0;
 
         try {
-            // Fetch existing employees to check for uniqueness
             const response = await fetch('/api/employee/all');
             const employees = await response.json();
             const existingIds = new Set(employees.map((emp: any) => emp.employeeid).filter(Boolean));
 
             do {
-                // Generate a random 4-digit number
-                const randomDigits = Math.floor(Math.random() * 9999) + 1; // 1 to 9999
+                const randomDigits = Math.floor(Math.random() * 9999) + 1;
                 const employeeId = `AC${randomDigits.toString().padStart(4, '0')}`;
 
                 if (!existingIds.has(employeeId)) {
@@ -173,42 +156,35 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                 attempts++;
             } while (attempts < maxAttempts);
 
-            // Fallback: use timestamp-based ID if too many collisions
             const timestampDigits = Date.now().toString().slice(-4).padStart(4, '0');
             const fallbackId = `AC${timestampDigits}`;
             if (!existingIds.has(fallbackId)) {
                 return fallbackId;
             }
 
-            // Last resort: timestamp + random digit
             const lastResortDigits = (Date.now().toString().slice(-3) + Math.floor(Math.random() * 10)).padStart(4, '0');
             return `AC${lastResortDigits}`;
         } catch (error) {
             console.error('Error generating employee ID:', error);
-            // Fallback to simple random generation if API fails
             const randomDigits = Math.floor(Math.random() * 9999) + 1;
             return `AC${randomDigits.toString().padStart(4, '0')}`;
         }
     };
 
-    // Auto-generate employee ID when Add Crew is selected
     useEffect(() => {
         if (data.work_status === 'Add Crew' && !data.employeeid) {
             generateAddCrewEmployeeId().then((employeeId) => {
                 setData('employeeid', employeeId);
             });
         } else if (data.work_status !== 'Add Crew' && data.employeeid?.startsWith('AC')) {
-            // Clear AC ID if work status changes away from Add Crew
             setData('employeeid', '');
         }
     }, [data.work_status]);
 
-    // Update available positions when department changes
     useEffect(() => {
         if (data.department) {
             const positions = getPositionsForDepartment(data.department);
             setAvailablePositions(positions);
-            // Reset position when department changes
             setData('position', '');
         } else {
             setAvailablePositions([]);
@@ -216,7 +192,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
         }
     }, [data.department, setData]);
 
-    // Flow helpers based on Work Status
     const hasWorkStatus = !!data.work_status;
     const isAddCrew = data.work_status === 'Add Crew';
 
@@ -225,7 +200,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
             onClose();
             reset();
             setDate(undefined);
-            setBirth(undefined); // <-- Reset Date of Birth
+            setBirth(undefined);
             setPreview('');
             setSelectedFile(null);
             setRecommendationPreview('');
@@ -236,12 +211,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
         }, delay);
     };
 
-    // Save employee info (step 1)
     const handleSaveInfo: FormEventHandler = async (event) => {
         event.preventDefault();
-        if (savedEmployee) return; // Prevent double submit
+        if (savedEmployee) return;
 
-        // Prepare form data with all required field fixes for Add Crew
         const formData = { ...data };
         if (isAddCrew) {
             if (!formData.email || formData.email === null) {
@@ -264,22 +237,17 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
             }
         }
 
-        // Debug log the form data being sent
         console.log('Form data being submitted:', formData);
 
-        // Update the form data before submission
         setData(formData);
 
         post(route('employee.store'), {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: async (page) => {
-                // Employee created successfully
                 console.log('Employee created successfully:', formData);
 
-                // Fetch the created employee to get the auto-generated employeeid (for Add Crew) or verify the employeeid
                 try {
-                    // Wait a bit for the database to be updated
                     await new Promise((resolve) => setTimeout(resolve, 500));
                     const response = await fetch(`/api/employee/all`);
                     const employees = await response.json();
@@ -287,7 +255,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                     let foundEmployee = null;
 
                     if (isAddCrew) {
-                        // For Add Crew, find by name and work status (employeeid is auto-generated)
                         const matchingEmployees = employees
                             .filter(
                                 (emp: any) =>
@@ -298,7 +265,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                             .sort((a: any, b: any) => b.id - a.id);
                         foundEmployee = matchingEmployees[0];
                     } else {
-                        // For Regular/Probationary, find by employeeid
                         if (formData.employeeid) {
                             foundEmployee = employees.find((emp: any) => emp.employeeid === formData.employeeid);
                         }
@@ -307,8 +273,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                     if (foundEmployee) {
                         setSavedEmployee({
                             ...formData,
-                            employeeid: foundEmployee.employeeid, // Use the employeeid (auto-generated for Add Crew)
-                            id: foundEmployee.id, // Database ID
+                            employeeid: foundEmployee.employeeid,
+                            id: foundEmployee.id,
                         });
 
                         if (isAddCrew) {
@@ -325,7 +291,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
 
                 toast.success('Employee info saved! Generating QR code...');
 
-                // Reset form but keep savedEmployee for QR code modal
                 reset();
                 setDate(undefined);
                 setBirth(undefined);
@@ -335,14 +300,11 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                 setSelectedRecommendationFile(null);
                 setRecommendationFileName('');
 
-                // Close main modal and open QR code modal
-                // Use setTimeout to ensure state is set before modal transition
                 setTimeout(() => {
                     onClose();
                     setShowQrCodeModal(true);
                 }, 100);
 
-                // Call the onSuccess callback to refresh the employee list
                 if (onSuccess) {
                     onSuccess();
                 }
@@ -351,12 +313,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                 console.error('Validation errors:', errors);
                 console.log('Form data that failed:', formData);
 
-                // Show all errors in console for debugging
                 Object.keys(errors).forEach((key) => {
                     console.error(`Error for ${key}:`, errors[key]);
                 });
 
-                // Show specific error messages for better user experience
                 if (errors.employeeid) {
                     toast.error(`Employee ID Error: ${errors.employeeid}`);
                 } else if (errors.email) {
@@ -424,8 +384,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         <span className="text-[15px] font-medium text-muted-foreground">(optional)</span>
                                     </Label>
                                 </div>
-
-                                {/* <Input type="file" name="picture" onChange={handleFileChange} className="w-full" accept="image/*" /> */}
                             </div>
                             <div
                                 className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
@@ -509,7 +467,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         className="border-green-300 bg-gray-50 focus:border-cfar-500"
                                         aria-invalid={!!errors.employeeid}
                                     />
-                                    {/* Can  */}
                                 </div>
                             )}
                             <>
@@ -607,7 +564,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                         setBirth(selectedBirth);
                                                         setOpenBirth(false);
                                                         if (selectedBirth) {
-                                                            const localDateString = selectedBirth.toLocaleDateString('en-CA'); // YYYY-MM-DD in local timezone
+                                                            const localDateString = selectedBirth.toLocaleDateString('en-CA');
                                                             console.log('Selected Local Date:', localDateString);
                                                             setData('date_of_birth', localDateString);
                                                         }
@@ -646,7 +603,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                             setDate(selectedDate);
                                                             setOpenService(false);
                                                             if (selectedDate) {
-                                                                const localDateString = selectedDate.toLocaleDateString('en-CA'); // YYYY-MM-DD in local timezone
+                                                                const localDateString = selectedDate.toLocaleDateString('en-CA');
                                                                 console.log('Selected Local Date:', localDateString);
                                                                 setData('service_tenure', localDateString);
                                                             }
@@ -744,19 +701,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         <InputError message={errors.marital_status} />
                                     </div>
                                 )}
-                                {/* <div>
-                            <Label>
-                                Nationality
-                                <span className="text-[10px] font-medium text-muted-foreground">(optional)</span>
-                            </Label>
-                            <Input
-                                type="text"
-                                placeholder="Enter your nationality..."
-                                value={data.nationality}
-                                onChange={(e) => setData('nationality', e.target.value)}
-                                className="border-green-300 focus:border-cfar-500"
-                            />
-                        </div> */}
                             </>
                         </div>
                         <div className="mt-4"></div>
@@ -767,7 +711,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="">
                                     <Label>Address</Label>
-                                    {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
                                     <Input
                                         type="text"
                                         placeholder="Enter your address..."
@@ -780,7 +723,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                 </div>
                                 <div>
                                     <Label>City</Label>
-                                    {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
                                     <Input
                                         type="text"
                                         placeholder="Enter your city..."
@@ -923,7 +865,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                             </div>
                         )}
 
-                        {/* SSS */}
                         {!isAddCrew && (
                             <>
                                 <div>
@@ -945,7 +886,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     </div>
                                     <div>
                                         <Label>Username/Email Address</Label>
-                                        {/* */}
                                         <Input
                                             type="text"
                                             placeholder="Enter your username/email address..."
@@ -975,7 +915,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                             </>
                         )}
 
-                        {/* Philhealth */}
                         {!isAddCrew && (
                             <>
                                 <div>
@@ -997,7 +936,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     </div>
                                     <div>
                                         <Label>Username/Email Address</Label>
-                                        {/* */}
                                         <Input
                                             type="text"
                                             placeholder="Enter your philhealth..."
@@ -1011,7 +949,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     {can('Add Password') && (
                                         <div className="">
                                             <Label>Philhealth Password</Label>
-                                            {/* */}
                                             <Input
                                                 type="text"
                                                 placeholder="Enter your philhealth..."
@@ -1165,12 +1102,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                 )}
                             </Button>
                         </div>
-                        {/* End of Employee Information Registration */}
                     </form>
                 </DialogContent>
             </Dialog>
 
-            {/* QR Code Modal */}
             <EmployeeQrCodeModal
                 isOpen={showQrCodeModal && !!savedEmployee}
                 onClose={() => {
