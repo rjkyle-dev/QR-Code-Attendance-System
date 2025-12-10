@@ -30,7 +30,7 @@ export default function Welcome() {
                 <FeaturesSection />
                 {/* <HowItWorksSection /> */}
                 {/* <CTASection /> */}
-                <Footer />
+                {/* <Footer /> */}
             </div>
         </>
     );

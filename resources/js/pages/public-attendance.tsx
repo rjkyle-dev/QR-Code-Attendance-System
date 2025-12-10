@@ -1,12 +1,12 @@
 import { BackButton } from '@/components/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import { Camera, CheckCircle2, Loader2, RefreshCw, User } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { ArrowDown, ArrowUp, Camera, CheckCircle2, Loader2, RefreshCw, User } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ManualEntryModal } from './qr-code/ManualEntryModal';
 import { QRCodeScannerModal } from './qr-code/QRCodeScannerModal';
 
@@ -29,6 +29,12 @@ export default function PublicAttendancePage() {
     const [showManualModal, setShowManualModal] = useState(false);
     const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
     const [isLoadingAttendance, setIsLoadingAttendance] = useState(false);
+    const [previousStats, setPreviousStats] = useState<{
+        total: number;
+        late: number;
+        absence: number;
+        onLeave: number;
+    } | null>(null);
 
     const fetchTodayAttendance = useCallback(async () => {
         setIsLoadingAttendance(true);
@@ -48,6 +54,52 @@ export default function PublicAttendancePage() {
         fetchTodayAttendance();
     }, [fetchTodayAttendance]);
 
+    // Calculate statistics from attendance records
+    const stats = useMemo(() => {
+        const total = attendanceRecords.length;
+        const late = attendanceRecords.filter(
+            (record) => {
+                const status = record.attendance_status?.toLowerCase() || '';
+                return status === 'late' || status === 'l';
+            }
+        ).length;
+        const onLeave = attendanceRecords.filter(
+            (record) => {
+                const status = record.attendance_status?.toLowerCase() || '';
+                return status === 'leave' || status === 'on leave' || status === 'onleave';
+            }
+        ).length;
+        // Absence would typically be employees who didn't check in, but we don't have that data
+        // For now, we'll set it to 0 or you can fetch it from a separate endpoint
+        const absence = 0;
+
+        return { total, late, absence, onLeave };
+    }, [attendanceRecords]);
+
+    // Calculate percentage changes (mock data for now - you can fetch previous day's data)
+    const calculatePercentageChange = (current: number, previous: number): number => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous) * 100;
+    };
+
+    const percentageChanges = useMemo(() => {
+        if (!previousStats) {
+            // Mock percentage changes if no previous data
+            return {
+                total: 21.5,
+                late: 3.0,
+                absence: -7.0,
+                onLeave: -3.0,
+            };
+        }
+        return {
+            total: calculatePercentageChange(stats.total, previousStats.total),
+            late: calculatePercentageChange(stats.late, previousStats.late),
+            absence: calculatePercentageChange(stats.absence, previousStats.absence),
+            onLeave: calculatePercentageChange(stats.onLeave, previousStats.onLeave),
+        };
+    }, [stats, previousStats]);
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
@@ -65,13 +117,116 @@ export default function PublicAttendancePage() {
             </div>
 
             <div className="container mx-auto max-w-4xl px-4 py-8">
- <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <Button onClick={() => setShowCameraModal(true)} size="lg" className="gap-2">
-                                        <Camera className="h-5 w-5" />
-                                        QR Code Scanner
-                                    </Button>
-                                  
-                                </div>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button onClick={() => setShowCameraModal(true)} size="lg" className="gap-2">
+                        <Camera className="h-5 w-5" />
+                        QR Code Scanner
+                    </Button>
+                </div>
+
+                {/* Statistics Cards */}
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {/* Total Attendance Card */}
+                    <Card className="border-l-4 border-teal-500 bg-gradient-to-br from-teal-50 to-white shadow-lg">
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-sm font-medium text-gray-600">Total Attendance</CardDescription>
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-3xl font-bold text-gray-900">{stats.total}</CardTitle>
+                                <Badge
+                                    variant="outline"
+                                    className={`flex items-center gap-1 border-0 ${
+                                        percentageChanges.total >= 0
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
+                                    }`}
+                                >
+                                    {percentageChanges.total >= 0 ? (
+                                        <ArrowUp className="h-3 w-3" />
+                                    ) : (
+                                        <ArrowDown className="h-3 w-3" />
+                                    )}
+                                    {Math.abs(percentageChanges.total).toFixed(1)}%
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    {/* Late Card */}
+                    <Card className="border-l-4 border-yellow-500 bg-gradient-to-br from-yellow-50 to-white shadow-lg">
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-sm font-medium text-gray-600">Late</CardDescription>
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-3xl font-bold text-gray-900">{stats.late}</CardTitle>
+                                <Badge
+                                    variant="outline"
+                                    className={`flex items-center gap-1 border-0 ${
+                                        percentageChanges.late >= 0
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
+                                    }`}
+                                >
+                                    {percentageChanges.late >= 0 ? (
+                                        <ArrowUp className="h-3 w-3" />
+                                    ) : (
+                                        <ArrowDown className="h-3 w-3" />
+                                    )}
+                                    {Math.abs(percentageChanges.late).toFixed(1)}%
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    {/* Absence Card */}
+                    <Card className="border-l-4 border-pink-500 bg-gradient-to-br from-pink-50 to-white shadow-lg">
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-sm font-medium text-gray-600">Absence</CardDescription>
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-3xl font-bold text-gray-900">{stats.absence}</CardTitle>
+                                <Badge
+                                    variant="outline"
+                                    className={`flex items-center gap-1 border-0 ${
+                                        percentageChanges.absence >= 0
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
+                                    }`}
+                                >
+                                    {percentageChanges.absence >= 0 ? (
+                                        <ArrowUp className="h-3 w-3" />
+                                    ) : (
+                                        <ArrowDown className="h-3 w-3" />
+                                    )}
+                                    {Math.abs(percentageChanges.absence).toFixed(1)}%
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    {/* On Leave Card */}
+                    <Card className="border-l-4 border-blue-500 bg-gradient-to-br from-blue-50 to-white shadow-lg">
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-sm font-medium text-gray-600">On Leave</CardDescription>
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-3xl font-bold text-gray-900">{stats.onLeave}</CardTitle>
+                                <Badge
+                                    variant="outline"
+                                    className={`flex items-center gap-1 border-0 ${
+                                        percentageChanges.onLeave >= 0
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
+                                    }`}
+                                >
+                                    {percentageChanges.onLeave >= 0 ? (
+                                        <ArrowUp className="h-3 w-3" />
+                                    ) : (
+                                        <ArrowDown className="h-3 w-3" />
+                                    )}
+                                    {Math.abs(percentageChanges.onLeave).toFixed(1)}%
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                    </Card>
+                </div>
+
                 <Card className="mt-6 shadow-xl">
                     <CardHeader>
                         <div className="flex items-center justify-between">
