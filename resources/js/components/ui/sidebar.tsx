@@ -47,7 +47,33 @@ const SidebarContext = React.createContext<SidebarContextProps | null>(null)
 function useSidebar() {
   const context = React.useContext(SidebarContext)
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider.")
+    // Enhanced debugging information
+    const error = new Error("useSidebar must be used within a SidebarProvider.")
+    console.error("useSidebar Error Details:", {
+      message: error.message,
+      stack: error.stack,
+      componentStack: new Error().stack,
+      timestamp: new Date().toISOString(),
+      contextValue: context,
+      hasProvider: !!context,
+    })
+    
+    // Log component tree information
+    if (typeof window !== 'undefined') {
+      console.error("Current URL:", window.location.href)
+      console.error("SidebarContext:", SidebarContext)
+    }
+    
+    throw error
+  }
+
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.debug("useSidebar called successfully", {
+      state: context.state,
+      isMobile: context.isMobile,
+      timestamp: new Date().toISOString(),
+    })
   }
 
   return context
@@ -66,6 +92,13 @@ function SidebarProvider({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
+  // Debug logging
+  console.debug("SidebarProvider: Initializing", {
+    defaultOpen,
+    openProp,
+    timestamp: new Date().toISOString(),
+  });
+  
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
 
@@ -129,6 +162,14 @@ function SidebarProvider({
     }),
     [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
   )
+
+  // Debug logging before rendering
+  console.debug("SidebarProvider: Rendering with context", {
+    state,
+    open,
+    isMobile,
+    timestamp: new Date().toISOString(),
+  });
 
   return (
     <SidebarContext.Provider value={contextValue}>

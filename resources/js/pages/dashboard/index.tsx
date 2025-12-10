@@ -252,8 +252,43 @@ function SidebarHoverLogic(
         unreadNotificationCount: number;
     },
 ) {
-    const { state } = useSidebar();
-    const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
+    // Debug logging
+    console.debug("SidebarHoverLogic: Component rendering", {
+        timestamp: new Date().toISOString(),
+        hasProps: !!props,
+    });
+    
+    let sidebarState;
+    let hoverHandlers;
+    
+    try {
+        console.debug("SidebarHoverLogic: Attempting to call useSidebar");
+        sidebarState = useSidebar();
+        console.debug("SidebarHoverLogic: useSidebar successful", { state: sidebarState.state });
+    } catch (error) {
+        console.error("SidebarHoverLogic: Error in useSidebar", {
+            error,
+            timestamp: new Date().toISOString(),
+            stack: new Error().stack,
+        });
+        throw error;
+    }
+    
+    try {
+        console.debug("SidebarHoverLogic: Attempting to call useSidebarHover");
+        hoverHandlers = useSidebarHover();
+        console.debug("SidebarHoverLogic: useSidebarHover successful");
+    } catch (error) {
+        console.error("SidebarHoverLogic: Error in useSidebarHover", {
+            error,
+            timestamp: new Date().toISOString(),
+            stack: new Error().stack,
+        });
+        throw error;
+    }
+    
+    const { state } = sidebarState;
+    const { handleMouseEnter, handleMouseLeave } = hoverHandlers;
 
     // Get role-specific labels and descriptions
     const getRoleSpecificContent = () => {

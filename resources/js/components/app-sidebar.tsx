@@ -143,8 +143,46 @@ const getMainNavItems = (): NavItem[] => [
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const { state, isMobile } = useSidebar();
-    const { handleMouseEnter } = useSidebarHover();
+    // Debug logging
+    console.debug("AppSidebar: Component rendering", {
+        timestamp: new Date().toISOString(),
+        hasProps: !!props,
+    });
+    
+    let sidebarContext;
+    try {
+        console.debug("AppSidebar: Attempting to call useSidebar");
+        sidebarContext = useSidebar();
+        console.debug("AppSidebar: useSidebar successful", { 
+            state: sidebarContext.state,
+            isMobile: sidebarContext.isMobile,
+        });
+    } catch (error) {
+        console.error("AppSidebar: Error in useSidebar", {
+            error,
+            timestamp: new Date().toISOString(),
+            stack: new Error().stack,
+        });
+        throw error;
+    }
+    
+    const { state, isMobile } = sidebarContext;
+    
+    let hoverHandlers;
+    try {
+        console.debug("AppSidebar: Attempting to call useSidebarHover");
+        hoverHandlers = useSidebarHover();
+        console.debug("AppSidebar: useSidebarHover successful");
+    } catch (error) {
+        console.error("AppSidebar: Error in useSidebarHover", {
+            error,
+            timestamp: new Date().toISOString(),
+            stack: new Error().stack,
+        });
+        throw error;
+    }
+    
+    const { handleMouseEnter } = hoverHandlers;
     const mainNavItems = getMainNavItems();
 
     return (
