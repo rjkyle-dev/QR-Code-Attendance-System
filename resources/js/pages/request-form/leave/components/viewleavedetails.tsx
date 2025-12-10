@@ -216,7 +216,7 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
             </head>
             <body>
                 <div class="header">
-                    <img src="/Logo.png" alt="Logo" class="logo" />
+                    <img src="/AGOC.png" alt="Logo" class="logo" />
                     <div class="company-name">HRIS (CheckWise)</div>
                     <div class="document-title">Leave Request Document</div>
                     <div class="date">Generated on: ${currentDate}</div>
@@ -344,7 +344,7 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
                                         .split(' ')
                                         .map((n) => n[0])
                                         .join('')} */}
-                                <img src="Logo.png" alt="" />
+                                <img src="AGOC.png" alt="" />
                             </AvatarFallback>
                         </Avatar>
                         <div>

@@ -39,9 +39,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
     const [preview, setPreview] = useState<string>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-    const [recommendationPreview, setRecommendationPreview] = useState<string>('');
-    const [selectedRecommendationFile, setSelectedRecommendationFile] = useState<File | null>(null);
-    const [recommendationFileName, setRecommendationFileName] = useState<string>('');
+    const [nbiClearancePreview, setNbiClearancePreview] = useState<string>('');
+    const [selectedNbiClearanceFile, setSelectedNbiClearanceFile] = useState<File | null>(null);
+    const [nbiClearanceFileName, setNbiClearanceFileName] = useState<string>('');
 
     const [savedEmployee, setSavedEmployee] = useState<any | null>(null);
     const [showQrCodeModal, setShowQrCodeModal] = useState(false);
@@ -82,14 +82,13 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
         input.click();
     };
 
-    const handleRecommendationLetterUpload = () => {
+    const handleNbiClearanceUpload = () => {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.txt,.rtf';
 
         input.onchange = (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
-            console.log('Selected recommendation file:', file);
             if (file) {
                 const maxSize = 10 * 1024 * 1024;
                 if (file.size > maxSize) {
@@ -111,26 +110,26 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                 ];
 
                 if (!allowedTypes.includes(file.type)) {
-                    toast.error('Please select a valid file type (PDF, Word, Image, or Text)');
+                    toast.error('Invalid type file!');
                     return;
                 }
 
-                setSelectedRecommendationFile(file);
-                setRecommendationFileName(file.name);
+                setSelectedNbiClearanceFile(file);
+                setNbiClearanceFileName(file.name);
 
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         const result = e.target?.result as string;
-                        setRecommendationPreview(result);
+                        setNbiClearancePreview(result);
                     };
                     reader.readAsDataURL(file);
                 } else {
-                    setRecommendationPreview('');
+                    setNbiClearancePreview('');
                 }
 
-                setData('recommendation_letter', file);
-                toast.success('Recommendation letter uploaded successfully!');
+                setData('nbi_clearance', file);
+                toast.success('NBI Clearance uploaded successfully!');
             }
         };
 
@@ -203,9 +202,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
             setBirth(undefined);
             setPreview('');
             setSelectedFile(null);
-            setRecommendationPreview('');
-            setSelectedRecommendationFile(null);
-            setRecommendationFileName('');
+            setNbiClearancePreview('');
+            setSelectedNbiClearanceFile(null);
+            setNbiClearanceFileName('');
             setSavedEmployee(null);
             setShowQrCodeModal(false);
         }, delay);
@@ -353,8 +352,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                     toast.error(`Phone Error: ${errors.phone}`);
                 } else if (errors.picture) {
                     toast.error(`Profile Picture Error: ${errors.picture}`);
-                } else if (errors.recommendation_letter) {
-                    toast.error(`Recommendation Letter Error: ${errors.recommendation_letter}`);
+                } else if (errors.nbi_clearance) {
+                    toast.error(`NBI Clearance Error: ${errors.nbi_clearance}`);
                 } else {
                     toast.error('Please check all required fields and try again.');
                 }
@@ -834,34 +833,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     />
                                     <InputError message={errors.hdmf_user_id} />
                                 </div>
-                                <div>
-                                    <Label>Username/Email Address</Label>
-
-                                    <Input
-                                        type="text"
-                                        placeholder="Enter username/email address..."
-                                        value={data.hdmf_username}
-                                        onChange={(e) => setData('hdmf_username', e.target.value)}
-                                        className={`border-green-300 focus:border-cfar-500 ${errors.hdmf_username ? 'border-red-500 focus:border-red-500' : ''}`}
-                                        aria-invalid={!!errors.hdmf_username}
-                                    />
-                                    <InputError message={errors.hdmf_username} />
-                                </div>
-                                {can('Add Password') && (
-                                    <div>
-                                        <Label>Password</Label>
-
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter password..."
-                                            value={data.hdmf_password}
-                                            onChange={(e) => setData('hdmf_password', e.target.value)}
-                                            className="border-green-300 focus:border-cfar-500"
-                                            aria-invalid={!!errors.hdmf_password}
-                                        />
-                                        <InputError message={errors.hdmf_password} />
-                                    </div>
-                                )}
                             </div>
                         )}
 
@@ -884,33 +855,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         />
                                         <InputError message={errors.sss_user_id} />
                                     </div>
-                                    <div>
-                                        <Label>Username/Email Address</Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your username/email address..."
-                                            value={data.sss_username}
-                                            onChange={(e) => setData('sss_username', e.target.value)}
-                                            className="border-green-300 focus:border-cfar-500"
-                                            aria-invalid={!!errors.sss_username}
-                                        />
-                                        <InputError message={errors.sss_username} />
-                                    </div>
-                                    {can('Add Password') && (
-                                        <div>
-                                            <Label>Password</Label>
-
-                                            <Input
-                                                type="text"
-                                                placeholder="Enter password..."
-                                                value={data.sss_password}
-                                                onChange={(e) => setData('sss_password', e.target.value)}
-                                                className="border-green-300 focus:border-cfar-500"
-                                                aria-invalid={!!errors.sss_password}
-                                            />
-                                            <InputError message={errors.sss_password} />
-                                        </div>
-                                    )}
                                 </div>
                             </>
                         )}
@@ -934,32 +878,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         />
                                         <InputError message={errors.philhealth_user_id} />
                                     </div>
-                                    <div>
-                                        <Label>Username/Email Address</Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your philhealth..."
-                                            value={data.philhealth_username}
-                                            onChange={(e) => setData('philhealth_username', e.target.value)}
-                                            className="border-green-300 focus:border-cfar-500"
-                                            aria-invalid={!!errors.philhealth_username}
-                                        />
-                                        <InputError message={errors.philhealth_username} />
-                                    </div>
-                                    {can('Add Password') && (
-                                        <div className="">
-                                            <Label>Philhealth Password</Label>
-                                            <Input
-                                                type="text"
-                                                placeholder="Enter your philhealth..."
-                                                value={data.philhealth_password}
-                                                onChange={(e) => setData('philhealth_password', e.target.value)}
-                                                className="border-green-300 focus:border-cfar-500"
-                                                aria-invalid={!!errors.philhealth_password}
-                                            />
-                                            <InputError message={errors.philhealth_password} />
-                                        </div>
-                                    )}
                                 </div>
                             </>
                         )}
@@ -978,44 +896,18 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     />
                                     <InputError message={errors.tin_user_id} />
                                 </div>
-                                <div>
-                                    <Label htmlFor="state">Username/Email Address</Label>
-                                    <Input
-                                        type="text"
-                                        placeholder="Enter your username/email address.."
-                                        value={data.tin_username}
-                                        onChange={(e) => setData('tin_username', e.target.value)}
-                                        className="border-green-300 focus:border-cfar-500"
-                                        aria-invalid={!!errors.tin_username}
-                                    />
-                                    <InputError message={errors.tin_username} />
-                                </div>
-                                {can('Add Password') && (
-                                    <div>
-                                        <Label htmlFor="state">Tin Password</Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your tin_password.."
-                                            value={data.tin_password}
-                                            onChange={(e) => setData('tin_password', e.target.value)}
-                                            className="border-green-300 focus:border-cfar-500"
-                                            aria-invalid={!!errors.tin_password}
-                                        />
-                                        <InputError message={errors.tin_password} />
-                                    </div>
-                                )}
                             </div>
                         )}
-                        <div>{!isAddCrew && <h3 className="text-lg font-bold">Recommendation Letter</h3>}</div>
+                        <div>{!isAddCrew && <h3 className="text-lg font-bold">NBI Clearance</h3>}</div>
                         {!isAddCrew && (
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="col-span-2">
-                                    <Label>Upload Recommendation Letter</Label>
+                                    <Label>Upload NBI Clearance</Label>
                                     <div
                                         className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
-                                        onClick={handleRecommendationLetterUpload}
+                                        onClick={handleNbiClearanceUpload}
                                     >
-                                        {selectedRecommendationFile ? (
+                                        {selectedNbiClearanceFile ? (
                                             <div className="text-center">
                                                 <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                                                     <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1028,7 +920,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                     </svg>
                                                 </div>
                                                 <p className="font-medium text-green-800">File Selected</p>
-                                                <p className="text-sm text-green-600">{recommendationFileName}</p>
+                                                <p className="text-sm text-green-600">{nbiClearanceFileName}</p>
                                                 <p className="text-xs text-gray-500">Click to change</p>
                                             </div>
                                         ) : (
@@ -1050,14 +942,14 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         )}
                                     </div>
                                 </div>
-                                {recommendationPreview && (
+                                {nbiClearancePreview && (
                                     <div className="col-span-2">
                                         <div className="mb-2 font-medium text-green-800">File Preview:</div>
                                         <div className="flex items-center justify-center rounded-md border bg-gray-50 p-4">
-                                            {recommendationPreview.startsWith('data:image/') ? (
+                                            {nbiClearancePreview.startsWith('data:image/') ? (
                                                 <img
-                                                    src={recommendationPreview}
-                                                    alt="Recommendation Letter Preview"
+                                                    src={nbiClearancePreview}
+                                                    alt="NBI Clearance Preview"
                                                     className="max-h-48 max-w-full rounded object-contain"
                                                 />
                                             ) : (
@@ -1071,10 +963,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                         />
                                                     </svg>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">{recommendationFileName}</p>
+                                                        <p className="font-medium text-gray-900">{nbiClearanceFileName}</p>
                                                         <p className="text-sm text-gray-500">
-                                                            {selectedRecommendationFile?.size
-                                                                ? (selectedRecommendationFile.size / 1024 / 1024).toFixed(2)
+                                                            {selectedNbiClearanceFile?.size
+                                                                ? (selectedNbiClearanceFile.size / 1024 / 1024).toFixed(2)
                                                                 : '0'}{' '}
                                                             MB
                                                         </p>

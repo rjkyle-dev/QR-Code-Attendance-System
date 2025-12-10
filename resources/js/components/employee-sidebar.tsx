@@ -30,11 +30,6 @@ const mainNavItems: NavItemEmployee[] = [
         icon: QrCode,
     },
     {
-        title: 'My Evaluations',
-        href: '/employee-view/evaluations',
-        icon: NotebookPen,
-    },
-    {
         title: 'My Leave',
         href: '/employee-view/leave',
         icon: CalendarPlus2,

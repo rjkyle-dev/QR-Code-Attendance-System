@@ -37,11 +37,11 @@ const columns = (
                                     alt={fullname}
                                     className="h-10 w-10 rounded-full object-cover"
                                     onError={(e) => {
-                                        e.currentTarget.src = '/Logo.png';
+                                        e.currentTarget.src = '/AGOC.png';
                                     }}
                                 />
                             ) : (
-                                <img src="/Logo.png" alt={fullname} className="h-10 w-10 rounded-full object-cover" />
+                                <img src="/AGOC.png" alt={fullname} className="h-10 w-10 rounded-full object-cover" />
                             )}
                         </div>
                         <div>

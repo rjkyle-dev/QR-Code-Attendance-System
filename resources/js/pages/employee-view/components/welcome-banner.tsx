@@ -46,10 +46,10 @@ export function WelcomeBanner({ employee }: WelcomeBannerProps) {
                 <div className="flex items-center space-x-4">
                     <Avatar className="h-16 w-16 border-2 border-white/20">
                         <AvatarImage
-                            src={employee.picture || '/Logo.png'}
+                            src={employee.picture || '/AGOC.png'}
                             alt={employee.employee_name}
                             onError={(e) => {
-                                e.currentTarget.src = '/Logo.png';
+                                e.currentTarget.src = '/AGOC.png';
                             }}
                         />
                     </Avatar>

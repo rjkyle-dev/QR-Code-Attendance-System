@@ -931,7 +931,7 @@ function AbsenceCard({
         >
             <CardHeader className="pb-2">
                 <div className="flex items-center gap-3">
-                    <img src={picture || '/Logo.png'} alt={employeeName} className="h-10 w-10 rounded-full border object-cover" />
+                    <img src={picture || '/AGOC.png'} alt={employeeName} className="h-10 w-10 rounded-full border object-cover" />
                     <div className="flex-1">
                         <CardTitle className="text-base">{employeeName}</CardTitle>
                         <CardDescription className="flex items-center gap-1 text-xs">

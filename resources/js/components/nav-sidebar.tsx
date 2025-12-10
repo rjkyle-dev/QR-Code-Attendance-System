@@ -79,7 +79,7 @@ export function NavSidebar({ items = [] }: { items: NavItem[] }) {
                                 </CollapsibleContent>
                             </Collapsible>
                         ) : (
-                                                         <SidebarMenuButton className="mt-2" asChild isActive={item.href === page.url} tooltip={{ children: item.title }}>
+                            <SidebarMenuButton className="mt-2" asChild isActive={item.href === page.url} tooltip={{ children: item.title }}>
                                 <Link className="font-semibold" href={item.href}>
                                     {item.icon && <item.icon className="h-4 w-4" />}
                                     <span>{item.title}</span>

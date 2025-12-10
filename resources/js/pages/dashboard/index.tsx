@@ -19,7 +19,6 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { LayoutGrid } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { MonthlyRecognition } from './components/monthly-recognition';
 import { SectionCards } from './components/section-cards';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/tabs';
 
@@ -57,20 +56,6 @@ interface Props {
     isSuperAdmin: boolean;
     supervisedDepartments: string[];
     supervisorEmployees?: any[]; // Add this prop
-    monthlyRecognitionEmployees?: Array<{
-        id: number;
-        name: string;
-        department: string;
-        position: string;
-        picture?: string;
-        employeeid: string;
-        initials: string;
-        evaluation_rating: number;
-        evaluation_date: string;
-        evaluation_period: string;
-        evaluation_year: number;
-        recognition_score: number;
-    }>;
     // Add notifications for admin bell
     notifications: any[];
     unreadNotificationCount: number;
@@ -91,7 +76,6 @@ export default function Index({
     isSuperAdmin,
     supervisedDepartments,
     supervisorEmployees,
-    monthlyRecognitionEmployees,
     notifications,
     unreadNotificationCount,
     auth,
@@ -221,8 +205,6 @@ export default function Index({
     return (
         <SidebarProvider>
             <Head title="Dashboard" />
-            {/* Sidebar hover logic using the reusable hook and component */}
-            {/* Use the hook only after SidebarProvider so context is available */}
             <SidebarHoverLogic
                 totalEmployee={totalEmployee}
                 totalDepartment={totalDepartment}
@@ -240,7 +222,6 @@ export default function Index({
                 isSuperAdmin={isSuperAdmin}
                 supervisedDepartments={supervisedDepartments}
                 supervisorEmployees={supervisorEmployees}
-                monthlyRecognitionEmployees={monthlyRecognitionEmployees}
                 notifications={notificationList}
                 unreadNotificationCount={unreadCount}
             />
@@ -248,7 +229,6 @@ export default function Index({
     );
 }
 
-// SidebarHoverLogic is a helper component to keep the main export clean and context usage correct
 function SidebarHoverLogic(
     props: Props & {
         months: number;
@@ -267,20 +247,6 @@ function SidebarHoverLogic(
             leaves: number;
             percentage: number;
             date: string;
-        }>;
-        monthlyRecognitionEmployees?: Array<{
-            id: number;
-            name: string;
-            department: string;
-            position: string;
-            picture?: string;
-            employeeid: string;
-            initials: string;
-            evaluation_rating: number;
-            evaluation_date: string;
-            evaluation_period: string;
-            evaluation_year: number;
-            recognition_score: number;
         }>;
         notifications: any[];
         unreadNotificationCount: number;
@@ -389,66 +355,6 @@ function SidebarHoverLogic(
                                     </div>
                                     <Separator className="shadow-sm" />
                                     <ChartAreaInteractive />
-                                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-                                        {/* <div className="flex h-full flex-col lg:col-span-3">
-                                            <Card className="flex h-full flex-col p-5">
-                                                <div className="mb-4 flex items-center gap-2">
-                                                    <Calendar className="h-5 w-5 text-muted-foreground" />
-                                                    <h3 className="font-semibold">
-                                                        {props.isSupervisor ? 'Your Department Leave Trends' : 'Leave Trendss'}
-                                                    </h3>
-                                                </div>
-                                                <div className="mb-4 flex items-center gap-2">
-                                                    <label htmlFor="months-select" className="font-medium">
-                                                        Show last
-                                                    </label>
-                                                    <select
-                                                        id="months-select"
-                                                        value={props.months}
-                                                        onChange={props.handleMonthsChange}
-                                                        className="rounded border px-2 py-1"
-                                                    >
-                                                        <option value={3}>3 months</option>
-                                                        <option value={6}>6 months</option>
-                                                        <option value={12}>12 months</option>
-                                                    </select>
-                                                </div>
-                                                <div className="flex flex-1 flex-col">
-                                                    <ChartBarLabel chartData={props.leavesPerMonth} />
-                                                </div>
-                                            </Card>
-                                        </div> */}
-                                        <div className="flex h-full flex-col lg:col-span-5 lg:row-span-2">
-                                            <Card className="flex h-[700px] flex-col overflow-y-auto">
-                                                <CardHeader className="pb-3">
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <CardTitle className="text-lg font-semibold">
-                                                                {props.isSupervisor ? 'Top 5 Recognition Awards' : 'Top 5 Recognition Awards'}
-                                                            </CardTitle>
-                                                            <CardDescription className="text-sm">
-                                                                {props.isSupervisor
-                                                                    ? `Best performers from ${props.supervisedDepartments.join(', ')} department${props.supervisedDepartments.length > 1 ? 's' : ''}`
-                                                                    : 'Top 5 employees with highest evaluation ratings'}
-                                                            </CardDescription>
-                                                        </div>
-                                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/20">
-                                                            <span className="text-lg">🏆</span>
-                                                        </div>
-                                                    </div>
-                                                    <SidebarSeparator />
-                                                </CardHeader>
-                                                <CardContent className="flex flex-1 flex-col p-4">
-                                                    <div className="flex flex-1 flex-col space-y-3">
-                                                        <MonthlyRecognition
-                                                            employees={props.monthlyRecognitionEmployees?.slice(0, 5)}
-                                                            isSupervisor={props.isSupervisor}
-                                                        />
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-                                    </div>
                                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
                                         <div className="lg:col-span-2 lg:row-span-2">
                                             {/* <ChartBarLabels /> */}

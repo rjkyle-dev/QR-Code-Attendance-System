@@ -35,7 +35,7 @@ const ReportCard = ({
     description: string;
     icon: React.ElementType;
     buttonText?: string;
-    variant?: 'default' | 'attendance' | 'employee' | 'leave' | 'evaluation' | 'absenteeism';
+    variant?: 'default' | 'attendance' | 'employee' | 'leave' | 'absenteeism';
     onClick?: () => void;
 }) => {
     return (
@@ -46,7 +46,6 @@ const ReportCard = ({
                     variant === 'attendance' && 'border-l-4 border-green-500',
                     variant === 'employee' && 'border-l-4 border-blue-500',
                     variant === 'leave' && 'border-l-4 border-yellow-500',
-                    variant === 'evaluation' && 'border-l-4 border-purple-500',
                     variant === 'absenteeism' && 'border-l-4 border-orange-500',
                 )}
             >
@@ -58,7 +57,6 @@ const ReportCard = ({
                             variant === 'attendance' && 'text-green-500',
                             variant === 'employee' && 'text-blue-500',
                             variant === 'leave' && 'text-yellow-500',
-                            variant === 'evaluation' && 'text-purple-500',
                             variant === 'absenteeism' && 'text-orange-500',
                         )}
                     />
@@ -103,7 +101,7 @@ const performanceData = [
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'];
 
-type ReportTab = 'attendance' | 'employee' | 'leave' | 'evaluation' | 'absenteeism';
+type ReportTab = 'attendance' | 'employee' | 'leave' | 'absenteeism';
 
 const ReportPage = () => {
     // const [date, setDate] = useState<Date | undefined>(new Date());
@@ -118,7 +116,7 @@ const ReportPage = () => {
             try {
                 const params = new URLSearchParams(window.location.search);
                 const tab = (params.get('tab') || '').toLowerCase();
-                if (tab === 'attendance' || tab === 'employee' || tab === 'leave' || tab === 'evaluation' || tab === 'absenteeism') {
+                if (tab === 'attendance' || tab === 'employee' || tab === 'leave' || tab === 'absenteeism') {
                     return tab as ReportTab;
                 }
                 return 'attendance';
@@ -168,7 +166,7 @@ const ReportPage = () => {
                                 <div className="space-y-6">
                                     <SidebarSeparator />
                                     <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 p-5">
-                                        <TabsList className="bg-main mb-3 grid grid-cols-2 py-[5px] md:grid-cols-5">
+                                        <TabsList className="bg-main mb-3 grid grid-cols-2 py-[5px] md:grid-cols-4">
                                             <TabsTrigger
                                                 className="hover:bg-main-600 mx-3 mb-3 data-[state=active]:bg-green-600 data-[state=active]:text-white"
                                                 value="attendance"
@@ -187,12 +185,6 @@ const ReportPage = () => {
                                                 value="leave"
                                             >
                                                 Leave
-                                            </TabsTrigger>
-                                            <TabsTrigger
-                                                className="hover:bg-main-600 mx-3 mb-3 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
-                                                value="evaluation"
-                                            >
-                                                Evaluation
                                             </TabsTrigger>
                                             <TabsTrigger
                                                 className="hover:bg-main-600 mx-3 mb-3 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
@@ -308,66 +300,6 @@ const ReportPage = () => {
                                                 />
                                             </div>
                                         </TabsContent>
-                                        <TabsContent value="evaluation" className="space-y-4">
-                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                                <ReportCard
-                                                    title="Admin Department Performance"
-                                                    description="Performance analysis by Admin Department"
-                                                    icon={FileText}
-                                                    variant="evaluation"
-                                                    buttonText="View"
-                                                    onClick={() => router.visit('/report/admin-department-performance')}
-                                                />
-                                                <ReportCard
-                                                    title="Packing Plant Performance"
-                                                    description="Performance analysis by Packing Plant"
-                                                    icon={FileText}
-                                                    variant="evaluation"
-                                                    buttonText="View"
-                                                    onClick={() => router.visit('/report/packing-plant-performance')}
-                                                />
-                                                <ReportCard
-                                                    title="Harvesting Area Performance"
-                                                    description="Performance analysis by Harvesting Area"
-                                                    icon={FileText}
-                                                    variant="evaluation"
-                                                    buttonText="View"
-                                                    onClick={() => router.visit('/report/harvesting-area-performance')}
-                                                />
-                                                <ReportCard
-                                                    title="Coop Area Performance"
-                                                    description="Performance analysis by Coop Area"
-                                                    icon={FileText}
-                                                    variant="evaluation"
-                                                    buttonText="View"
-                                                    onClick={() => router.visit('/report/coop-area-performance')}
-                                                />
-                                                <ReportCard
-                                                    title="Pest & Disease Performance"
-                                                    description="Performance analysis by Pest & Disease"
-                                                    icon={FileText}
-                                                    variant="evaluation"
-                                                    buttonText="View"
-                                                    onClick={() => router.visit('/report/pest-disease-performance')}
-                                                />
-                                                <ReportCard
-                                                    title="Utility Performance"
-                                                    description="Performance analysis by Utility"
-                                                    icon={FileText}
-                                                    variant="evaluation"
-                                                    buttonText="View"
-                                                    onClick={() => router.visit('/report/utility-performance')}
-                                                />
-                                                <ReportCard
-                                                    title="Engineering Department Performance"
-                                                    description="Performance analysis by Engineering Department"
-                                                    icon={FileText}
-                                                    variant="evaluation"
-                                                    buttonText="View"
-                                                    onClick={() => router.visit('/report/engineering-department-performance')}
-                                                />
-                                            </div>
-                                        </TabsContent>
                                     </Tabs>
                                 </div>
                             </CardContent>
@@ -375,7 +307,6 @@ const ReportPage = () => {
                     )}
                 </SidebarInset>
             </SidebarHoverLogic>
-            {/* Daily attendance modal removed; routed to dedicated page */}
         </SidebarProvider>
     );
 };

@@ -39,7 +39,7 @@ type LeavePDFViewerProps = {
 export default function LeavePDFViewer({
     leave,
     companyName = 'CFARBEMCO',
-    logoPath = '/Logo.png',
+    logoPath = '/AGOC.png',
     width = '100%',
     height = 800,
     showEmployeePhoto = true,
@@ -92,7 +92,7 @@ export async function generateLeavePdfBlob(
     const LeaveDocument = LeavePDFTemplate({
         leave: { ...leave, picture: leave.picture ? toAbsoluteUrl(leave.picture) : '' },
         companyName: opts?.companyName ?? 'CFARBEMCO',
-        logoPath: toAbsoluteUrl(opts?.logoPath ?? '/Logo.png'),
+        logoPath: toAbsoluteUrl(opts?.logoPath ?? '/AGOC.png'),
         showEmployeePhoto: opts?.showEmployeePhoto ?? true,
         showFooter: opts?.showFooter ?? true,
         showHeader: opts?.showHeader ?? true,

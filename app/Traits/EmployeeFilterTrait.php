@@ -27,31 +27,56 @@ trait EmployeeFilterTrait
       return $baseQuery->orderBy('employee_name')->get();
     }
 
-    // HR Personnel can see all employees from all departments (no filtering by assignment)
-    if ($user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists()) {
+    // HR Personnel can see all employees from all departments
+    if ($user->isHR() && $user->hrAssignments()->exists()) {
       return $baseQuery->orderBy('employee_name')->get();
     }
 
-    // Manager can see all employees from all departments (no filtering by assignment)
-    if ($user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists()) {
+    // Manager can see all employees from all departments
+    if ($user->isManager() && $user->managerAssignments()->exists()) {
       return $baseQuery->orderBy('employee_name')->get();
     }
 
-    // Get all evaluable departments for the user (from Supervisor or Admin assignments)
-    $evaluableDepartments = $user->getEvaluableDepartments();
+    // Get departments from supervisor assignments
+    $supervisorDepartments = $user->supervisedDepartments()
+      ->pluck('department')
+      ->toArray();
 
-    if (empty($evaluableDepartments)) {
+    // Get departments from admin assignments
+    $adminDepartments = $user->adminAssignments()
+      ->pluck('department')
+      ->toArray();
+
+    // Get departments from HR assignments (for non-HR users)
+    if (!$user->isHR()) {
+      $hrDepartments = $user->hrAssignments()
+        ->pluck('department')
+        ->toArray();
+      $supervisorDepartments = array_merge($supervisorDepartments, $hrDepartments);
+    }
+
+    // Get departments from Manager assignments (for non-Manager users)
+    if (!$user->isManager()) {
+      $managerDepartments = $user->managerAssignments()
+        ->pluck('department')
+        ->toArray();
+      $supervisorDepartments = array_merge($supervisorDepartments, $managerDepartments);
+    }
+
+    $allDepartments = array_unique(array_merge($supervisorDepartments, $adminDepartments));
+
+    if (empty($allDepartments)) {
       return collect(); // No departments assigned
     }
 
     // Filter by assigned departments (for Supervisor and Admin)
-    return $baseQuery->whereIn('department', $evaluableDepartments)
+    return $baseQuery->whereIn('department', $allDepartments)
       ->orderBy('employee_name')
       ->get();
   }
 
   /**
-   * Get evaluable departments for the user
+   * Get departments for the user based on their assignments
    * Used for filtering in various queries
    */
   protected function getEvaluableDepartmentsForUser($user): array
@@ -61,17 +86,44 @@ trait EmployeeFilterTrait
       return Employee::distinct()->pluck('department')->toArray();
     }
 
-    // HR Personnel can see all departments (no filtering by assignment)
-    if ($user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists()) {
+    // HR Personnel can see all departments
+    if ($user->isHR() && $user->hrAssignments()->exists()) {
       return Employee::distinct()->pluck('department')->toArray();
     }
 
-    // Manager can see all departments (no filtering by assignment)
-    if ($user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists()) {
+    // Manager can see all departments
+    if ($user->isManager() && $user->managerAssignments()->exists()) {
       return Employee::distinct()->pluck('department')->toArray();
     }
 
-    // Get evaluable departments for Supervisor or Admin
-    return $user->getEvaluableDepartments();
+    // Get departments from supervisor assignments
+    $supervisorDepartments = $user->supervisedDepartments()
+      ->pluck('department')
+      ->toArray();
+
+    // Get departments from admin assignments
+    $adminDepartments = $user->adminAssignments()
+      ->pluck('department')
+      ->toArray();
+
+    // Get departments from HR assignments (for non-HR users)
+    if (!$user->isHR()) {
+      $hrDepartments = $user->hrAssignments()
+        ->pluck('department')
+        ->toArray();
+      $supervisorDepartments = array_merge($supervisorDepartments, $hrDepartments);
+    }
+
+    // Get departments from Manager assignments (for non-Manager users)
+    if (!$user->isManager()) {
+      $managerDepartments = $user->managerAssignments()
+        ->pluck('department')
+        ->toArray();
+      $supervisorDepartments = array_merge($supervisorDepartments, $managerDepartments);
+    }
+
+    $allDepartments = array_unique(array_merge($supervisorDepartments, $adminDepartments));
+
+    return $allDepartments;
   }
 }

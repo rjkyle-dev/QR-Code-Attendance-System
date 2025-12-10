@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
         main:
-          "bg-white text-black font-semibold shadow-xs hover:bg-white/90 transition-all duration-300 ease-in-out",
+          "bg-emerald-500 text-black font-semibold shadow-xs hover:bg-emerald-400 transition-all duration-300 ease-in-out",
         destructive:
           "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:

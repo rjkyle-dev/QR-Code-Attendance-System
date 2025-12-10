@@ -290,7 +290,7 @@ export default function LeaveEditPage() {
                                     <div className="relative">
                                         <div className="border-main flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 bg-muted">
                                             <img
-                                                src={data.picture ? data.picture : '/Logo.png'}
+                                                src={data.picture ? data.picture : '/AGOC.png'}
                                                 alt="Employee"
                                                 className="h-full w-full object-cover"
                                             />
@@ -1066,7 +1066,7 @@ export default function LeaveEditPage() {
                                     employeeid: data.employeeid,
                                 },
                                 companyName: 'CFARBEMCO',
-                                logoPath: toAbsoluteUrl('/Logo.png'),
+                                logoPath: toAbsoluteUrl('/AGOC.png'),
                             })()}
                         </PDFViewer>
                     </div>

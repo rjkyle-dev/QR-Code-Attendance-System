@@ -4,7 +4,6 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceSessionController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\ServiceTenureController;
 use App\Http\Controllers\TestController;
@@ -37,8 +36,6 @@ Route::get('/attendance', function () {
 // Employee routes are handled in employee_auth.php
 
 Route::middleware(['auth', 'verified'])->group(function () {
-
-
     Route::get('request-form/leave', [LeaveController::class, 'index'])->name('request-form.index');
 
     Route::middleware(['permission:View Report|View Report Attendance|View Report Leave|View Report Performance|View Report Analytics'])->group(function () {
@@ -65,35 +62,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('report.gender-development');
         Route::get('report/employee-leave-list', [\App\Http\Controllers\LeaveController::class, 'approvedLeaves'])->name('report.employee-leave-list');
         Route::get('report/employee-absenteeism-report', [\App\Http\Controllers\AbsenceController::class, 'approvedAbsences'])->name('report.employee-absenteeism-report');
-
-        // Department Evaluation Reports
-        Route::get('report/management-staff-performance-summary', function () {
-            return app(\App\Http\Controllers\EvaluationController::class)->departmentEvaluationsReport(request(), 'Management & Staff(Admin)');
-        })->name('report.management-staff-performance-summary');
-        Route::get('report/admin-department-performance', function () {
-            return app(\App\Http\Controllers\EvaluationController::class)->departmentEvaluationsReport(request(), 'Management & Staff(Admin)');
-        })->name('report.admin-department-performance');
-        Route::get('report/packing-plant-performance', function () {
-            return app(\App\Http\Controllers\EvaluationController::class)->departmentEvaluationsReport(request(), 'Packing Plant');
-        })->name('report.packing-plant-performance');
-        Route::get('report/harvesting-area-performance', function () {
-            return app(\App\Http\Controllers\EvaluationController::class)->departmentEvaluationsReport(request(), 'Harvesting');
-        })->name('report.harvesting-area-performance');
-        Route::get('report/coop-area-performance', function () {
-            return app(\App\Http\Controllers\EvaluationController::class)->departmentEvaluationsReport(request(), 'Coop Area');
-        })->name('report.coop-area-performance');
-        Route::get('report/pest-disease-performance', function () {
-            return app(\App\Http\Controllers\EvaluationController::class)->departmentEvaluationsReport(request(), 'Pest & Decease');
-        })->name('report.pest-disease-performance');
-        Route::get('report/coop-harvester-maintenance-performance', function () {
-            return app(\App\Http\Controllers\EvaluationController::class)->departmentEvaluationsReport(request(), 'Coop Harvester Maintenance');
-        })->name('report.coop-harvester-maintenance-performance');
-        Route::get('report/security-forces-performance', function () {
-            return app(\App\Http\Controllers\EvaluationController::class)->departmentEvaluationsReport(request(), 'Security Forces');
-        })->name('report.security-forces-performance');
-        Route::get('report/miscellaneous-performance', function () {
-            return app(\App\Http\Controllers\EvaluationController::class)->departmentEvaluationsReport(request(), 'Miscellaneous');
-        })->name('report.miscellaneous-performance');
     });
 
     // Explicit routes for all service-tenure subpages
@@ -108,49 +76,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('service-tenure/pay-advancement/store', [ServiceTenureController::class, 'storePayAdvancement'])->name('service-tenure.pay-advancement.store');
     });
 
-    // Supervisor management routes (only for super admin) - moved outside evaluation group
-    Route::get('evaluation/supervisor-management', [SupervisorDepartmentController::class, 'index'])->name('evaluation.supervisor-management');
-    Route::post('evaluation/supervisor-management', [SupervisorDepartmentController::class, 'store'])->name('evaluation.supervisor-management.store');
-    Route::put('evaluation/supervisor-management/{assignment}', [SupervisorDepartmentController::class, 'update'])->name('evaluation.supervisor-management.update');
-    Route::delete('evaluation/supervisor-management/{assignment}', [SupervisorDepartmentController::class, 'destroy'])->name('evaluation.supervisor-management.destroy');
-
-    // HR Personnel management routes
-    Route::post('evaluation/hr-management', [SupervisorDepartmentController::class, 'storeHRAssignment'])->name('evaluation.hr-management.store');
-    Route::put('evaluation/hr-management/{assignment}', [SupervisorDepartmentController::class, 'updateHRAssignment'])->name('evaluation.hr-management.update');
-    Route::delete('evaluation/hr-management/{assignment}', [SupervisorDepartmentController::class, 'destroyHRAssignment'])->name('evaluation.hr-management.destroy');
-
-    // Manager management routes
-    Route::post('evaluation/manager-management', [SupervisorDepartmentController::class, 'storeManagerAssignment'])->name('evaluation.manager-management.store');
-    Route::put('evaluation/manager-management/{assignment}', [SupervisorDepartmentController::class, 'updateManagerAssignment'])->name('evaluation.manager-management.update');
-    Route::delete('evaluation/manager-management/{assignment}', [SupervisorDepartmentController::class, 'destroyManagerAssignment'])->name('evaluation.manager-management.destroy');
-
-    // Evaluation frequency update route (accessible from supervisor management)
-    Route::put('evaluation/frequencies/{department}', [EvaluationController::class, 'updateFrequency'])->name('evaluation.frequencies.update');
-
-    // Check existing evaluation route
-    Route::get('evaluation/check-existing/{employeeId}/{department}', [EvaluationController::class, 'checkExistingEvaluation'])->name('evaluation.check-existing');
-
-    // Temporary route for department evaluation (for testing - remove permission middleware)
-    Route::get('evaluation/department-evaluation', [EvaluationController::class, 'departmentEvaluation'])->name('evaluation.department-evaluation');
-    Route::post('evaluation/department-evaluation', [EvaluationController::class, 'storeDepartmentEvaluation'])->name('evaluation.department-evaluation.store');
-
-    Route::middleware(['permission:View Evaluation'])->group(function () {
-        Route::resource('evaluation', EvaluationController::class)->names('evaluation');
-    });
 
     Route::middleware(['permission:View Dashboard'])->group(function () {
         Route::resource('dashboard', DashboardController::class)->names('dashboard');
     });
 
     Route::middleware(['permission:View Attendance'])->group(function () {
+        // IMPORTANT: Define specific routes BEFORE resource routes to avoid route conflicts
+        // The resource route creates 'attendance/{attendance}' which would match 'attendance/manage' if defined first
+        Route::get('attendance/manage', [AttendanceController::class, 'index'])->name('attendance.index');
         Route::get('attendance/daily-checking', [AttendanceController::class, 'dailyChecking'])->name('attendance.daily-checking');
         Route::get('attendance/qr-scanner', function () {
             return Inertia::render('attendance/qr-scanner');
         })->name('attendance.qr-scanner');
         // Exclude 'index' from resource since public route uses /attendance
+        // Define resource AFTER specific routes to avoid conflicts
         Route::resource('attendance', AttendanceController::class)->names('attendance')->except(['index']);
-        // Manually define index route with different path to avoid conflict
-        Route::get('attendance/manage', [AttendanceController::class, 'index'])->name('attendance.index');
         Route::resource('attendance-session', AttendanceSessionController::class)->names('attendance-session');
     });
 
@@ -223,9 +164,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin Management
     Route::middleware(['permission:View Admin Management'])->group(function () {
         Route::get('admin-management', [AdminManagementController::class, 'index'])->name('admin-management.index');
-        Route::post('evaluation/admin-management', [AdminManagementController::class, 'storeAdminAssignment'])->name('evaluation.admin-management.store');
-        Route::put('evaluation/admin-management/{assignment}', [AdminManagementController::class, 'updateAdminAssignment'])->name('evaluation.admin-management.update');
-        Route::delete('evaluation/admin-management/{assignment}', [AdminManagementController::class, 'destroyAdminAssignment'])->name('evaluation.admin-management.destroy');
     });
 
     // Payroll

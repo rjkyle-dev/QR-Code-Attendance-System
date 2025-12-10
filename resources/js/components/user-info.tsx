@@ -30,12 +30,12 @@ export function UserInfo({ user, showEmail = false, showRole = false }: { user: 
     return (
         <>
             <DefaultAvatar
-                src={profileImage || '/Logo.png'}
+                src={profileImage || '/AGOC.png'}
                 alt={fullName}
                 fallbackText={fullName}
                 size="sm"
                 onError={(e) => {
-                    e.currentTarget.src = '/Logo.png';
+                    e.currentTarget.src = '/AGOC.png';
                 }}
             />
             <div className="grid flex-1 text-left text-sm leading-tight">

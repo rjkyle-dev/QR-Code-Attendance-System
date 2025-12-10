@@ -48,9 +48,7 @@ class EmployeeController extends Controller
 
         $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-        $employeeQuery = Employee::with(['fingerprints', 'evaluations' => function ($q) {
-            $q->orderBy('created_at', 'desc');
-        }]);
+        $employeeQuery = Employee::with(['fingerprints']);
 
         $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
         $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
@@ -62,7 +60,6 @@ class EmployeeController extends Controller
         $employees = $employeeQuery->orderBy('created_at', 'desc')->get();
 
         $transformedEmployees = $employees->transform(function ($employee) {
-            $latestEval = $employee->evaluations->first();
             return [
                 'id'            => $employee->id,
                 'employee_name' => $employee->employee_name,
@@ -87,19 +84,11 @@ class EmployeeController extends Controller
                 'position'      => $employee->position,
                 'pin'           => $employee->pin,
                 'gmail_password' => $employee->gmail_password,
-                'recommendation_letter' => $employee->recommendation_letter,
+                'nbi_clearance' => $employee->nbi_clearance,
                 'hdmf_user_id' => $employee->hdmf_user_id,
-                'hdmf_username' => $employee->hdmf_username,
-                'hdmf_password' => $employee->hdmf_password,
                 'sss_user_id' => $employee->sss_user_id,
-                'sss_username' => $employee->sss_username,
-                'sss_password' => $employee->sss_password,
                 'philhealth_user_id' => $employee->philhealth_user_id,
-                'philhealth_username' => $employee->philhealth_username,
-                'philhealth_password' => $employee->philhealth_password,
                 'tin_user_id' => $employee->tin_user_id,
-                'tin_username' => $employee->tin_username,
-                'tin_password' => $employee->tin_password,
                 'created_at'    => $employee->created_at->format('d M Y'),
                 'fingerprints'  => $employee->fingerprints->map(function ($fp) {
                     return [
@@ -113,7 +102,7 @@ class EmployeeController extends Controller
                         'updated_at' => $fp->updated_at,
                     ];
                 }),
-                'latest_rating' => $latestEval ? $latestEval->ratings : null,
+                'latest_rating' => null,
             ];
         });
 
@@ -211,19 +200,11 @@ class EmployeeController extends Controller
                 'email'         => $employee->email,
                 'position'      => $employee->position,
                 'gmail_password' => $employee->gmail_password,
-                'recommendation_letter' => $employee->recommendation_letter,
+                'nbi_clearance' => $employee->nbi_clearance,
                 'hdmf_user_id' => $employee->hdmf_user_id,
-                'hdmf_username' => $employee->hdmf_username,
-                'hdmf_password' => $employee->hdmf_password,
                 'sss_user_id' => $employee->sss_user_id,
-                'sss_username' => $employee->sss_username,
-                'sss_password' => $employee->sss_password,
                 'philhealth_user_id' => $employee->philhealth_user_id,
-                'philhealth_username' => $employee->philhealth_username,
-                'philhealth_password' => $employee->philhealth_password,
                 'tin_user_id' => $employee->tin_user_id,
-                'tin_username' => $employee->tin_username,
-                'tin_password' => $employee->tin_password,
                 'created_at'    => $employee->created_at->format('d M Y'),
                 'fingerprints'  => $employee->fingerprints->map(function ($fp) {
                     return [
@@ -286,17 +267,9 @@ class EmployeeController extends Controller
                 'position'        => $request->position,
                 'gmail_password' => $request->gmail_password,
                 'hdmf_user_id' => $request->hdmf_user_id,
-                'hdmf_username' => $request->hdmf_username,
-                'hdmf_password' => $request->hdmf_password,
                 'sss_user_id' => $request->sss_user_id,
-                'sss_username' => $request->sss_username,
-                'sss_password' => $request->sss_password,
                 'philhealth_user_id' => $request->philhealth_user_id,
-                'philhealth_username' => $request->philhealth_username,
-                'philhealth_password' => $request->philhealth_password,
                 'tin_user_id' => $request->tin_user_id,
-                'tin_username' => $request->tin_username,
-                'tin_password' => $request->tin_password,
             ];
 
             \Log::info('Employee data array prepared', $data);
@@ -308,11 +281,11 @@ class EmployeeController extends Controller
                 $data['picture'] = '/storage/' . $path;
             }
 
-            if ($request->hasFile('recommendation_letter')) {
-                $file = $request->file('recommendation_letter');
-                $filename = time() . '_recommendation_' . $file->getClientOriginalName();
-                $path = $file->storeAs('uploads/recommendations', $filename, 'public');
-                $data['recommendation_letter'] = '/storage/' . $path;
+            if ($request->hasFile('nbi_clearance')) {
+                $file = $request->file('nbi_clearance');
+                $filename = time() . '_nbi_clearance_' . $file->getClientOriginalName();
+                $path = $file->storeAs('uploads/nbi_clearances', $filename, 'public');
+                $data['nbi_clearance'] = '/storage/' . $path;
             }
 
             try {

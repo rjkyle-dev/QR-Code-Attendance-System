@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Employee;
-use App\Models\Evaluation;
 use App\Traits\EmployeeFilterTrait;
 use Inertia\Response;
 use Illuminate\Support\Facades\Log;
@@ -165,8 +164,6 @@ class DashboardController extends Controller
         $userRole = $user->roles->first()?->name ?? 'User';
         $userDepartments = (!$isSuperAdmin && !$isHR && !$isManager) ? $supervisedDepartments : [];
 
-        $monthlyRecognitionEmployees = $this->getMonthlyRecognitionEmployees($supervisedDepartments, $isSupervisor || $user->adminAssignments()->exists());
-
         $supervisorEmployees = collect();
         if ((!$isSuperAdmin && !$isHR && !$isManager) && !empty($supervisedDepartments)) {
             $supervisorEmployees = Employee::whereIn('department', $supervisedDepartments)
@@ -212,7 +209,6 @@ class DashboardController extends Controller
             'isSuperAdmin' => $isSuperAdmin,
             'supervisedDepartments' => $userDepartments,
             'supervisorEmployees' => $supervisorEmployees,
-            'monthlyRecognitionEmployees' => $monthlyRecognitionEmployees,
         ]);
     }
 
@@ -356,80 +352,6 @@ class DashboardController extends Controller
         return substr($initials, 0, 2);
     }
 
-    private function getMonthlyRecognitionEmployees($supervisedDepartments = [], $isSupervisor = false)
-    {
-        $currentYear = now()->year;
-        $currentPeriod = Evaluation::calculatePeriod(now());
-
-        $employeeQuery = Employee::query();
-
-        if ($isSupervisor && !empty($supervisedDepartments)) {
-            $employeeQuery->whereIn('department', $supervisedDepartments);
-        }
-
-        $employees = $employeeQuery->get();
-
-        $recognitionEmployees = [];
-
-        foreach ($employees as $employee) {
-            $latestEvaluation = Evaluation::where('employee_id', $employee->id)
-                ->where('evaluation_year', $currentYear)
-                ->where('evaluation_period', $currentPeriod)
-                ->first();
-
-            if (!$latestEvaluation) {
-                $latestEvaluation = Evaluation::where('employee_id', $employee->id)
-                    ->orderBy('evaluation_year', 'desc')
-                    ->orderBy('evaluation_period', 'desc')
-                    ->first();
-            }
-
-            if ($latestEvaluation) {
-                $totalRating = (float) ($latestEvaluation->total_rating ?? 0);
-
-                if ($totalRating >= 8.0) {
-                    $recognitionScore = (float) $this->calculateRecognitionScore($totalRating);
-                    $recognitionEmployees[] = [
-                        'id' => $employee->id,
-                        'name' => $employee->employee_name,
-                        'department' => $employee->department,
-                        'position' => $employee->position,
-                        'picture' => $employee->picture,
-                        'employeeid' => $employee->employeeid,
-                        'initials' => $this->getInitials($employee->employee_name),
-                        'evaluation_rating' => $totalRating,
-                        'evaluation_date' => $latestEvaluation->rating_date,
-                        'evaluation_period' => $latestEvaluation->period_label,
-                        'evaluation_year' => $latestEvaluation->evaluation_year,
-                        'recognition_score' => $recognitionScore,
-                    ];
-                }
-            }
-        }
-
-        usort($recognitionEmployees, function ($a, $b) {
-            return $b['recognition_score'] - $a['recognition_score'];
-        });
-
-        return array_slice($recognitionEmployees, 0, 5);
-    }
-
-    private function calculateRecognitionScore($evaluationRating)
-    {
-        $rating = (float) ($evaluationRating ?? 0);
-
-        $score = $rating;
-
-        if ($rating >= 9.0) {
-            $score += 2;
-        }
-
-        elseif ($rating >= 8.5) {
-            $score += 1;
-        }
-
-        return (float) $score;
-    }
 
     private function getTotalWorkDays($date)
     {

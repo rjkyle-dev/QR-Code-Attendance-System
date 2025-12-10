@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Activity, CalendarPlus2, FileText, Fingerprint, LayoutGrid, NotebookPen, ShieldCheck, User2, BanknoteIcon } from 'lucide-react';
+import { Activity, Settings, CalendarPlus2, FileText, Fingerprint, LayoutGrid, NotebookPen, ShieldCheck, User2, BanknoteIcon } from 'lucide-react';
 import * as React from 'react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, useSidebar } from '@/components/ui/sidebar';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
@@ -11,7 +11,7 @@ import { User } from './user';
 
 // This is sample data.
 
-const mainNavItems: NavItem[] = [
+const getMainNavItems = (): NavItem[] => [
     {
         title: 'Dashboard',
         href: '/dashboard',
@@ -19,40 +19,17 @@ const mainNavItems: NavItem[] = [
         permission: 'View Dashboard',
     },
     {
-        title: 'Staff',
+        title: 'Employee',
         href: '/employee',
         icon: User2,
         permission: 'View Employee',
     },
     {
         title: 'Attendance',
-        href: '/attendance',
+        href: typeof route !== 'undefined' ? route('attendance.index') : '/attendance/manage',
         icon: Fingerprint,
         permission: 'View Attendance',
     },
-    // {
-    //     title: 'Evaluation',
-    //     href: '/evaluation',
-    //     icon: NotebookPen,
-    //     permission: 'View Evaluation',
-    //     items: [
-    //         {
-    //             title: 'Evaluation List',
-    //             href: '/evaluation',
-    //             permission: 'View Evaluation',
-    //         },
-    //         {
-    //             title: 'Department Evaluation',
-    //             href: '/evaluation/department-evaluation',
-    //             permission: 'View Evaluation By Department',
-    //         },
-    //         // {
-    //         //     title: 'Supervisor Management',
-    //         //     href: '/evaluation/supervisor-management',
-    //         //     permission: 'View Supervisor Management',
-    //         // },
-    //     ],
-    // },
     {
         title: 'Leave',
         href: '/leave',
@@ -157,11 +134,18 @@ const mainNavItems: NavItem[] = [
         icon: FileText,
         permission: 'View Report',
     },
+    {
+        title: 'Settings',
+        href: '/settings',
+        icon: Settings,
+        permission: 'View Settings',
+    },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { state, isMobile } = useSidebar();
     const { handleMouseEnter } = useSidebarHover();
+    const mainNavItems = getMainNavItems();
 
     return (
         <>

@@ -145,7 +145,7 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
                                   {previewImage ? (
                                       <img src={previewImage} alt="Profile preview" className="h-full w-full rounded-full object-cover" />
                                   ) : (
-                                      <img src="/Logo.png" alt="Default profile" className="h-16 w-16 object-contain" />
+                                      <img src="/AGOC.png" alt="Default profile" className="h-16 w-16 object-contain" />
                                   )}
                               </div>
                               <input

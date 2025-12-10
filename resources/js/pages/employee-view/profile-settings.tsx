@@ -52,7 +52,7 @@ export default function ProfileSettings() {
         if (profileForm.data.profile_image instanceof File) {
             return URL.createObjectURL(profileForm.data.profile_image);
         }
-        return employee.picture || '/Logo.png';
+        return employee.picture || '/AGOC.png';
     }, [profileForm.data.profile_image, employee.picture]);
 
     React.useEffect(() => {
@@ -113,7 +113,7 @@ export default function ProfileSettings() {
                                                 alt="Profile preview"
                                                 className="h-full w-full object-cover"
                                                 onError={(e) => {
-                                                    (e.currentTarget as HTMLImageElement).src = '/Logo.png';
+                                                    (e.currentTarget as HTMLImageElement).src = '/AGOC.png';
                                                 }}
                                             />
                                         </div>

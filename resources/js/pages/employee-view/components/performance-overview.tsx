@@ -5,7 +5,6 @@ interface DashboardData {
     leaveBalance: number;
     absenceBalance: number;
     absenceCount: number;
-    evaluationRating: number;
     assignedArea: string;
     attendancePercentage: number;
     productivity: number;
@@ -28,12 +27,6 @@ export function PerformanceOverview({ dashboardData }: PerformanceOverviewProps)
             value: dashboardData.attendancePercentage,
             max: 100,
             color: 'bg-green-500',
-        },
-        {
-            label: 'Performance Rating',
-            value: (dashboardData.evaluationRating / 10) * 100,
-            max: 100,
-            color: 'bg-yellow-500',
         },
         {
             label: 'Overall Productivity',

@@ -39,9 +39,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
     const [preview, setPreview] = useState<string>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-    const [recommendationPreview, setRecommendationPreview] = useState<string>('');
-    const [selectedRecommendationFile, setSelectedRecommendationFile] = useState<File | null>(null);
-    const [recommendationFileName, setRecommendationFileName] = useState<string>('');
+    const [nbiClearancePreview, setNbiClearancePreview] = useState<string>('');
+    const [selectedNbiClearanceFile, setSelectedNbiClearanceFile] = useState<File | null>(null);
+    const [nbiClearanceFileName, setNbiClearanceFileName] = useState<string>('');
 
     const [savedEmployee, setSavedEmployee] = useState<any | null>(null); // Store created employee object
     const [showQrCodeModal, setShowQrCodeModal] = useState(false);
@@ -87,8 +87,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
         input.click(); // Trigger the file input click to open file explorer
     };
 
-    const handleRecommendationLetterUpload = () => {
-        // Create a file input element to upload the recommendation letter
+    const handleNbiClearanceUpload = () => {
+        // Create a file input element to upload the NBI Clearance
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.txt,.rtf'; // Allow various document and image formats
@@ -96,7 +96,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
         // When a file is selected, handle the file and update preview
         input.onchange = (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
-            console.log('Selected recommendation file:', file);
+            console.log('Selected NBI Clearance file:', file);
             if (file) {
                 // Validate file size (max 10MB)
                 const maxSize = 10 * 1024 * 1024; // 10MB
@@ -126,25 +126,25 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                 }
 
                 // Update the file state
-                setSelectedRecommendationFile(file);
-                setRecommendationFileName(file.name);
+                setSelectedNbiClearanceFile(file);
+                setNbiClearanceFileName(file.name);
 
                 // Preview for images
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         const result = e.target?.result as string;
-                        setRecommendationPreview(result);
+                        setNbiClearancePreview(result);
                     };
                     reader.readAsDataURL(file);
                 } else {
                     // For non-image files, show file info
-                    setRecommendationPreview('');
+                    setNbiClearancePreview('');
                 }
 
                 // Attach the file to the form data
-                setData('recommendation_letter', file);
-                toast.success('Recommendation letter uploaded successfully!');
+                setData('nbi_clearance', file);
+                toast.success('NBI Clearance uploaded successfully!');
             }
         };
 
@@ -228,9 +228,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
             setBirth(undefined); // <-- Reset Date of Birth
             setPreview('');
             setSelectedFile(null);
-            setRecommendationPreview('');
-            setSelectedRecommendationFile(null);
-            setRecommendationFileName('');
+            setNbiClearancePreview('');
+            setSelectedNbiClearanceFile(null);
+            setNbiClearanceFileName('');
             setSavedEmployee(null);
             setShowQrCodeModal(false);
         }, delay);
@@ -393,8 +393,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                     toast.error(`Phone Error: ${errors.phone}`);
                 } else if (errors.picture) {
                     toast.error(`Profile Picture Error: ${errors.picture}`);
-                } else if (errors.recommendation_letter) {
-                    toast.error(`Recommendation Letter Error: ${errors.recommendation_letter}`);
+                } else if (errors.nbi_clearance) {
+                    toast.error(`NBI Clearance Error: ${errors.nbi_clearance}`);
                 } else {
                     toast.error('Please check all required fields and try again.');
                 }
@@ -1069,16 +1069,16 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                 )}
                             </div>
                         )}
-                        <div>{!isAddCrew && <h3 className="text-lg font-bold">Recommendation Letter</h3>}</div>
+                        <div>{!isAddCrew && <h3 className="text-lg font-bold">NBI Clearance</h3>}</div>
                         {!isAddCrew && (
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="col-span-2">
-                                    <Label>Upload Recommendation Letter</Label>
+                                    <Label>Upload NBI Clearance</Label>
                                     <div
                                         className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
-                                        onClick={handleRecommendationLetterUpload}
+                                        onClick={handleNbiClearanceUpload}
                                     >
-                                        {selectedRecommendationFile ? (
+                                        {selectedNbiClearanceFile ? (
                                             <div className="text-center">
                                                 <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                                                     <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1091,7 +1091,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                     </svg>
                                                 </div>
                                                 <p className="font-medium text-green-800">File Selected</p>
-                                                <p className="text-sm text-green-600">{recommendationFileName}</p>
+                                                <p className="text-sm text-green-600">{nbiClearanceFileName}</p>
                                                 <p className="text-xs text-gray-500">Click to change</p>
                                             </div>
                                         ) : (
@@ -1113,14 +1113,14 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         )}
                                     </div>
                                 </div>
-                                {recommendationPreview && (
+                                {nbiClearancePreview && (
                                     <div className="col-span-2">
                                         <div className="mb-2 font-medium text-green-800">File Preview:</div>
                                         <div className="flex items-center justify-center rounded-md border bg-gray-50 p-4">
-                                            {recommendationPreview.startsWith('data:image/') ? (
+                                            {nbiClearancePreview.startsWith('data:image/') ? (
                                                 <img
-                                                    src={recommendationPreview}
-                                                    alt="Recommendation Letter Preview"
+                                                    src={nbiClearancePreview}
+                                                    alt="NBI Clearance Preview"
                                                     className="max-h-48 max-w-full rounded object-contain"
                                                 />
                                             ) : (
@@ -1134,10 +1134,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                         />
                                                     </svg>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">{recommendationFileName}</p>
+                                                        <p className="font-medium text-gray-900">{nbiClearanceFileName}</p>
                                                         <p className="text-sm text-gray-500">
-                                                            {selectedRecommendationFile?.size
-                                                                ? (selectedRecommendationFile.size / 1024 / 1024).toFixed(2)
+                                                            {selectedNbiClearanceFile?.size
+                                                                ? (selectedNbiClearanceFile.size / 1024 / 1024).toFixed(2)
                                                                 : '0'}{' '}
                                                             MB
                                                         </p>

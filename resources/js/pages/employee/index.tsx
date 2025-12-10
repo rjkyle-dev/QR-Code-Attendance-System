@@ -15,7 +15,6 @@ import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import EditEmployeeModal from './components/editemployeemodal';
 import { SectionCards } from './components/section-cards';
-// import { Employees } from './components/columns';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { SiteHeader } from '@/components/site-header';
 import { ContentLoading } from '@/components/ui/loading';
@@ -41,7 +40,7 @@ interface Props {
         Regular: number;
         'Add Crew': number;
         Probationary: number;
-        // Sessional: number;
+       
     };
     departments?: string[];
     positions?: string[];
@@ -52,16 +51,14 @@ interface Props {
     };
 }
 
-// Move SidebarHoverLogic outside the main component
 function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
     const { state } = useSidebar();
     const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
 
     return (
         <>
-            {/* Show hover zone only when sidebar is collapsed to icons */}
+           
             <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
-            {/* AppSidebar will handle its own hover behavior */}
             <AppSidebar />
             {children}
         </>

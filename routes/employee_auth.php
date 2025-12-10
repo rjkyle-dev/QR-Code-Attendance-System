@@ -16,7 +16,6 @@ Route::middleware(['web', 'employee.auth'])->group(function () {
     Route::get('employee-view/profile', [AuthEmployeeController::class, 'profile'])->name('employee-view.profile');
     Route::get('employee-view/attendance', [AuthEmployeeController::class, 'attendance'])->name('employee-view.attendance');
     Route::get('employee-view/qr-code', [AuthEmployeeController::class, 'qrCode'])->name('employee-view.qr-code');
-    Route::get('employee-view/evaluations', [AuthEmployeeController::class, 'evaluations'])->name('employee-view.evaluations');
     // Updated to render the new request-form Leave page component
     Route::get('employee-view/leave', [LeaveController::class, 'employeeIndex'])
         ->name('employee-view.leave');

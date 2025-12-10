@@ -71,7 +71,7 @@ const columns = (
                             ) : (
                                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
                                     <img
-                                        src="Logo.png"
+                                        src="AGOC.png"
                                         className="animate-scale-in dark:border-darksMain h-12 w-12 rounded-full border-2 border-cfar-400 object-cover"
                                     />
                                 </div>

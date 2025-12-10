@@ -29,8 +29,6 @@ import { Head, router } from '@inertiajs/react';
 import { Plus, Settings, Star, Trash2, UserCheck, UserCog, Users, UserX } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { EvaluationFrequencyManager } from './components/evaluation-frequency-manager';
-import { EvaluationSettingsManager } from './components/evaluation-settings-manager';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -132,11 +130,6 @@ interface Props {
         roles: string[];
     }>;
     admin_assignments?: AdminAssignment[];
-    frequencies: Array<{
-        department: string;
-        evaluation_frequency: 'semi_annual' | 'annual';
-        employee_count: number;
-    }>;
     user_permissions?: {
         is_super_admin: boolean;
         is_supervisor: boolean;
@@ -154,7 +147,6 @@ export default function SupervisorManagement({
     manager_assignments = [],
     admin_users = [],
     admin_assignments = [],
-    frequencies,
     user_permissions,
 }: Props) {
     const [newAssignment, setNewAssignment] = useState({
@@ -962,10 +954,6 @@ export default function SupervisorManagement({
                                             <UserX className="h-4 w-4" />
                                             Admin
                                         </TabsTrigger>
-                                        <TabsTrigger value="frequencies" className="flex items-center gap-2">
-                                            <Settings className="h-4 w-4" />
-                                            Evaluation Frequencies
-                                        </TabsTrigger>
                                     </>
                                 )}
                             </TabsList>
@@ -1624,90 +1612,6 @@ export default function SupervisorManagement({
                                 </TabsContent>
                             )}
 
-                            {/* Frequencies Tab */}
-                            {isAdmin && (
-                                <TabsContent value="frequencies" className="space-y-6">
-                                    <EvaluationFrequencyManager isAdmin={isAdmin} frequencies={frequencies} />
-                                </TabsContent>
-                            )}
-
-                            {/* Evaluation Settings Tab */}
-                            {isAdmin && (
-                                <TabsContent value="settings" className="space-y-6">
-                                    <EvaluationSettingsManager isAdmin={isAdmin} />
-                                </TabsContent>
-                            )}
-
-                            {/* Evaluations Tab */}
-                            <TabsContent value="evaluations" className="space-y-6">
-                                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                    {/* Supervisor Evaluation Status */}
-                                    {isSupervisor && (
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle className="flex items-center gap-2">
-                                                    <Star className="h-5 w-5 text-yellow-600" />
-                                                    Your Evaluation Status
-                                                </CardTitle>
-                                                <CardDescription>Track your evaluation progress for supervised employees</CardDescription>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="space-y-4">
-                                                    <div className="flex items-center justify-between rounded-lg bg-blue-50 p-3">
-                                                        <div>
-                                                            <div className="font-medium text-blue-900">Pending Evaluations</div>
-                                                            <div className="text-sm text-blue-700">Employees awaiting evaluation</div>
-                                                        </div>
-                                                        <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                                                            0
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="flex items-center justify-between rounded-lg bg-green-50 p-3">
-                                                        <div>
-                                                            <div className="font-medium text-green-900">Completed This Period</div>
-                                                            <div className="text-sm text-green-700">Evaluations finished</div>
-                                                        </div>
-                                                        <Badge variant="outline" className="bg-green-100 text-green-800">
-                                                            0
-                                                        </Badge>
-                                                    </div>
-                                                </div>
-                                                <Button className="mt-4 w-full" variant="outline">
-                                                    View All Evaluations
-                                                </Button>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-
-                                    {/* Evaluation Guidelines */}
-                                    {/* <Card>
-                                        <CardHeader>
-                                            <CardTitle>Evaluation Guidelines</CardTitle>
-                                            <CardDescription>Understanding evaluation frequencies and periods</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="space-y-3 text-sm">
-                                                <div className="rounded-lg bg-blue-50 p-3">
-                                                    <div className="font-medium text-blue-900">Semi-Annual Evaluations</div>
-                                                    <div className="text-blue-700">
-                                                        • Period 1: January-June (Jan-Jun)
-                                                        <br />
-                                                        • Period 2: July-December (Jul-Dec)
-                                                        <br />• Every 6 months
-                                                    </div>
-                                                </div>
-                                                <div className="rounded-lg bg-green-50 p-3">
-                                                    <div className="font-medium text-green-900">Annual Evaluations</div>
-                                                    <div className="text-green-700">
-                                                        • Period: January-December (Jan-Dec)
-                                                        <br />• Once per year
-                                                    </div>
-                                                </div>
-                                    </div>
-                                </CardContent>
-                            </Card> */}
-                                </div>
-                            </TabsContent>
                         </Tabs>
                     </Main>
                 </SidebarInset>

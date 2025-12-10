@@ -30,8 +30,8 @@ export function PageLoading() {
                 <div className="flex flex-col items-center space-y-4">
                     <div className="loading-spinner h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary" />
                     <div className="text-center">
-                        <p className="text-main text-lg font-semibold">CheckWise HRIS</p>
-                        <p className="text-sm text-muted-foreground">Loading...</p>
+                        <p className="text-main text-lg font-semibold">AGOC</p>
+                        {/* <p className="text-sm text-muted-foreground">Loading...</p> */}
                     </div>
                 </div>
             </div>
@@ -66,11 +66,11 @@ export function TableLoading() {
 export function ContentLoading({ text }: { text?: string }) {
     return (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/60 backdrop-blur-sm">
-            <div className="rounded-lg border-green-100 bg-green-50 p-8 shadow-lg fade-in">
+            <div className="rounded-lg border-green-100 bg-green-50 shadow-lg fade-in flex items-center justify-center" style={{ width: "150px", height: "150px" }}>
                 <div className="flex flex-col items-center space-y-4">
                     <div className="loading-spinner h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary" />
                     <div className="text-center">
-                        <p className="text-main text-lg font-semibold">CheckWise HRIS</p>
+                        <p className="text-main text-lg font-semibold">AGOC</p>
                         <p className="text-sm text-muted-foreground">{text || 'Loading...'}</p>
                     </div>
                 </div>

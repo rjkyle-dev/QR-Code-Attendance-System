@@ -8,7 +8,6 @@ use App\Models\LeaveCredit;
 use App\Models\Absence;
 use App\Models\AbsenceCredit;
 use App\Models\ReturnWork;
-use App\Models\Evaluation;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -64,11 +63,7 @@ class AuthEmployeeController extends Controller
             ->whereYear('from_date', $currentMonth->year)
             ->count();
 
-        $latestEvaluation = Evaluation::where('employee_id', $employee->id)
-            ->orderBy('rating_date', 'desc')
-            ->first();
-
-        $evaluationRating = $latestEvaluation ? $this->calculateAverageRating($latestEvaluation) : 0;
+        $evaluationRating = 0;
 
         $totalWorkDays = $this->getTotalWorkDays($currentMonth);
         $presentDays = Attendance::where('employee_id', $employee->id)
@@ -79,7 +74,7 @@ class AuthEmployeeController extends Controller
 
         $attendancePercentage = $totalWorkDays > 0 ? round(($presentDays / $totalWorkDays) * 100, 1) : 0;
 
-        $productivity = min(100, round(($attendancePercentage * 0.7) + ($evaluationRating * 10 * 0.3), 1));
+        $productivity = $attendancePercentage;
 
         $recentActivities = $this->getRecentActivities($employee);
 
@@ -165,36 +160,6 @@ class AuthEmployeeController extends Controller
         ];
     }
 
-    private function calculateAverageRating($evaluation)
-    {
-        $ratings = [
-            $this->convertRatingToNumber($evaluation->work_quality),
-            $this->convertRatingToNumber($evaluation->safety_compliance),
-            $this->convertRatingToNumber($evaluation->punctuality),
-            $this->convertRatingToNumber($evaluation->teamwork),
-            $this->convertRatingToNumber($evaluation->organization),
-            $this->convertRatingToNumber($evaluation->equipment_handling),
-        ];
-
-        return round(array_sum($ratings) / count($ratings), 1);
-    }
-
-    private function convertRatingToNumber($rating)
-    {
-        if (is_numeric($rating) && $rating >= 1 && $rating <= 10) {
-            return (float) $rating;
-        }
-
-        $ratingMap = [
-            'Excellent' => 10,
-            'Very Good' => 8,
-            'Good' => 6,
-            'Fair' => 4,
-            'Poor' => 2,
-        ];
-
-        return $ratingMap[$rating] ?? 6;
-    }
 
     private function getTotalWorkDays($month)
     {
@@ -260,20 +225,6 @@ class AuthEmployeeController extends Controller
             ];
         }
 
-        $recentEvaluations = Evaluation::where('employee_id', $employee->id)
-            ->orderBy('rating_date', 'desc')
-            ->limit(1)
-            ->get();
-
-        foreach ($recentEvaluations as $evaluation) {
-            $activities[] = [
-                'id' => 'evaluation_' . $evaluation->id,
-                'title' => 'Performance evaluation completed',
-                'timeAgo' => Carbon::parse($evaluation->rating_date)->diffForHumans(),
-                'status' => 'completed',
-                'type' => 'evaluation'
-            ];
-        }
 
         usort($activities, function ($a, $b) {
             return strtotime($b['timeAgo']) - strtotime($a['timeAgo']);
@@ -407,95 +358,6 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    public function evaluations()
-    {
-        $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
-
-        Log::info('[EmployeeView] Fetching evaluations page', [
-            'session_employee_id' => Session::get('employee_id'),
-            'resolved_employee_id' => $employee?->id,
-            'resolved_employee_name' => $employee?->employee_name,
-        ]);
-
-        $evaluation = Evaluation::with(['attendance', 'attitudes', 'workAttitude', 'workFunctions'])
-            ->where('employee_id', $employee->id)
-            ->orderBy('rating_date', 'desc')
-            ->first();
-
-        if ($evaluation) {
-            Log::info('[EmployeeView] Latest evaluation found', [
-                'evaluation_id' => $evaluation->id,
-                'rating_date' => optional($evaluation->rating_date)->format('Y-m-d'),
-                'total_rating' => $evaluation->total_rating,
-                'has_attendance' => (bool) $evaluation->attendance,
-                'has_attitudes' => (bool) $evaluation->attitudes,
-                'has_workAttitude' => (bool) $evaluation->workAttitude,
-                'workFunctions_count' => $evaluation->workFunctions?->count() ?? 0,
-            ]);
-        } else {
-            Log::warning('[EmployeeView] No evaluation found for employee', [
-                'employee_id' => $employee->id,
-            ]);
-        }
-
-        return Inertia::render('employee-view/evaluations', [
-            'employee' => [
-                'id' => $employee->id,
-                'employeeid' => $employee->employeeid,
-                'employee_name' => $employee->employee_name,
-                'firstname' => $employee->firstname,
-                'lastname' => $employee->lastname,
-                'department' => $employee->department,
-                'position' => $employee->position,
-                'picture' => $employee->picture,
-            ],
-            'evaluation' => $evaluation ? [
-                'id' => $evaluation->id,
-                'ratings' => $evaluation->ratings ?? null,
-                'rating_date' => optional($evaluation->rating_date)->format('Y-m-d'),
-                'work_quality' => $evaluation->work_quality ?? null,
-                'safety_compliance' => $evaluation->safety_compliance ?? null,
-                'punctuality' => $evaluation->punctuality ?? null,
-                'teamwork' => $evaluation->teamwork ?? null,
-                'organization' => $evaluation->organization ?? null,
-                'equipment_handling' => $evaluation->equipment_handling ?? null,
-                'comment' => $evaluation->comment ?? null,
-                'total_rating' => $evaluation->total_rating,
-                'evaluation_year' => $evaluation->evaluation_year,
-                'evaluation_period' => $evaluation->evaluation_period,
-                'evaluation_frequency' => $evaluation->evaluation_frequency,
-                'evaluator' => $evaluation->evaluator,
-                'observations' => $evaluation->observations,
-                'attendance' => $evaluation->attendance ? [
-                    'daysLate' => $evaluation->attendance->days_late,
-                    'daysAbsent' => $evaluation->attendance->days_absent,
-                    'rating' => $evaluation->attendance->rating,
-                    'remarks' => $evaluation->attendance->remarks,
-                ] : null,
-                'attitudes' => $evaluation->attitudes ? [
-                    'supervisor_rating' => $evaluation->attitudes->supervisor_rating,
-                    'supervisor_remarks' => $evaluation->attitudes->supervisor_remarks,
-                    'coworker_rating' => $evaluation->attitudes->coworker_rating,
-                    'coworker_remarks' => $evaluation->attitudes->coworker_remarks,
-                ] : null,
-                'workAttitude' => $evaluation->workAttitude ? [
-                    'responsible' => $evaluation->workAttitude->responsible,
-                    'jobKnowledge' => $evaluation->workAttitude->job_knowledge,
-                    'cooperation' => $evaluation->workAttitude->cooperation,
-                    'initiative' => $evaluation->workAttitude->initiative,
-                    'dependability' => $evaluation->workAttitude->dependability,
-                    'remarks' => $evaluation->workAttitude->remarks,
-                ] : null,
-                'workFunctions' => $evaluation->workFunctions?->map(function ($wf) {
-                    return [
-                        'function_name' => $wf->function_name,
-                        'work_quality' => $wf->work_quality,
-                        'work_efficiency' => $wf->work_efficiency,
-                    ];
-                }) ?? [],
-            ] : null
-        ]);
-    }
 
     public function leave()
     {

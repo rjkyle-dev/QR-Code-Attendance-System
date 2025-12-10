@@ -19,7 +19,7 @@ A customizable PDF template component that can be easily modified for different 
 **Props:**
 - `leave`: Leave data object
 - `companyName`: Company name (default: "CFARBEMCO")
-- `logoPath`: Path to company logo (default: "/Logo.png")
+- `logoPath`: Path to company logo (default: "/AGOC.png")
 - `customStyles`: Object with custom styles
 - `showEmployeePhoto`: Show/hide employee photo (default: true)
 - `showFooter`: Show/hide footer (default: true)
@@ -53,7 +53,7 @@ import LeavePDFTemplate from '@/components/pdf/leave-pdf-template';
 const LeaveDocument = LeavePDFTemplate({
     leave: leaveData,
     companyName: "Your Company",
-    logoPath: "/your-logo.png",
+    logoPath: "/your-AGOC.png",
     customStyles: {
         page: { backgroundColor: '#f0f0f0' },
         header: { backgroundColor: '#007bff' },
@@ -111,7 +111,7 @@ const customStyles = {
 ```tsx
 const LeaveDocument = LeavePDFTemplate({
     leave: leaveData,
-    logoPath: "/path/to/your/logo.png"
+    logoPath: "/path/to/your/AGOC.png"
 });
 ```
 

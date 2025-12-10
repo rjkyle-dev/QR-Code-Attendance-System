@@ -11,24 +11,24 @@ import { type PropsWithChildren } from 'react';
 export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     return (
         <AppShell variant="sidebar">
-            <SidebarHoverLogic>
-                <AppContent variant="sidebar" className="overflow-x-hidden">
-                    <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                    {children}
-                </AppContent>
-            </SidebarHoverLogic>
+            <AppSidebarWrapper breadcrumbs={breadcrumbs}>
+                {children}
+            </AppSidebarWrapper>
         </AppShell>
     );
 }
 
-function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
+function AppSidebarWrapper({ children, breadcrumbs }: { children: React.ReactNode; breadcrumbs?: BreadcrumbItem[] }) {
     const { state } = useSidebar();
     const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
     return (
         <>
             <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
             <AppSidebar onMouseLeave={handleMouseLeave} />
-            {children}
+            <AppContent variant="sidebar" className="overflow-x-hidden">
+                <AppSidebarHeader breadcrumbs={breadcrumbs} />
+                {children}
+            </AppContent>
         </>
     );
 }

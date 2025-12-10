@@ -34,13 +34,13 @@ export default function ViewUserModal({ isOpen, onClose, user }: ViewUserModalPr
                   alt={user.fullname}
                   className="h-24 w-24 rounded-full border-4 border-gray-200 object-cover shadow-lg"
                   onError={(e) => {
-                    e.currentTarget.src = '/Logo.png';
+                    e.currentTarget.src = '/AGOC.png';
                   }}
                 />
               ) : (
                 <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-gray-200 bg-gray-100 shadow-lg">
                   <img
-                    src="/Logo.png"
+                    src="/AGOC.png"
                     alt={user.fullname}
                     className="h-16 w-16 rounded-full object-cover"
                   />

@@ -35,7 +35,6 @@ interface DashboardData {
     leaveBalance: number;
     absenceBalance: number;
     absenceCount: number;
-    evaluationRating: number;
     assignedArea: string;
     attendancePercentage: number;
     productivity: number;
@@ -272,10 +271,10 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
                             <div className="flex items-center space-x-4">
                                 <Avatar className="h-24 w-24 border-2 border-cfar-500">
                                     <AvatarImage
-                                        src={employee.picture || '/Logo.png'}
+                                        src={employee.picture || '/AGOC.png'}
                                         alt={employee.employee_name}
                                         onError={(e) => {
-                                            e.currentTarget.src = '/Logo.png';
+                                            e.currentTarget.src = '/AGOC.png';
                                         }}
                                     />
                                 </Avatar>

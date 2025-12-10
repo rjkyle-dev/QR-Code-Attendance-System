@@ -32,9 +32,9 @@
 
         <title inertia>{{ config('app.name', 'Amalgated Capital Inc') }}</title>
 
-        <link rel="icon" href="/logo.png" sizes="any">
-        <link rel="icon" href="/logo.png" type="image/svg+xml">
-        <link rel="icon" href="/logo.png">
+        <link rel="icon" href="/AGOC.png" sizes="any">
+        <link rel="icon" href="/AGOC.png" type="image/svg+xml">
+        <link rel="icon" href="/AGOC.png">
 
         @routes
         @viteReactRefresh

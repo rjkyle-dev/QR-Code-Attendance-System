@@ -188,13 +188,13 @@ export default function LeaveFormPDF({ leave }: LeaveFormPDFProps) {
         <Document>
             <Page size="A4" style={styles.page}>
                 {/* Background Logo */}
-                <Image src="/Logo.png" style={styles.backgroundLogo} />
+                <Image src="/AGOC.png" style={styles.backgroundLogo} />
 
                 {/* Content */}
                 <View style={styles.content}>
                     {/* Header */}
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, justifyContent: 'space-between' }}>
-                        <Image src="/Logo.png" style={[styles.headerLogo, { marginLeft: 5 }]} />
+                        <Image src="/AGOC.png" style={[styles.headerLogo, { marginLeft: 5 }]} />
                         <View style={styles.headerText}>
                             <Text style={styles.companyName}>Checkered Farms Agrarian Reform Beneficiaries</Text>
                             <Text style={styles.companyNameBold}>Multi Purpose Cooperative</Text>

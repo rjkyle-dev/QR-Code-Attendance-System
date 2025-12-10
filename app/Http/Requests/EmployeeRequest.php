@@ -47,23 +47,15 @@ class EmployeeRequest extends FormRequest
             'position' => $isAddCrew ? 'nullable|string|max:255' : 'required|string|max:255',
             'picture' => 'nullable|image|max:2048',
             'gmail_password' => 'nullable|string|max:255',
-            'recommendation_letter' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,bmp,tiff,txt,rtf|max:10240', // 10MB max
+            'nbi_clearance' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,bmp,tiff,txt,rtf|max:10240', // 10MB max
             // HDMF fields
             'hdmf_user_id' => 'nullable|string|max:255',
-            'hdmf_username' => 'nullable|string|max:255',
-            'hdmf_password' => 'nullable|string|max:255',
             // SSS fields
             'sss_user_id' => 'nullable|string|max:255',
-            'sss_username' => 'nullable|string|max:255',
-            'sss_password' => 'nullable|string|max:255',
             // Philhealth fields
             'philhealth_user_id' => 'nullable|string|max:255',
-            'philhealth_username' => 'nullable|string|max:255',
-            'philhealth_password' => 'nullable|string|max:255',
             // TIN fields
             'tin_user_id' => 'nullable|string|max:255',
-            'tin_username' => 'nullable|string|max:255',
-            'tin_password' => 'nullable|string|max:255',
             'fingerprint_template'    => 'nullable|string',
             'fingerprint_image'       => 'nullable|string',
             'fingerprint_captured_at' => 'nullable|date',
@@ -157,10 +149,10 @@ class EmployeeRequest extends FormRequest
             'gmail_password.string' => 'The password must be a text value.',
             'gmail_password.max' => 'The password may not be greater than 255 characters.',
             
-            // Recommendation letter validation messages
-            'recommendation_letter.file' => 'The recommendation letter must be a file.',
-            'recommendation_letter.mimes' => 'The recommendation letter must be a file of type: PDF, Word document, image, or text file.',
-            'recommendation_letter.max' => 'The recommendation letter may not be greater than 10MB.',
+            // NBI Clearance validation messages
+            'nbi_clearance.file' => 'The NBI Clearance must be a file.',
+            'nbi_clearance.mimes' => 'The NBI Clearance must be a file of type: PDF, Word document, image, or text file.',
+            'nbi_clearance.max' => 'The NBI Clearance may not be greater than 10MB.',
             
             // Fingerprint validation messages
             'fingerprint_template.string' => 'The fingerprint template must be a text value.',

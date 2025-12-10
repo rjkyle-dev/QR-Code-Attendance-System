@@ -198,7 +198,7 @@ export default function LeaveEditPage() {
                             <div className="mx-10 flex flex-col items-center space-y-2">
                                 <div className="relative">
                                     <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-main bg-muted">
-                                        <img src={data.picture ? data.picture : '/Logo.png'} alt="Employee" className="h-full w-full object-cover" />
+                                        <img src={data.picture ? data.picture : '/AGOC.png'} alt="Employee" className="h-full w-full object-cover" />
                                     </div>
                                     <Button
                                         size="sm"

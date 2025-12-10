@@ -7,7 +7,6 @@ use App\Models\HRDepartmentAssignment;
 use App\Models\ManagerDepartmentAssignment;
 use App\Models\User;
 use App\Models\Employee;
-use App\Models\EvaluationConfiguration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -20,7 +19,7 @@ class SupervisorDepartmentController extends Controller
     $user = Auth::user();
 
     if (!$user->isSuperAdmin() && !$user->isSupervisor()) {
-      return redirect()->route('evaluation.index')->withErrors(['error' => 'Access denied.']);
+      return redirect()->route('dashboard.index')->withErrors(['error' => 'Access denied.']);
     }
 
     $supervisors = User::whereHas('roles', function ($query) {
@@ -87,18 +86,6 @@ class SupervisorDepartmentController extends Controller
       ];
     });
 
-    $frequencies = [];
-    foreach ($departments as $department) {
-      $config = EvaluationConfiguration::where('department', $department)->first();
-      $employeeCount = Employee::where('department', $department)->count();
-
-      $frequencies[] = [
-        'department' => $department,
-        'evaluation_frequency' => $config ? $config->evaluation_frequency : 'annual',
-        'employee_count' => $employeeCount,
-      ];
-    }
-
     return Inertia::render('evaluation/supervisor-management', [
       'supervisors' => $supervisors,
       'hr_personnel' => $hrPersonnel,
@@ -107,11 +94,9 @@ class SupervisorDepartmentController extends Controller
       'assignments' => $assignments,
       'hr_assignments' => $hrAssignments,
       'manager_assignments' => $managerAssignments,
-      'frequencies' => $frequencies,
       'user_permissions' => [
         'is_super_admin' => $user->isSuperAdmin(),
         'is_supervisor' => $user->isSupervisor(),
-        'can_evaluate' => $user->canEvaluate(),
       ],
     ]);
   }

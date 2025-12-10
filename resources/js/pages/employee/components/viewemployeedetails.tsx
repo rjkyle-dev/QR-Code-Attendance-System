@@ -73,20 +73,12 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
         country: '',
         zip_code: '',
         nationality: '',
-        tin_password: '',
         tin_user_id: '',
-        tin_username: '',
         sss_user_id: '',
-        sss_username: '',
-        sss_password: '',
         philhealth_user_id: '',
-        philhealth_username: '',
-        philhealth_password: '',
         hdmf_user_id: '',
-        hdmf_username: '',
-        hdmf_password: '',
         gmail_password: '',
-        recommendation_letter: '',
+        nbi_clearance: '',
         pin: '',
     };
 
@@ -120,20 +112,12 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                 state: employee.state,
                 country: employee.country,
                 zip_code: employee.zip_code,
-                tin_password: employee.tin_password || '',
                 tin_user_id: employee.tin_user_id || '',
-                tin_username: employee.tin_username || '',
                 sss_user_id: employee.sss_user_id || '',
-                sss_username: employee.sss_username || '',
-                sss_password: employee.sss_password || '',
                 philhealth_user_id: employee.philhealth_user_id || '',
-                philhealth_username: employee.philhealth_username || '',
-                philhealth_password: employee.philhealth_password || '',
                 hdmf_user_id: employee.hdmf_user_id || '',
-                hdmf_username: employee.hdmf_username || '',
-                hdmf_password: employee.hdmf_password || '',
                 gmail_password: employee.gmail_password || '',
-                recommendation_letter: employee.recommendation_letter || '',
+                nbi_clearance: employee.nbi_clearance || '',
                 pin: employee.pin || '',
             });
 
@@ -207,7 +191,7 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                                             ) : (
                                                 <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-green-300 bg-green-50">
                                                     <img
-                                                        src="Logo.png"
+                                                        src="AGOC.png"
                                                         className="animate-scale-in dark:border-darksMain h-32 w-32 rounded-full border-2 border-cfar-400 object-cover"
                                                     />
                                                 </div>
@@ -399,133 +383,61 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                                 <CardContent>
                                     <div className="space-y-6">
                                         {/* HDMF Section */}
-                                        {(data.hdmf_user_id || data.hdmf_username) && (
+                                        {data.hdmf_user_id && (
                                             <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                                                 <h4 className="mb-3 text-base font-semibold text-green-800">HDMF (Pag-IBIG)</h4>
                                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                                    {data.hdmf_user_id && (
-                                                        <div className="flex min-w-0 flex-col space-y-1">
-                                                            <span className="text-xs font-medium text-gray-600">ID:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800" title={data.hdmf_user_id}>
-                                                                {data.hdmf_user_id}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {data.hdmf_username && (
-                                                        <div className="flex min-w-0 flex-col space-y-1">
-                                                            <span className="text-xs font-medium text-gray-600">Username/Email:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800" title={data.hdmf_username}>
-                                                                {data.hdmf_username}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {can('View Password') && (
-                                                        <div className="flex min-w-0 flex-col space-y-1">
-                                                            <span className="text-xs font-medium text-gray-600">Password:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800">
-                                                                {'•'.repeat(Math.min(data.hdmf_password.length, 12))}
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                    <div className="flex min-w-0 flex-col space-y-1">
+                                                        <span className="text-xs font-medium text-gray-600">ID:</span>
+                                                        <span className="min-w-0 truncate text-sm text-gray-800" title={data.hdmf_user_id}>
+                                                            {data.hdmf_user_id}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* SSS Section */}
-                                        {(data.sss_user_id || data.sss_username) && (
+                                        {data.sss_user_id && (
                                             <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                                                 <h4 className="mb-3 text-base font-semibold text-green-800">SSS</h4>
                                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                                    {data.sss_user_id && (
-                                                        <div className="flex min-w-0 flex-col space-y-1">
-                                                            <span className="text-xs font-medium text-gray-600">ID:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800" title={data.sss_user_id}>
-                                                                {data.sss_user_id}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {data.sss_username && (
-                                                        <div className="flex min-w-0 flex-col space-y-1">
-                                                            <span className="text-xs font-medium text-gray-600">Username/Email:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800" title={data.sss_username}>
-                                                                {data.sss_username}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {can('View Password') && (
-                                                        <div className="flex min-w-0 flex-col space-y-1 sm:col-span-2">
-                                                            <span className="text-xs font-medium text-gray-600">Password:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800">
-                                                                {'•'.repeat(Math.min(data.sss_password.length, 12))}
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                    <div className="flex min-w-0 flex-col space-y-1">
+                                                        <span className="text-xs font-medium text-gray-600">ID:</span>
+                                                        <span className="min-w-0 truncate text-sm text-gray-800" title={data.sss_user_id}>
+                                                            {data.sss_user_id}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* Philhealth Section */}
-                                        {(data.philhealth_user_id || data.philhealth_username) && (
+                                        {data.philhealth_user_id && (
                                             <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                                                 <h4 className="mb-3 text-base font-semibold text-green-800">Philhealth</h4>
                                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                                    {data.philhealth_user_id && (
-                                                        <div className="flex min-w-0 flex-col space-y-1">
-                                                            <span className="text-xs font-medium text-gray-600">ID:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800" title={data.philhealth_user_id}>
-                                                                {data.philhealth_user_id}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {data.philhealth_username && (
-                                                        <div className="flex min-w-0 flex-col space-y-1">
-                                                            <span className="text-xs font-medium text-gray-600">Username/Email:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800" title={data.philhealth_username}>
-                                                                {data.philhealth_username}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {can('View Password') && (
-                                                        <div className="flex min-w-0 flex-col space-y-1 sm:col-span-2">
-                                                            <span className="text-xs font-medium text-gray-600">Password:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800">
-                                                                {'•'.repeat(Math.min(data.philhealth_password.length, 12))}
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                    <div className="flex min-w-0 flex-col space-y-1">
+                                                        <span className="text-xs font-medium text-gray-600">ID:</span>
+                                                        <span className="min-w-0 truncate text-sm text-gray-800" title={data.philhealth_user_id}>
+                                                            {data.philhealth_user_id}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* TIN Section */}
-                                        {(data.tin_user_id || data.tin_username) && (
+                                        {data.tin_user_id && (
                                             <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                                                 <h4 className="mb-3 text-base font-semibold text-green-800">TIN</h4>
                                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                                    {data.tin_user_id && (
-                                                        <div className="flex min-w-0 flex-col space-y-1">
-                                                            <span className="text-xs font-medium text-gray-600">ID:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800" title={data.tin_user_id}>
-                                                                {data.tin_user_id}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {data.tin_username && (
-                                                        <div className="flex min-w-0 flex-col space-y-1">
-                                                            <span className="text-xs font-medium text-gray-600">Username/Email:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800" title={data.tin_username}>
-                                                                {data.tin_username}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {can('View Password') && (
-                                                        <div className="flex min-w-0 flex-col space-y-1 sm:col-span-2">
-                                                            <span className="text-xs font-medium text-gray-600">Password:</span>
-                                                            <span className="min-w-0 truncate text-sm text-gray-800">
-                                                                {'•'.repeat(Math.min(data.tin_password.length, 12))}
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                    <div className="flex min-w-0 flex-col space-y-1">
+                                                        <span className="text-xs font-medium text-gray-600">ID:</span>
+                                                        <span className="min-w-0 truncate text-sm text-gray-800" title={data.tin_user_id}>
+                                                            {data.tin_user_id}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}

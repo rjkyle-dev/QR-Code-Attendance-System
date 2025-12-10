@@ -43,7 +43,7 @@ const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
                     <div className="flex items-center space-x-3">
                         <div className="animate-pulse-green flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cfar-400 to-cfar-600 shadow-lg">
                             <span className="text-lg font-bold text-white">
-                                <img src="Logo.png" alt="" />
+                                <img src="AGOC.png" alt="" />
                             </span>
                         </div>
                         <div>

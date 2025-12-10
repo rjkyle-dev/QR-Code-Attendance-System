@@ -12,7 +12,7 @@ export default function LoginLoadingModal({ isOpen }: LoginLoadingModalProps) {
                 <div className="animate-pulse">
                     <div className="flex size-32 items-center justify-center rounded-full bg-white/10 p-6 backdrop-blur-sm">
                         <img 
-                            src="/Logo.png" 
+                            src="/AGOC.png" 
                             alt="Logo" 
                             className="h-full w-full object-contain animate-pulse" 
                         />

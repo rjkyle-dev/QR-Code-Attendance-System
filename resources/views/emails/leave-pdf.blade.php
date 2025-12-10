@@ -167,7 +167,7 @@
     <div class="header">
         <div class="header-left">
             @php
-                $logoPath = public_path('Logo.png');
+                $logoPath = public_path('AGOC.png');
                 if (file_exists($logoPath)) {
                     $logoData = base64_encode(file_get_contents($logoPath));
                     $logoMime = mime_content_type($logoPath);

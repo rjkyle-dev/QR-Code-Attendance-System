@@ -162,7 +162,7 @@ export default function LeavePDFCustomExample({ leave }: { leave: Leave }) {
     const LeaveDocument = LeavePDFTemplate({
         leave,
         companyName: 'CFARBEMCO',
-        logoPath: '/Logo.png',
+        logoPath: '/AGOC.png',
         customStyles: customStyles[selectedTheme as keyof typeof customStyles],
         showEmployeePhoto: true,
         showFooter: true,

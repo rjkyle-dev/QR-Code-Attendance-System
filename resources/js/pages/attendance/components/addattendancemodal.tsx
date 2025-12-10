@@ -261,7 +261,7 @@ const AddAttendanceModal = ({ isOpen, onClose }: AttendanceModalProps) => {
                     </div>
                     {wsEmployeeInfo && wsEmployeeInfo.employeeid && (
                         <div className="mb-4 flex items-center gap-4 rounded border p-4 shadow">
-                            <img src={wsEmployeeInfo.picture || 'Logo.png'} alt="Profile" className="h-16 w-16 rounded-full border object-cover" />
+                            <img src={wsEmployeeInfo.picture || 'AGOC.png'} alt="Profile" className="h-16 w-16 rounded-full border object-cover" />
                             <div>
                                 <div className="font-bold">{wsEmployeeInfo.employee_name}</div>
                                 <div className="text-sm text-gray-600">

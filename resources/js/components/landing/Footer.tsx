@@ -12,7 +12,7 @@ const Footer = () => {
                       <div className="mb-4 flex items-center space-x-3">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cfar-400 to-cfar-600 shadow-lg">
                               <span className="text-xl font-bold text-white">
-                                  <img src="Logo.png" alt="" />
+                                  <img src="AGOC.png" alt="" />
                               </span>
                           </div>
                           <div>

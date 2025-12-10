@@ -155,11 +155,11 @@ const FingerprintCapture: React.FC<FingerprintCaptureProps> = ({
                                     {employeeFingerprints.map((fp: any, idx: number) => (
                                         <div key={fp.id || idx} className="text-center">
                                             <img
-                                                src={fp.fingerprint_image ? `data:image/png;base64,${fp.fingerprint_image}` : '/Logo.png'}
+                                                src={fp.fingerprint_image ? `data:image/png;base64,${fp.fingerprint_image}` : '/AGOC.png'}
                                                 alt={`Fingerprint ${idx + 1}`}
                                                 className="mx-auto h-40 w-40 rounded border-2 border-green-400 object-contain shadow-sm"
                                                 onError={(e) => {
-                                                    e.currentTarget.src = '/Logo.png';
+                                                    e.currentTarget.src = '/AGOC.png';
                                                 }}
                                             />
                                             {/* <p className="mt-1 text-xs text-green-700">

@@ -76,19 +76,11 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                         zip_code: employee.zip_code || '',
                         picture: null, // ensure File|null
                         philhealth_user_id: employee.philhealth_user_id || '',
-                        philhealth_username: employee.philhealth_username || '',
-                        philhealth_password: employee.philhealth_password || '',
                         sss_user_id: employee.sss_user_id || '',
-                        sss_username: employee.sss_username || '',
-                        sss_password: employee.sss_password || '',
                         hdmf_user_id: employee.hdmf_user_id || '',
-                        hdmf_username: employee.hdmf_username || '',
-                        hdmf_password: employee.hdmf_password || '',
                         tin_user_id: employee.tin_user_id || '',
-                        tin_username: employee.tin_username || '',
-                        tin_password: employee.tin_password || '',
                         gmail_password: employee.gmail_password || '',
-                        recommendation_letter: null, // ensure File|null
+                        nbi_clearance: null, // ensure File|null
                         _method: 'PUT',
                     }) as unknown as Employees & { _method: string },
             );
@@ -807,34 +799,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                         />
                                         <InputError message={errors.hdmf_user_id} />
                                     </div>
-                                    <div>
-                                        <Label>Username/Email Address</Label>
-                                        <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter username/email address..."
-                                            value={data.hdmf_username}
-                                            onChange={(e) => setData('hdmf_username', e.target.value)}
-                                            className={`border-green-300 focus:border-cfar-500 ${errors.hdmf_username ? 'border-red-500 focus:border-red-500' : ''}`}
-                                            aria-invalid={!!errors.hdmf_username}
-                                        />
-                                        <InputError message={errors.hdmf_username} />
-                                    </div>
-                                    {can('Add Password') && (
-                                        <div>
-                                            <Label>Password</Label>
-                                            <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                                            <Input
-                                                type="text"
-                                                placeholder="Enter password..."
-                                                value={data.hdmf_password}
-                                                onChange={(e) => setData('hdmf_password', e.target.value)}
-                                                className="border-green-300 focus:border-cfar-500"
-                                                aria-invalid={!!errors.hdmf_password}
-                                            />
-                                            <InputError message={errors.hdmf_password} />
-                                        </div>
-                                    )}
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold">Philhealth</h3>
@@ -852,34 +816,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                         />
                                         <InputError message={errors.philhealth_user_id} />
                                     </div>
-                                    <div>
-                                        <Label>Username/Email Address</Label>
-                                        {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your philhealth..."
-                                            value={data.philhealth_username}
-                                            onChange={(e) => setData('philhealth_username', e.target.value)}
-                                            className="border-green-300 focus:border-cfar-500"
-                                            aria-invalid={!!errors.philhealth_username}
-                                        />
-                                        <InputError message={errors.philhealth_username} />
-                                    </div>
-                                    {can('Add Password') && (
-                                        <div className="">
-                                            <Label>Philhealth Password</Label>
-                                            {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
-                                            <Input
-                                                type="text"
-                                                placeholder="Enter your philhealth..."
-                                                value={data.philhealth_password}
-                                                onChange={(e) => setData('philhealth_password', e.target.value)}
-                                                className="border-green-300 focus:border-cfar-500"
-                                                aria-invalid={!!errors.philhealth_password}
-                                            />
-                                            <InputError message={errors.philhealth_password} />
-                                        </div>
-                                    )}
                                 </div>
 
                                 <div>
@@ -898,32 +834,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                         />
                                         <InputError message={errors.tin_user_id} />
                                     </div>
-                                    <div>
-                                        <Label htmlFor="state">Username/Email Address</Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your username/email address.."
-                                            value={data.tin_username}
-                                            onChange={(e) => setData('tin_username', e.target.value)}
-                                            className="border-green-300 focus:border-cfar-500"
-                                            aria-invalid={!!errors.tin_username}
-                                        />
-                                        <InputError message={errors.tin_username} />
-                                    </div>
-                                    {can('Add Password') && (
-                                        <div>
-                                            <Label htmlFor="state">Tin Password</Label>
-                                            <Input
-                                                type="text"
-                                                placeholder="Enter your tin_password.."
-                                                value={data.tin_password}
-                                                onChange={(e) => setData('tin_password', e.target.value)}
-                                                className="border-green-300 focus:border-cfar-500"
-                                                aria-invalid={!!errors.tin_password}
-                                            />
-                                            <InputError message={errors.tin_password} />
-                                        </div>
-                                    )}
                                 </div>
 
                                 <div>
@@ -943,34 +853,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                         />
                                         <InputError message={errors.sss_user_id} />
                                     </div>
-                                    <div>
-                                        <Label>Username/Email Address</Label>
-                                        {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your username/email address..."
-                                            value={data.sss_username}
-                                            onChange={(e) => setData('sss_username', e.target.value)}
-                                            className="border-green-300 focus:border-cfar-500"
-                                            aria-invalid={!!errors.sss_username}
-                                        />
-                                        <InputError message={errors.sss_username} />
-                                    </div>
-                                    {can('Add Password') && (
-                                        <div>
-                                            <Label>Password</Label>
-                                            <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                                            <Input
-                                                type="text"
-                                                placeholder="Enter password..."
-                                                value={data.sss_password}
-                                                onChange={(e) => setData('sss_password', e.target.value)}
-                                                className="border-green-300 focus:border-cfar-500"
-                                                aria-invalid={!!errors.sss_password}
-                                            />
-                                            <InputError message={errors.sss_password} />
-                                        </div>
-                                    )}
                                 </div>
                             </>
                         )}

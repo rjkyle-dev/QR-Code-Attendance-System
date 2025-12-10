@@ -14,7 +14,7 @@ interface LeavePDFTemplateProps {
 export function LeavePDFTemplate({
     leave,
     companyName = 'CFARBEMCO',
-    logoPath = '/Logo.png',
+    logoPath = '/AGOC.png',
     customStyles = {},
     showEmployeePhoto = true,
     showFooter = true,

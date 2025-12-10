@@ -145,7 +145,7 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
         const LeaveDocument = LeavePDFTemplate({
             leave: { ...leave, picture: toAbsoluteUrl(leave.picture) },
             companyName: 'CFARBEMCO',
-            logoPath: toAbsoluteUrl('/Logo.png'),
+            logoPath: toAbsoluteUrl('/AGOC.png'),
         });
         const instance = pdf(LeaveDocument());
         const blob = await instance.toBlob();

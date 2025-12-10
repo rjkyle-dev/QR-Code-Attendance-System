@@ -8,7 +8,6 @@ use App\Models\ManagerDepartmentAssignment;
 use App\Models\AdminDepartmentAssignment;
 use App\Models\User;
 use App\Models\Employee;
-use App\Models\EvaluationConfiguration;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -121,18 +120,6 @@ class AdminManagementController extends Controller
             ];
         });
 
-        $frequencies = [];
-        foreach ($departments as $department) {
-            $config = EvaluationConfiguration::where('department', $department)->first();
-            $employeeCount = Employee::where('department', $department)->count();
-
-            $frequencies[] = [
-                'department' => $department,
-                'evaluation_frequency' => $config ? $config->evaluation_frequency : 'annual',
-                'employee_count' => $employeeCount,
-            ];
-        }
-
         return Inertia::render('admin-management/index', [
             'supervisors' => $supervisors,
             'hr_personnel' => $hrPersonnel,
@@ -143,11 +130,9 @@ class AdminManagementController extends Controller
             'manager_assignments' => $managerAssignments,
             'admin_users' => $adminUsers,
             'admin_assignments' => $adminAssignments,
-            'frequencies' => $frequencies,
             'user_permissions' => [
                 'is_super_admin' => $user->isSuperAdmin(),
                 'is_supervisor' => $user->isSupervisor(),
-                'can_evaluate' => $user->canEvaluate(),
             ],
         ]);
     }

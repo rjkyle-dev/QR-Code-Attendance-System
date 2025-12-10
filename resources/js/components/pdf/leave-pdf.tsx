@@ -44,7 +44,7 @@ export default function LeavePDF({ leave }: { leave: any }) {
                 {/* Header with logo and company name */}
                 <View style={{ ...styles.header, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                        <Image src="/Logo.png" style={{ width: 60, height: 60, marginRight: 16 }} />
+                        <Image src="/AGOC.png" style={{ width: 60, height: 60, marginRight: 16 }} />
                         <View>
                             <Text style={[styles.title, styles.textBold]}>HRIS (CheckWise)</Text>
                             <Text>Leave Request Document</Text>

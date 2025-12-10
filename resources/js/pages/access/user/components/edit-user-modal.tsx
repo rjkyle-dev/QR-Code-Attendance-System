@@ -193,7 +193,7 @@ export default function EditUserModal({ isOpen, onClose, user, roles }: EditUser
                                     {previewImage ? (
                                         <img src={previewImage} alt="Profile preview" className="h-full w-full rounded-full object-cover" />
                                     ) : (
-                                        <img src={user.profile_image || '/Logo.png'} alt="Profile" className="h-16 w-16 object-contain" />
+                                        <img src={user.profile_image || '/AGOC.png'} alt="Profile" className="h-16 w-16 object-contain" />
                                     )}
                                 </div>
                                 <input

@@ -37,23 +37,15 @@ class Employee extends Model
         'pin',
         'qr_code_secret',
         'gmail_password',
-        'recommendation_letter',
+        'nbi_clearance',
         // HDMF fields
         'hdmf_user_id',
-        'hdmf_username',
-        'hdmf_password',
         // SSS fields
         'sss_user_id',
-        'sss_username',
-        'sss_password',
         // Philhealth fields
         'philhealth_user_id',
-        'philhealth_username',
-        'philhealth_password',
         // TIN fields
         'tin_user_id',
-        'tin_username',
-        'tin_password',
     ];
 
     protected static function boot()
@@ -107,10 +99,6 @@ class Employee extends Model
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
-    }
-    public function evaluations()
-    {
-        return $this->hasMany(Evaluation::class);
     }
 
     public function serviceTenure()

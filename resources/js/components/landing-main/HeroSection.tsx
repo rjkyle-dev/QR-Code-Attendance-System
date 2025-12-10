@@ -23,14 +23,13 @@ const HeroSection = () => {
             </div> */}
             
             <h1 className="animate-fade-up-delay-1 font-heading text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              Attendance Made
-              <span className="text-gradient block">Simple & Smart</span>
+            Amalgated Agoc  
+              <span className="text-gradient block">(Amalgated Group Of Companies)</span>
             </h1>
             
-            <p className="animate-fade-up-delay-2 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0">
-              Revolutionize your workforce management with QR code-based attendance tracking. 
-              Fast, secure, and effortless for employees and managers alike.
-            </p>
+              <p className="animate-fade-up-delay-2 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0">
+                Amalgated Group Of Companies is a group of companies that provides a range of services to the public.
+              </p>
             
             <div className="animate-fade-up-delay-3 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href={route('public.attendance')}>

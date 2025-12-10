@@ -282,7 +282,7 @@ export default function PackingPlantPDF({
                 <Page size="A4" orientation="portrait" style={styles.page}>
                     {/* Header */}
                     <View style={styles.headerContainer}>
-                        {/* <Image src="/Logo.png" style={styles.logo} /> */}
+                        {/* <Image src="/AGOC.png" style={styles.logo} /> */}
                         <View style={styles.header}>
                             <Text style={styles.companyName}>CFARBEMPCO</Text>
                             <Text style={styles.code}>PP-2701</Text>

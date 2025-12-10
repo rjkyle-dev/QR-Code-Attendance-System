@@ -292,7 +292,7 @@ export default function AdminPDF({ evaluation }: AdminPDFProps) {
         <Document>
             <Page size="A4" style={styles.page}>
                 {/* Background Logo */}
-                <Image src="/Logo.png" style={styles.backgroundLogo} />
+                <Image src="/AGOC.png" style={styles.backgroundLogo} />
 
                 {/* Content */}
                 <View style={styles.content}>

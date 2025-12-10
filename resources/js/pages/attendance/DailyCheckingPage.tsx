@@ -1409,7 +1409,7 @@ export default function DailyCheckingPage({
                             {/* Header */}
                             <div className="mb-6 flex items-center justify-between border-b-2 border-gray-800 pb-4 print:mb-4">
                                 <div className="flex items-center gap-4">
-                                    <img src="/Logo.png" alt="Company Logo" className="h-20 w-20 object-contain" />
+                                    <img src="/AGOC.png" alt="Company Logo" className="h-20 w-20 object-contain" />
                                     <div>
                                         <h1 className="text-2xl font-bold text-gray-800">CFARESSMPCO</h1>
                                         <p className="text-sm text-gray-600">PP-2701</p>

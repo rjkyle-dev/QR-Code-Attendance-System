@@ -41,7 +41,7 @@ export default function LeavePDFPreview({ leave }: LeavePDFPreviewProps) {
     const LeaveDocument = LeavePDFTemplate({
         leave: safeLeave,
         companyName: 'CFARBEMCO',
-        logoPath: toAbsoluteUrl('/Logo.png'),
+        logoPath: toAbsoluteUrl('/AGOC.png'),
     });
 
     return (

@@ -4,7 +4,6 @@ import { CalendarDays, Clock, Star, TrendingUp } from 'lucide-react';
 interface DashboardData {
     leaveBalance: number;
     absenceCount: number;
-    evaluationRating: number;
     assignedArea: string;
     attendancePercentage: number;
     productivity: number;
@@ -37,14 +36,6 @@ export function MetricsCards({ dashboardData }: MetricsCardsProps) {
             icon: Clock,
             color: 'text-green-600',
             bgColor: 'bg-green-50',
-        },
-        {
-            title: 'Performance Rating',
-            value: `${dashboardData.evaluationRating}/10`,
-            description: 'Latest evaluation',
-            icon: Star,
-            color: 'text-yellow-600',
-            bgColor: 'bg-yellow-50',
         },
         {
             title: 'Productivity',

@@ -86,7 +86,7 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
         hdmf_username: '',
         hdmf_password: '',
         gmail_password: '',
-        recommendation_letter: '',
+        nbi_clearance: '',
         pin: '',
     };
 
@@ -133,7 +133,7 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                 hdmf_username: employee.hdmf_username || '',
                 hdmf_password: employee.hdmf_password || '',
                 gmail_password: employee.gmail_password || '',
-                recommendation_letter: employee.recommendation_letter || '',
+                nbi_clearance: employee.nbi_clearance || '',
                 pin: employee.pin || '',
             });
 
@@ -207,7 +207,7 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                                             ) : (
                                                 <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-green-300 bg-green-50">
                                                     <img
-                                                        src="Logo.png"
+                                                        src="AGOC.png"
                                                         className="animate-scale-in dark:border-darksMain h-32 w-32 rounded-full border-2 border-cfar-400 object-cover"
                                                     />
                                                 </div>

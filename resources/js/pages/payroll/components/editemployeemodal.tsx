@@ -88,7 +88,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                         tin_username: employee.tin_username || '',
                         tin_password: employee.tin_password || '',
                         gmail_password: employee.gmail_password || '',
-                        recommendation_letter: null, // ensure File|null
+                        nbi_clearance: null, // ensure File|null
                         _method: 'PUT',
                     }) as unknown as Employees & { _method: string },
             );

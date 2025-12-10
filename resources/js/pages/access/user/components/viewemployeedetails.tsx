@@ -103,7 +103,7 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete }: Em
                     <div className="text-center">
                         <div className="relative mx-auto mb-4 h-32 w-32">
                             <img
-                                src={preview ? preview:'Logo.png'}
+                                src={preview ? preview:'AGOC.png'}
                                 alt={form.lastname}
                                 className="animate-scale-in mx-auto h-32 w-32 rounded-full border-4 border-green-500"
                                 onError={(e) => {
