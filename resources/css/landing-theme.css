@@ -1,0 +1,283 @@
+/* Landing Page Theme - Based on qr-ease theme */
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* Landing theme color variables */
+:root {
+  /* Base colors - using HSL format from qr-ease */
+  --landing-background: 222 47% 6%;
+  --landing-foreground: 210 40% 98%;
+  
+  --landing-card: 222 47% 8%;
+  --landing-card-foreground: 210 40% 98%;
+  
+  --landing-popover: 222 47% 8%;
+  --landing-popover-foreground: 210 40% 98%;
+  
+  --landing-primary: 174 72% 56%;
+  --landing-primary-foreground: 222 47% 6%;
+  
+  --landing-secondary: 222 30% 14%;
+  --landing-secondary-foreground: 210 40% 98%;
+  
+  --landing-muted: 222 30% 18%;
+  --landing-muted-foreground: 215 20% 55%;
+  
+  --landing-accent: 174 72% 40%;
+  --landing-accent-foreground: 210 40% 98%;
+  
+  --landing-destructive: 0 84% 60%;
+  --landing-destructive-foreground: 210 40% 98%;
+  
+  --landing-border: 222 30% 18%;
+  --landing-input: 222 30% 18%;
+  --landing-ring: 174 72% 56%;
+  
+  --landing-radius: 0.75rem;
+
+  /* Custom gradients */
+  --gradient-primary: linear-gradient(135deg, hsl(174 72% 56%) 0%, hsl(190 80% 50%) 100%);
+  --gradient-glow: radial-gradient(circle at center, hsl(174 72% 56% / 0.15) 0%, transparent 70%);
+  --gradient-card: linear-gradient(180deg, hsl(222 47% 10%) 0%, hsl(222 47% 8%) 100%);
+  --gradient-hero: radial-gradient(ellipse at top, hsl(174 72% 56% / 0.08) 0%, transparent 50%);
+  
+  /* Custom shadows */
+  --shadow-glow: 0 0 60px hsl(174 72% 56% / 0.3);
+  --shadow-card: 0 4px 24px hsl(222 47% 4% / 0.5);
+  --shadow-button: 0 4px 16px hsl(174 72% 56% / 0.25);
+}
+
+/* Dark mode (same as light for this theme) */
+.dark {
+  --landing-background: 222 47% 6%;
+  --landing-foreground: 210 40% 98%;
+  --landing-card: 222 47% 8%;
+  --landing-card-foreground: 210 40% 98%;
+  --landing-popover: 222 47% 8%;
+  --landing-popover-foreground: 210 40% 98%;
+  --landing-primary: 174 72% 56%;
+  --landing-primary-foreground: 222 47% 6%;
+  --landing-secondary: 222 30% 14%;
+  --landing-secondary-foreground: 210 40% 98%;
+  --landing-muted: 222 30% 18%;
+  --landing-muted-foreground: 215 20% 55%;
+  --landing-accent: 174 72% 40%;
+  --landing-accent-foreground: 210 40% 98%;
+  --landing-destructive: 0 62.8% 30.6%;
+  --landing-destructive-foreground: 210 40% 98%;
+  --landing-border: 222 30% 18%;
+  --landing-input: 222 30% 18%;
+  --landing-ring: 174 72% 56%;
+}
+
+/* Landing page specific styles */
+@layer base {
+  /* Apply landing theme to landing page elements */
+  .landing-page {
+    --background: hsl(var(--landing-background));
+    --foreground: hsl(var(--landing-foreground));
+    --card: hsl(var(--landing-card));
+    --card-foreground: hsl(var(--landing-card-foreground));
+    --popover: hsl(var(--landing-popover));
+    --popover-foreground: hsl(var(--landing-popover-foreground));
+    --primary: hsl(var(--landing-primary));
+    --primary-foreground: hsl(var(--landing-primary-foreground));
+    --secondary: hsl(var(--landing-secondary));
+    --secondary-foreground: hsl(var(--landing-secondary-foreground));
+    --muted: hsl(var(--landing-muted));
+    --muted-foreground: hsl(var(--landing-muted-foreground));
+    --accent: hsl(var(--landing-accent));
+    --accent-foreground: hsl(var(--landing-accent-foreground));
+    --destructive: hsl(var(--landing-destructive));
+    --destructive-foreground: hsl(var(--landing-destructive-foreground));
+    --border: hsl(var(--landing-border));
+    --input: hsl(var(--landing-input));
+    --ring: hsl(var(--landing-ring));
+    --radius: var(--landing-radius);
+    
+    /* Explicit background color */
+    background-color: hsl(var(--landing-background));
+    color: hsl(var(--landing-foreground));
+  }
+  
+  /* Ensure all sections within landing page have proper background */
+  .landing-page section {
+    background-color: transparent;
+  }
+  
+  /* Ensure the main container covers full viewport */
+  .landing-page {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+  }
+  
+  /* Fix for body background when landing page is active */
+  body.landing-page-active {
+    background-color: hsl(var(--landing-background));
+  }
+  
+  /* Navbar background with landing theme */
+  .landing-page nav {
+    background-color: hsl(var(--landing-background) / 0.95) !important;
+  }
+  
+  /* Features section background - dark like main background */
+  .landing-page #features {
+    background-color: hsl(var(--landing-background)) !important;
+  }
+  
+  /* Feature cards - slightly lighter dark background */
+  .landing-page #features .group {
+    background-color: hsl(var(--landing-card)) !important;
+  }
+  
+  /* Footer background */
+  .landing-page footer {
+    background-color: hsl(var(--landing-card) / 0.3) !important;
+  }
+
+  .landing-page,
+  .landing-page * {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .landing-page h1,
+  .landing-page h2,
+  .landing-page h3,
+  .landing-page h4,
+  .landing-page h5,
+  .landing-page h6 {
+    font-family: 'Sora', sans-serif;
+  }
+}
+
+/* Font heading utility */
+@layer utilities {
+  .landing-page .font-heading {
+    font-family: 'Sora', sans-serif;
+  }
+}
+
+/* Utility classes for landing theme */
+@layer utilities {
+  /* Text gradient */
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  /* Background gradients */
+  .bg-gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+
+  .bg-gradient-glow {
+    background-image: var(--gradient-glow);
+  }
+
+  .bg-gradient-card {
+    background-image: var(--gradient-card);
+  }
+
+  .bg-gradient-hero {
+    background-image: var(--gradient-hero);
+  }
+
+  /* Shadows */
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-button {
+    box-shadow: var(--shadow-button);
+  }
+
+  /* Animations */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .animate-scan-line {
+    animation: scan-line 2s ease-in-out infinite;
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.6s ease-out forwards;
+  }
+
+  .animate-fade-up-delay-1 {
+    animation: fade-up 0.6s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-up-delay-2 {
+    animation: fade-up 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-up-delay-3 {
+    animation: fade-up 0.6s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+}
+
+/* Keyframes for animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes scan-line {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

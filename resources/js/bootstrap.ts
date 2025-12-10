@@ -36,15 +36,6 @@ const isLocalhost =
 const reverbHost = isLocalhost ? '127.0.0.1' : configuredHost;
 
 // Configure Echo with Laravel Reverb (NOT Pusher service)
-console.log('[Echo Config] Configuring Laravel Echo with Reverb...', {
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY || 'your-reverb-key',
-    wsHost: reverbHost,
-    wsPort: reverbPort,
-    forceTLS: !isLocalhost,
-    isLocalhost,
-});
-
 // Initialize Echo with Reverb configuration
 window.Echo = new Echo({
     broadcaster: 'reverb', // Using Reverb, not Pusher service
@@ -64,7 +55,3 @@ window.Echo = new Echo({
         },
     },
 });
-
-console.log('[Echo Config] ✅ Echo configured successfully with Reverb');
-console.log('[Echo Config] window.Echo is now available:', !!window.Echo);
-console.log('[Echo Config] Connection state:', window.Echo.connector?.pusher?.connection?.state || 'unknown');
