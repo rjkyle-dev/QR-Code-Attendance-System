@@ -83,19 +83,15 @@ class AdminManagementController extends Controller
             ];
         });
 
-        // Get users for Admin tab (exclude Supervisors, HR Personnel, and Managers)
         $adminUsers = User::with('roles')
             ->whereDoesntHave('roles', function ($query) {
-                // Exclude Supervisor role
                 $query->where('name', 'Supervisor');
             })
             ->whereDoesntHave('roles', function ($query) {
-                // Exclude HR-related roles
                 $query->where('name', 'like', '%HR%')
                     ->orWhere('name', 'like', '%hr%');
             })
             ->whereDoesntHave('roles', function ($query) {
-                // Exclude Manager-related roles
                 $query->where('name', 'like', '%Manager%')
                     ->orWhere('name', 'like', '%manager%');
             })
@@ -110,7 +106,6 @@ class AdminManagementController extends Controller
                 ];
             });
 
-        // Get Admin assignments
         $adminAssignments = AdminDepartmentAssignment::with('user')->get()->map(function ($assignment) {
             return [
                 'id' => $assignment->id,
@@ -157,9 +152,6 @@ class AdminManagementController extends Controller
         ]);
     }
 
-    /**
-     * Store a new Admin-department assignment
-     */
     public function storeAdminAssignment(Request $request)
     {
         $user = Auth::user();
@@ -173,8 +165,6 @@ class AdminManagementController extends Controller
             'department' => 'required|string',
         ]);
 
-        // No role check - can assign any user
-        // Create assignment (or update if exists)
         AdminDepartmentAssignment::updateOrCreate(
             [
                 'user_id' => $request->user_id,
@@ -190,9 +180,6 @@ class AdminManagementController extends Controller
         return back()->with('success', 'Admin assignment created successfully.');
     }
 
-    /**
-     * Update Admin-department assignment
-     */
     public function updateAdminAssignment(Request $request, AdminDepartmentAssignment $assignment)
     {
         $user = Auth::user();
@@ -212,9 +199,6 @@ class AdminManagementController extends Controller
         return back()->with('success', 'Admin assignment updated successfully.');
     }
 
-    /**
-     * Remove Admin-department assignment
-     */
     public function destroyAdminAssignment(AdminDepartmentAssignment $assignment)
     {
         $user = Auth::user();

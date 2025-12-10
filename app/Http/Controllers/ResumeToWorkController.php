@@ -21,24 +21,16 @@ class ResumeToWorkController extends Controller
 {
   use EmployeeFilterTrait;
 
-  /**
-   * Display a listing of the resource.
-   */
   public function index()
   {
     $user = Auth::user();
     $isSupervisor = $user->isSupervisor();
     $isSuperAdmin = $user->isSuperAdmin();
 
-    // Get evaluable departments based on user role
-    // HR and Manager see all departments, Admin and Supervisor see only assigned
     $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-    // Base query for resume to work requests (admin created)
     $resumeQuery = ResumeToWork::with('employee', 'processedBy');
 
-    // Filter based on user role
-    // HR and Manager already get all requests, so only filter for Admin and Supervisor
     $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
     $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
 
@@ -50,10 +42,8 @@ class ResumeToWorkController extends Controller
 
     $resumeRequests = $resumeQuery->orderBy('created_at', 'desc')->get();
 
-    // Also get return work requests (employee submitted)
     $returnWorkQuery = ReturnWork::with('employee');
 
-    // Filter based on user role
     if (!$isSuperAdmin && !$isHR && !$isManager && !empty($supervisedDepartments)) {
       $returnWorkQuery->whereHas('employee', function ($query) use ($supervisedDepartments) {
         $query->whereIn('department', $supervisedDepartments);
@@ -62,12 +52,11 @@ class ResumeToWorkController extends Controller
 
     $returnWorkRequests = $returnWorkQuery->orderBy('created_at', 'desc')->get();
 
-    // Transform resume requests (admin created)
     $resumeList = $resumeRequests->transform(fn($resume) => [
       'id' => 'resume_' . $resume->id,
       'employee_name' => $resume->employee ? $resume->employee->employee_name : null,
-      'employee_id' => (string) $resume->employee_id, // Database ID for form
-      'employee_id_number' => $resume->employee ? $resume->employee->employeeid : null, // Employee ID number for display
+      'employee_id' => (string) $resume->employee_id,
+      'employee_id_number' => $resume->employee ? $resume->employee->employeeid : null,
       'department' => $resume->employee ? $resume->employee->department : null,
       'position' => $resume->employee ? $resume->employee->position : null,
       'return_date' => $resume->return_date ? \Illuminate\Support\Carbon::parse($resume->return_date)->format('Y-m-d') : null,
@@ -82,34 +71,29 @@ class ResumeToWorkController extends Controller
       'source' => 'admin',
     ]);
 
-    // Transform return work requests (employee submitted)
     $returnWorkList = $returnWorkRequests->transform(fn($returnWork) => [
       'id' => 'return_' . $returnWork->id,
       'employee_name' => $returnWork->employee ? $returnWork->employee->employee_name : null,
-      'employee_id' => (string) $returnWork->employee_id, // Database ID for form
-      'employee_id_number' => $returnWork->employee ? $returnWork->employee->employeeid : $returnWork->employee_id_number, // Employee ID number for display
+      'employee_id' => (string) $returnWork->employee_id,
+      'employee_id_number' => $returnWork->employee ? $returnWork->employee->employeeid : $returnWork->employee_id_number,
       'department' => $returnWork->employee ? $returnWork->employee->department : null,
       'position' => $returnWork->employee ? $returnWork->employee->position : null,
       'return_date' => $returnWork->return_date ? \Illuminate\Support\Carbon::parse($returnWork->return_date)->format('Y-m-d') : null,
-      'previous_absence_reference' => $returnWork->absence_type, // Map absence_type to previous_absence_reference
-      'comments' => $returnWork->reason, // Map reason to comments
+      'previous_absence_reference' => $returnWork->absence_type,
+      'comments' => $returnWork->reason,
       'status' => in_array($returnWork->status, ['approved', 'processed']) ? 'processed' : 'pending',
       'processed_by' => $returnWork->approver ? $returnWork->approver->name : null,
       'processed_at' => $returnWork->approved_at ? $returnWork->approved_at->format('Y-m-d H:i') : null,
-      'supervisor_notified' => false, // Default for return work requests
+      'supervisor_notified' => false,
       'supervisor_notified_at' => null,
       'created_at' => $returnWork->created_at->format('Y-m-d H:i'),
       'source' => 'employee',
     ]);
 
-    // Merge both lists and sort by created_at
     $allRequests = $resumeList->concat($returnWorkList)->sortByDesc('created_at')->values();
 
-    // Get employees for the form
     $employeeQuery = Employee::orderBy('employee_name');
 
-    // Filter employees based on user role
-    // HR and Manager already get all employees, so only filter for Admin and Supervisor
     if (!$isSuperAdmin && !$isHR && !$isManager && !empty($supervisedDepartments)) {
       $employeeQuery->whereIn('department', $supervisedDepartments);
     }
@@ -122,14 +106,11 @@ class ResumeToWorkController extends Controller
       'position' => $employee->position,
     ]);
 
-    // Get approved leaves (both supervisor and HR approved)
     $approvedLeavesQuery = Leave::with(['employee', 'supervisorApprover', 'hrApprover'])
       ->where('supervisor_status', 'approved')
       ->where('hr_status', 'approved')
       ->where('leave_status', 'Approved');
 
-    // Filter based on user role
-    // HR and Manager already get all leaves, so only filter for Admin and Supervisor
     if (!$isSuperAdmin && !$isHR && !$isManager && !empty($supervisedDepartments)) {
       $approvedLeavesQuery->whereHas('employee', function ($query) use ($supervisedDepartments) {
         $query->whereIn('department', $supervisedDepartments);
@@ -140,8 +121,6 @@ class ResumeToWorkController extends Controller
       ->orderBy('leave_end_date', 'desc')
       ->get()
       ->map(function ($leave) {
-        // Check if there's a ResumeToWork record for this leave
-        // Try multiple reference formats
         $resumeToWork = ResumeToWork::where(function ($query) use ($leave) {
           $query->where('previous_absence_reference', "Leave #{$leave->id}")
             ->orWhere('previous_absence_reference', "Leave Request #{$leave->id}")
@@ -151,7 +130,6 @@ class ResumeToWorkController extends Controller
           ->where('employee_id', $leave->employee_id)
           ->first();
 
-        // Get HR Officer for the employee's department
         $hrOfficer = null;
         if ($leave->employee && $leave->employee->department) {
           $hrUser = User::getHRForDepartment($leave->employee->department);
@@ -160,7 +138,6 @@ class ResumeToWorkController extends Controller
           }
         }
 
-        // Get Supervisor for the employee's department
         $supervisor = null;
         if ($leave->employee && $leave->employee->department) {
           $supervisorUser = User::getSupervisorForDepartment($leave->employee->department);
@@ -194,14 +171,11 @@ class ResumeToWorkController extends Controller
         ];
       })->values();
 
-    // Get approved absences (both supervisor and HR approved)
     $approvedAbsencesQuery = Absence::with(['employee', 'supervisorApprover', 'hrApprover'])
       ->where('supervisor_status', 'approved')
       ->where('hr_status', 'approved')
       ->where('status', 'approved');
 
-    // Filter based on user role
-    // HR and Manager already get all absences, so only filter for Admin and Supervisor
     if (!$isSuperAdmin && !$isHR && !$isManager && !empty($supervisedDepartments)) {
       $approvedAbsencesQuery->whereIn('department', $supervisedDepartments);
     }
@@ -210,8 +184,6 @@ class ResumeToWorkController extends Controller
       ->orderBy('to_date', 'desc')
       ->get()
       ->map(function ($absence) {
-        // Check if there's a ResumeToWork record for this absence
-        // Try multiple reference formats
         $resumeToWork = ResumeToWork::where(function ($query) use ($absence) {
           $query->where('previous_absence_reference', "Absence #{$absence->id}")
             ->orWhere('previous_absence_reference', "absence_{$absence->id}")
@@ -220,7 +192,6 @@ class ResumeToWorkController extends Controller
           ->where('employee_id', $absence->employee_id)
           ->first();
 
-        // Get HR Officer for the employee's department
         $hrOfficer = null;
         if ($absence->department) {
           $hrUser = User::getHRForDepartment($absence->department);
@@ -229,7 +200,6 @@ class ResumeToWorkController extends Controller
           }
         }
 
-        // Get Supervisor for the employee's department
         $supervisor = null;
         if ($absence->department) {
           $supervisorUser = User::getSupervisorForDepartment($absence->department);
@@ -276,9 +246,6 @@ class ResumeToWorkController extends Controller
     ]);
   }
 
-  /**
-   * Store a newly created resource in storage.
-   */
   public function store(Request $request)
   {
     try {
@@ -297,7 +264,6 @@ class ResumeToWorkController extends Controller
         'status' => 'pending',
       ]);
 
-      // Create notification for the supervisor of the employee's department
       $employee = Employee::find($request->employee_id);
       $supervisor = \App\Models\User::getSupervisorForDepartment($employee->department);
 
@@ -321,20 +287,15 @@ class ResumeToWorkController extends Controller
     }
   }
 
-  /**
-   * Process resume to work form (HR Admin action)
-   */
   public function process(Request $request, $resumeToWorkId)
   {
     try {
       $user = Auth::user();
 
-      // Only HR Admin or Super Admin can process
       if (!$user->isSuperAdmin() && !$user->hasRole('HR Admin')) {
         return redirect()->back()->with('error', 'Unauthorized action.');
       }
 
-      // Parse the ID to determine if it's a resume or return work request
       if (str_starts_with($resumeToWorkId, 'resume_')) {
         $id = str_replace('resume_', '', $resumeToWorkId);
         $resumeToWork = ResumeToWork::findOrFail($id);
@@ -355,7 +316,6 @@ class ResumeToWorkController extends Controller
         return redirect()->back()->with('error', 'Invalid request ID.');
       }
 
-      // Create notification for supervisor
       if ($employee) {
         Notification::create([
           'type' => 'employee_returned',
@@ -367,7 +327,6 @@ class ResumeToWorkController extends Controller
           ],
         ]);
 
-        // Broadcast real-time notification using Laravel Echo Reverb
         try {
           broadcast(new \App\Events\ReturnWorkProcessed([
             'return_work_id' => $resumeToWorkId,
@@ -379,7 +338,6 @@ class ResumeToWorkController extends Controller
             'processed_at' => now()->format('Y-m-d H:i'),
           ]));
 
-          // Also broadcast status update to employee
           if (str_starts_with($resumeToWorkId, 'return_')) {
             broadcast(new \App\Events\ReturnWorkStatusUpdated([
               'request_id' => str_replace('return_', '', $resumeToWorkId),
@@ -406,15 +364,11 @@ class ResumeToWorkController extends Controller
     }
   }
 
-  /**
-   * Update the specified resource in storage.
-   */
   public function update(Request $request, $resumeToWorkId)
   {
     try {
       $user = Auth::user();
 
-      // Only HR Admin or Super Admin can update
       if (!$user->isSuperAdmin() && !$user->hasRole('HR Admin')) {
         return redirect()->back()->with('error', 'Unauthorized action.');
       }
@@ -426,12 +380,10 @@ class ResumeToWorkController extends Controller
         'comments' => 'nullable|string',
       ]);
 
-      // Parse the ID to determine if it's a resume or return work request
       if (str_starts_with($resumeToWorkId, 'resume_')) {
         $id = str_replace('resume_', '', $resumeToWorkId);
         $resumeToWork = ResumeToWork::findOrFail($id);
 
-        // Only allow editing if not yet processed
         if ($resumeToWork->status === 'processed') {
           return redirect()->back()->with('error', 'Cannot edit a processed resume to work request.');
         }
@@ -446,7 +398,6 @@ class ResumeToWorkController extends Controller
         $id = str_replace('return_', '', $resumeToWorkId);
         $returnWork = ReturnWork::findOrFail($id);
 
-        // Only allow editing if not yet approved/processed
         if (in_array($returnWork->status, ['approved', 'processed'])) {
           return redirect()->back()->with('error', 'Cannot edit an approved return work request.');
         }
@@ -458,21 +409,17 @@ class ResumeToWorkController extends Controller
           'reason' => $request->comments,
         ]);
       } else {
-        // Check if it's a Leave or Absence ID (when editing from approved leave/absence)
         $leave = Leave::find($resumeToWorkId);
         $absence = $leave ? null : Absence::find($resumeToWorkId);
 
         if ($leave || $absence) {
-          // This is a leave/absence ID, so we need to find or create a ResumeToWork record
           $reference = $leave ? "Leave #{$resumeToWorkId}" : "Absence #{$resumeToWorkId}";
 
-          // Try to find existing ResumeToWork with this reference
           $resumeToWork = ResumeToWork::where('previous_absence_reference', $reference)
             ->where('employee_id', $request->employee_id)
             ->first();
 
           if (!$resumeToWork) {
-            // Create a new ResumeToWork record
             $resumeToWork = ResumeToWork::create([
               'employee_id' => $request->employee_id,
               'return_date' => $request->return_date,
@@ -481,12 +428,10 @@ class ResumeToWorkController extends Controller
               'status' => 'pending',
             ]);
           } else {
-            // Only allow editing if not yet processed
             if ($resumeToWork->status === 'processed') {
               return redirect()->back()->with('error', 'Cannot edit a processed resume to work request.');
             }
 
-            // Update existing record - use request value if provided, otherwise keep existing
             $resumeToWork->update([
               'employee_id' => $request->employee_id,
               'return_date' => $request->return_date,
@@ -495,7 +440,6 @@ class ResumeToWorkController extends Controller
             ]);
           }
         } else {
-          // Try to find by direct ID (for backward compatibility)
           $resumeToWork = ResumeToWork::findOrFail($resumeToWorkId);
 
           if ($resumeToWork->status === 'processed') {
@@ -518,9 +462,6 @@ class ResumeToWorkController extends Controller
     }
   }
 
-  /**
-   * Mark supervisor as notified
-   */
   public function markSupervisorNotified(ResumeToWork $resumeToWork)
   {
     try {
@@ -532,20 +473,15 @@ class ResumeToWorkController extends Controller
     }
   }
 
-  /**
-   * Send resume to work email
-   */
   public function sendEmail(Request $request, $resumeToWorkId)
   {
     try {
       $user = Auth::user();
 
-      // Only HR Admin or Super Admin can send emails
       if (!$user->isSuperAdmin() && !$user->hasRole('HR Admin')) {
         return redirect()->back()->with('error', 'Unauthorized action.');
       }
 
-      // Parse the ID to determine if it's a resume, return work, leave, or absence request
       if (str_starts_with($resumeToWorkId, 'resume_')) {
         $id = str_replace('resume_', '', $resumeToWorkId);
         $resumeToWork = ResumeToWork::with('employee')->findOrFail($id);
@@ -555,7 +491,6 @@ class ResumeToWorkController extends Controller
         $returnWork = ReturnWork::with('employee')->findOrFail($id);
         $employee = $returnWork->employee;
       } elseif (str_starts_with($resumeToWorkId, 'leave_')) {
-        // This is a leave ID from the approved leaves list
         $id = str_replace('leave_', '', $resumeToWorkId);
         $leave = Leave::with('employee')->findOrFail($id);
         $employee = $leave->employee;
@@ -564,7 +499,6 @@ class ResumeToWorkController extends Controller
           return redirect()->back()->with('error', 'Employee not found for this leave request.');
         }
 
-        // Find or create ResumeToWork record for this leave
         $reference = "Leave #{$id}";
         $resumeToWork = ResumeToWork::where(function ($query) use ($id) {
           $query->where('previous_absence_reference', "Leave #{$id}")
@@ -575,7 +509,6 @@ class ResumeToWorkController extends Controller
           ->where('employee_id', $employee->id)
           ->first();
 
-        // If no ResumeToWork exists, create one
         if (!$resumeToWork) {
           $resumeToWork = ResumeToWork::create([
             'employee_id' => $employee->id,
@@ -584,11 +517,9 @@ class ResumeToWorkController extends Controller
             'comments' => $leave->leave_reason,
             'status' => 'pending',
           ]);
-          // Load the employee relationship
           $resumeToWork->load('employee');
         }
       } elseif (str_starts_with($resumeToWorkId, 'absence_')) {
-        // This is an absence ID from the approved absences list
         $id = str_replace('absence_', '', $resumeToWorkId);
         $absence = Absence::with('employee')->findOrFail($id);
         $employee = $absence->employee;
@@ -597,7 +528,6 @@ class ResumeToWorkController extends Controller
           return redirect()->back()->with('error', 'Employee not found for this absence request.');
         }
 
-        // Find or create ResumeToWork record for this absence
         $reference = "Absence #{$id}";
         $resumeToWork = ResumeToWork::where(function ($query) use ($id) {
           $query->where('previous_absence_reference', "Absence #{$id}")
@@ -607,7 +537,6 @@ class ResumeToWorkController extends Controller
           ->where('employee_id', $employee->id)
           ->first();
 
-        // If no ResumeToWork exists, create one
         if (!$resumeToWork) {
           $resumeToWork = ResumeToWork::create([
             'employee_id' => $employee->id,
@@ -616,11 +545,9 @@ class ResumeToWorkController extends Controller
             'comments' => $absence->reason,
             'status' => 'pending',
           ]);
-          // Load the employee relationship
           $resumeToWork->load('employee');
         }
       } else {
-        // Try to find by direct ID
         $resumeToWork = ResumeToWork::with('employee')->findOrFail($resumeToWorkId);
         $employee = $resumeToWork->employee;
       }
@@ -629,53 +556,44 @@ class ResumeToWorkController extends Controller
         return redirect()->back()->with('error', 'Employee not found.');
       }
 
-      // Check if employee has email
       if (!$employee->email) {
         return redirect()->back()->with('error', 'Employee email address is not set. Please update the employee profile with a valid email address.');
       }
 
-      // Validate employee email format
       $employeeEmail = trim($employee->email);
       if (!filter_var($employeeEmail, FILTER_VALIDATE_EMAIL)) {
         return redirect()->back()->with('error', 'Invalid email address format. Please update the employee profile with a valid email address.');
       }
 
-      // Get supervisor for the employee's department
       $supervisor = null;
       $supervisorEmail = null;
       if ($employee->department) {
         $supervisor = User::getSupervisorForDepartment($employee->department);
         if ($supervisor && $supervisor->email) {
           $supervisorEmail = trim($supervisor->email);
-          // Validate supervisor email format
           if (!filter_var($supervisorEmail, FILTER_VALIDATE_EMAIL)) {
             Log::warning('[RESUME TO WORK SEND EMAIL] Invalid supervisor email format:', [
               'supervisor_id' => $supervisor->id,
               'supervisor_email' => $supervisorEmail,
               'department' => $employee->department,
             ]);
-            $supervisorEmail = null; // Skip supervisor email if invalid
+            $supervisorEmail = null;
           }
         }
       }
 
-      // Mark as processed before sending email (if not already processed)
       if ($resumeToWork->status !== 'processed') {
         $resumeToWork->markAsProcessed($user->id);
-        // Reload to get updated data
         $resumeToWork->refresh();
       }
 
-      // Prepare email recipients
       $recipients = [$employeeEmail];
       if ($supervisorEmail) {
         $recipients[] = $supervisorEmail;
       }
 
-      // Send email using ResumeToWorkEmail mailable to both employee and supervisor
       Mail::to($recipients)->send(new \App\Mail\ResumeToWorkEmail($resumeToWork));
 
-      // Build success message
       $successMessage = 'Email sent successfully to ' . $employeeEmail;
       if ($supervisorEmail) {
         $successMessage .= ' and supervisor (' . $supervisorEmail . ')';

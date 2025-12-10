@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class GenderDevelopmentReportController extends Controller
 {
-    /**
-     * Get HR employee for Prepared By
-     */
     public function getHR()
     {
         $hr = User::whereHas('roles', function ($query) {
@@ -29,9 +26,6 @@ class GenderDevelopmentReportController extends Controller
         ]);
     }
 
-    /**
-     * Get Manager for Noted By
-     */
     public function getManager()
     {
         $manager = User::whereHas('roles', function ($query) {
@@ -48,9 +42,6 @@ class GenderDevelopmentReportController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created GAD report
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([

@@ -14,25 +14,17 @@ class AttendanceController extends Controller
 {
     use EmployeeFilterTrait;
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin();
 
-        // Get evaluable departments based on user role
-        // HR and Manager see all departments, Admin and Supervisor see only assigned
         $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-        // Include soft-deleted employees in the relationship to ensure employee data is loaded
         $attendanceQuery = Attendance::with(['employee' => function ($query) {
             $query->withTrashed();
         }]);
 
-        // Filter attendance based on user role
-        // HR and Manager already get all attendance, so only filter for Admin and Supervisor
         $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
         $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
 
@@ -58,14 +50,12 @@ class AttendanceController extends Controller
                 'department'       => $attendance->employee ? $attendance->employee->department : null,
                 'employeeid'       => $attendance->employee ? $attendance->employee->employeeid : null,
                 'position'         => $attendance->employee ? $attendance->employee->position : null,
-                'session'          => $attendance->session, // Add session
+                'session'          => $attendance->session,
             ]
         );
 
-        // Get sessions data
         $sessions = AttendanceSession::orderBy('created_at', 'desc')->get();
 
-        // Analytics for section cards - filter by user role
         $employeeQuery = \App\Models\Employee::query();
         $prevEmployeeQuery = \App\Models\Employee::where('created_at', '<', now()->startOfMonth());
 
@@ -93,24 +83,18 @@ class AttendanceController extends Controller
         ]);
     }
 
-    /**
-     * Display the daily checking page for PP crew.
-     */
     public function dailyChecking()
     {
-        // Fetch employees from Production department
         $employees = \App\Models\Employee::where('department', 'Production')
             ->select('id', 'employeeid', 'employee_name', 'department', 'position', 'work_status')
             ->orderBy('employee_name', 'asc')
             ->get();
 
-        // Get Supervisor for Packing Plant
         $packingPlantSupervisor = \App\Models\User::getSupervisorForDepartment('Packing Plant');
         $preparedBy = $packingPlantSupervisor
             ? trim(($packingPlantSupervisor->firstname ?? '') . ' ' . ($packingPlantSupervisor->lastname ?? ''))
             : '';
 
-        // Get HR personnel from hr_department_assignments table for Packing Plant
         $hrAssignment = HRDepartmentAssignment::where('department', 'Packing Plant')
             ->with('user')
             ->first();
@@ -128,17 +112,11 @@ class AttendanceController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -146,16 +124,13 @@ class AttendanceController extends Controller
             'timeIn' => 'required',
             'attendanceStatus' => 'required|string',
             'attendanceDate' => 'required|date',
-            // Add validation for timeOut, breakTime if needed
         ]);
 
-        // Find the employee by employeeid
         $employee = \App\Models\Employee::where('employeeid', $request->employeeid)->first();
         if (!$employee) {
             return redirect()->back()->with('error', 'Employee not found.');
         }
 
-        // Determine session if not provided
         $session = $request->input('session');
         if (!$session) {
             $now = $request->timeIn ? $request->timeIn : now()->format('H:i:s');
@@ -169,7 +144,6 @@ class AttendanceController extends Controller
             }
         }
 
-        // Prevent duplicate attendance for the same employee, date, and session
         $existing = \App\Models\Attendance::where('employee_id', $employee->id)
             ->where('attendance_date', $request->attendanceDate)
             ->where('session', $session)
@@ -178,14 +152,12 @@ class AttendanceController extends Controller
             return redirect()->back()->with('error', 'Attendance already recorded for this employee, date, and session.');
         }
 
-        // Save attendance
         $attendance = new \App\Models\Attendance();
         $attendance->employee_id = $employee->id;
         $attendance->time_in = $request->timeIn;
         $attendance->attendance_status = $request->attendanceStatus;
         $attendance->attendance_date = $request->attendanceDate;
-        $attendance->session = $session; // Always set session
-        // Optionally set time_out, break_time, etc.
+        $attendance->session = $session;
         if ($request->has('timeOut')) $attendance->time_out = $request->timeOut;
         if ($request->has('breakTime')) $attendance->break_time = $request->breakTime;
         $attendance->save();
@@ -193,33 +165,21 @@ class AttendanceController extends Controller
         return redirect()->back()->with('success', 'Attendance recorded successfully!');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Attendance $attendance)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Attendance $attendance)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Attendance $attendance)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Attendance $attendance)
     {
         //

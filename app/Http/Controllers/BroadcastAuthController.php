@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class BroadcastAuthController extends BroadcastController
 {
-  /**
-   * Authenticate the request for channel access - with extensive debugging
-   */
+  
   public function authenticate(Request $request)
   {
     Log::info('=== Broadcasting Auth Attempt ===', [

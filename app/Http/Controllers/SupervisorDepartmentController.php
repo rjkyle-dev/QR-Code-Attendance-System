@@ -15,14 +15,10 @@ use Spatie\Permission\Models\Role;
 
 class SupervisorDepartmentController extends Controller
 {
-  /**
-   * Display a listing of supervisor-department assignments
-   */
   public function index()
   {
     $user = Auth::user();
 
-    // Allow super admin and supervisors to access
     if (!$user->isSuperAdmin() && !$user->isSupervisor()) {
       return redirect()->route('evaluation.index')->withErrors(['error' => 'Access denied.']);
     }
@@ -31,7 +27,6 @@ class SupervisorDepartmentController extends Controller
       $query->where('name', 'Supervisor');
     })->with('supervisedDepartments')->get();
 
-    // Get users with HR roles
     $hrPersonnel = User::whereHas('roles', function ($query) {
       $query->where('name', 'like', '%HR%')
         ->orWhere('name', 'like', '%hr%');
@@ -45,7 +40,6 @@ class SupervisorDepartmentController extends Controller
       ];
     });
 
-    // Get users with Manager roles
     $managers = User::whereHas('roles', function ($query) {
       $query->where('name', 'like', '%Manager%')
         ->orWhere('name', 'like', '%manager%');
@@ -63,7 +57,6 @@ class SupervisorDepartmentController extends Controller
 
     $assignments = SupervisorDepartment::with('user')->get();
 
-    // Get HR assignments
     $hrAssignments = HRDepartmentAssignment::with('user')->get()->map(function ($assignment) {
       return [
         'id' => $assignment->id,
@@ -79,7 +72,6 @@ class SupervisorDepartmentController extends Controller
       ];
     });
 
-    // Get Manager assignments
     $managerAssignments = ManagerDepartmentAssignment::with('user')->get()->map(function ($assignment) {
       return [
         'id' => $assignment->id,
@@ -95,7 +87,6 @@ class SupervisorDepartmentController extends Controller
       ];
     });
 
-    // Get evaluation frequencies for all departments
     $frequencies = [];
     foreach ($departments as $department) {
       $config = EvaluationConfiguration::where('department', $department)->first();
@@ -125,9 +116,6 @@ class SupervisorDepartmentController extends Controller
     ]);
   }
 
-  /**
-   * Store a new supervisor-department assignment
-   */
   public function store(Request $request)
   {
     $user = Auth::user();
@@ -142,13 +130,11 @@ class SupervisorDepartmentController extends Controller
       'can_evaluate' => 'boolean',
     ]);
 
-    // Check if user is a supervisor
     $supervisor = User::findOrFail($request->user_id);
     if (!$supervisor->isSupervisor()) {
       return back()->withErrors(['error' => 'Selected user must be a supervisor.']);
     }
 
-    // Create or update assignment
     SupervisorDepartment::updateOrCreate(
       [
         'user_id' => $request->user_id,
@@ -162,9 +148,6 @@ class SupervisorDepartmentController extends Controller
     return back()->with('success', 'Supervisor assignment created successfully.');
   }
 
-  /**
-   * Update supervisor-department assignment
-   */
   public function update(Request $request, SupervisorDepartment $assignment)
   {
     $user = Auth::user();
@@ -184,9 +167,6 @@ class SupervisorDepartmentController extends Controller
     return back()->with('success', 'Supervisor assignment updated successfully.');
   }
 
-  /**
-   * Remove supervisor-department assignment
-   */
   public function destroy(SupervisorDepartment $assignment)
   {
     $user = Auth::user();
@@ -200,9 +180,6 @@ class SupervisorDepartmentController extends Controller
     return back()->with('success', 'Supervisor assignment removed successfully.');
   }
 
-  /**
-   * Store a new HR Personnel-department assignment
-   */
   public function storeHRAssignment(Request $request)
   {
     $user = Auth::user();
@@ -216,13 +193,11 @@ class SupervisorDepartmentController extends Controller
       'department' => 'required|string',
     ]);
 
-    // Check if user has HR role
     $hrUser = User::findOrFail($request->user_id);
     if (!$hrUser->hasRole('HR') && !$hrUser->hasRole('HR Manager') && !$hrUser->hasRole('HR Personnel')) {
       return back()->withErrors(['error' => 'Selected user must have an HR role.']);
     }
 
-    // Create assignment
     HRDepartmentAssignment::create([
       'user_id' => $request->user_id,
       'department' => $request->department,
@@ -232,9 +207,6 @@ class SupervisorDepartmentController extends Controller
     return back()->with('success', 'HR Personnel assignment created successfully.');
   }
 
-  /**
-   * Update HR Personnel-department assignment
-   */
   public function updateHRAssignment(Request $request, HRDepartmentAssignment $assignment)
   {
     $user = Auth::user();
@@ -254,9 +226,6 @@ class SupervisorDepartmentController extends Controller
     return back()->with('success', 'HR Personnel assignment updated successfully.');
   }
 
-  /**
-   * Remove HR Personnel-department assignment
-   */
   public function destroyHRAssignment(HRDepartmentAssignment $assignment)
   {
     $user = Auth::user();
@@ -270,9 +239,6 @@ class SupervisorDepartmentController extends Controller
     return back()->with('success', 'HR Personnel assignment removed successfully.');
   }
 
-  /**
-   * Store a new Manager-department assignment
-   */
   public function storeManagerAssignment(Request $request)
   {
     $user = Auth::user();
@@ -286,13 +252,11 @@ class SupervisorDepartmentController extends Controller
       'department' => 'required|string',
     ]);
 
-    // Check if user has Manager role
     $managerUser = User::findOrFail($request->user_id);
     if (!$managerUser->hasRole('Manager') && !$managerUser->hasRole('Department Manager')) {
       return back()->withErrors(['error' => 'Selected user must have a Manager role.']);
     }
 
-    // Create assignment
     ManagerDepartmentAssignment::create([
       'user_id' => $request->user_id,
       'department' => $request->department,
@@ -302,9 +266,6 @@ class SupervisorDepartmentController extends Controller
     return back()->with('success', 'Manager assignment created successfully.');
   }
 
-  /**
-   * Update Manager-department assignment
-   */
   public function updateManagerAssignment(Request $request, ManagerDepartmentAssignment $assignment)
   {
     $user = Auth::user();
@@ -324,9 +285,6 @@ class SupervisorDepartmentController extends Controller
     return back()->with('success', 'Manager assignment updated successfully.');
   }
 
-  /**
-   * Remove Manager-department assignment
-   */
   public function destroyManagerAssignment(ManagerDepartmentAssignment $assignment)
   {
     $user = Auth::user();

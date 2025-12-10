@@ -25,24 +25,17 @@ use App\Models\Notification;
 class AbsenceController extends Controller
 {
     use EmployeeFilterTrait;
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         $user = Auth::user();
         $isSupervisor = $user->isSupervisor();
         $isSuperAdmin = $user->isSuperAdmin();
 
-        // Get evaluable departments based on user role
-        // HR and Manager see all departments, Admin and Supervisor see only assigned
         $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-        // Base query for absences
         $absenceQuery = Absence::with('employee', 'approver');
 
-        // Filter absences based on user role
-        // HR and Manager already get all absences, so only filter for Admin and Supervisor
         $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
         $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
 
@@ -79,7 +72,6 @@ class AbsenceController extends Controller
             ];
         })->toArray();
 
-        // Fetch employees for the add modal dropdown - filter by user role
         $employeeQuery = Employee::select('id', 'employeeid', 'employee_name', 'department', 'position');
         $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
         $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
@@ -89,7 +81,6 @@ class AbsenceController extends Controller
         }
         $employees = $employeeQuery->get();
 
-        // Add absence credits information for each employee
         $employeesWithCredits = $employees->map(function ($employee) {
             $absenceCredits = AbsenceCredit::getOrCreateForEmployee($employee->id);
             return [
@@ -104,7 +95,6 @@ class AbsenceController extends Controller
             ];
         })->toArray();
 
-        // Get monthly absence statistics for the chart
         $monthlyAbsenceStats = $this->getMonthlyAbsenceStats($supervisedDepartments);
 
         return Inertia::render('absence/index', [
@@ -119,17 +109,11 @@ class AbsenceController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Display the employee absence index page.
-     */
     public function employeeIndex()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
@@ -153,13 +137,9 @@ class AbsenceController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         try {
-            // Log the incoming request data for debugging
             Log::info('Absence request data:', $request->all());
 
             $validated = $request->validate([
@@ -188,18 +168,16 @@ class AbsenceController extends Controller
                 'to_date' => $validated['to_date'],
                 'is_partial_day' => $validated['is_partial_day'] ?? false,
                 'reason' => $validated['reason'],
-                'status' => 'Pending Supervisor Approval', // Two-stage workflow status
-                'supervisor_status' => 'pending', // Initial supervisor status
-                'hr_status' => null, // HR cannot approve yet
+                'status' => 'Pending Supervisor Approval',
+                'supervisor_status' => 'pending',
+                'hr_status' => null,
                 'submitted_at' => now(),
             ]);
 
-            // Load relationships for broadcasting
             $absence->load(['employee', 'supervisorApprover', 'hrApprover']);
 
             Log::info('Absence created successfully:', ['id' => $absence->id, 'days' => $absence->days]);
 
-            // Get employee and supervisor info for debugging
             $employee = Employee::find($validated['employee_id']);
             $supervisor = User::getSupervisorForDepartment($validated['department']);
 
@@ -211,7 +189,6 @@ class AbsenceController extends Controller
                 'supervisor_name' => $supervisor ? $supervisor->name : 'NONE',
             ]);
 
-            // Broadcast to managers/HR/supervisors
             try {
                 Log::info('Broadcasting AbsenceRequested event...', [
                     'absence_id' => $absence->id,
@@ -229,7 +206,6 @@ class AbsenceController extends Controller
                 ]);
             }
 
-            // Create notification for the supervisor of the employee's department
             try {
                 if ($supervisor) {
                     Notification::create([
@@ -250,10 +226,8 @@ class AbsenceController extends Controller
                 }
             } catch (Exception $notificationError) {
                 Log::error('Failed to create notification:', ['error' => $notificationError->getMessage()]);
-                // Don't fail the entire request if notification creation fails
             }
 
-            // Return JSON for axios requests, redirect for form submissions
             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
@@ -282,22 +256,16 @@ class AbsenceController extends Controller
         }
     }
 
-    /**
-     * Display the approval page.
-     */
     public function approve()
     {
         $user = Auth::user();
         $isSupervisor = $user->isSupervisor();
         $isSuperAdmin = $user->isSuperAdmin();
 
-        // Get user's supervised departments if supervisor
         $supervisedDepartments = $isSupervisor ? $user->getEvaluableDepartments() : [];
 
-        // Base query for absences - load all relationships
         $absenceQuery = Absence::with('employee', 'approver', 'supervisorApprover', 'hrApprover');
 
-        // Filter absences based on user role
         if ($isSupervisor && !empty($supervisedDepartments)) {
             $absenceQuery->whereIn('department', $supervisedDepartments);
         }
@@ -320,7 +288,6 @@ class AbsenceController extends Controller
             'status' => $absence->status,
             'picture' => $absence->employee ? $absence->employee->picture : null,
             'employee_name' => $absence->employee ? $absence->employee->employee_name : $absence->full_name,
-            // Supervisor approval fields
             'supervisor_status' => $absence->supervisor_status,
             'supervisor_approved_by' => $absence->supervisor_approved_by,
             'supervisor_approved_at' => $absence->supervisor_approved_at ? $absence->supervisor_approved_at->format('Y-m-d H:i:s') : null,
@@ -330,7 +297,6 @@ class AbsenceController extends Controller
                 'name' => $absence->supervisorApprover->fullname,
                 'email' => $absence->supervisorApprover->email,
             ] : null,
-            // HR approval fields
             'hr_status' => $absence->hr_status,
             'hr_approved_by' => $absence->hr_approved_by,
             'hr_approved_at' => $absence->hr_approved_at ? $absence->hr_approved_at->format('Y-m-d H:i:s') : null,
@@ -355,20 +321,14 @@ class AbsenceController extends Controller
         ]);
     }
 
-    /**
-     * Display the absence credit summary page.
-     */
     public function creditSummary()
     {
         $user = Auth::user();
         $isSupervisor = $user->isSupervisor();
         $isSuperAdmin = $user->isSuperAdmin();
 
-        // Get evaluable departments based on user role
-        // HR and Manager see all departments, Admin and Supervisor see only assigned
         $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-        // Fetch employees for the credit summary - filter by user role
         $employeeQuery = Employee::select('id', 'employeeid', 'employee_name', 'department', 'position');
         $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
         $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
@@ -378,7 +338,6 @@ class AbsenceController extends Controller
         }
         $employees = $employeeQuery->get();
 
-        // Add absence credits information for each employee
         $employeesWithCredits = $employees->map(function ($employee) {
             $absenceCredits = AbsenceCredit::getOrCreateForEmployee($employee->id);
             return [
@@ -393,7 +352,6 @@ class AbsenceController extends Controller
             ];
         })->toArray();
 
-        // Get monthly absence statistics for the chart
         $monthlyAbsenceStats = $this->getMonthlyAbsenceStats($supervisedDepartments);
 
         return Inertia::render('absence/absence-credit', [
@@ -407,20 +365,14 @@ class AbsenceController extends Controller
         ]);
     }
 
-    /**
-     * Get monthly absence statistics for chart display.
-     */
     private function getMonthlyAbsenceStats($supervisedDepartments = [])
     {
-        // Base query for absences
         $absenceQuery = Absence::query();
 
-        // Filter by supervised departments if supervisor
         if (!empty($supervisedDepartments)) {
             $absenceQuery->whereIn('department', $supervisedDepartments);
         }
 
-        // Get absences from the last 12 months
         $startDate = now()->subMonths(11)->startOfMonth();
         $endDate = now()->endOfMonth();
 
@@ -429,14 +381,12 @@ class AbsenceController extends Controller
             ->where('status', 'approved')
             ->get();
 
-        // Get total employee count for percentage calculations
         $employeeQuery = Employee::query();
         if (!empty($supervisedDepartments)) {
             $employeeQuery->whereIn('department', $supervisedDepartments);
         }
         $totalEmployees = $employeeQuery->count();
 
-        // Group absences by month
         $monthlyData = [];
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
@@ -444,12 +394,10 @@ class AbsenceController extends Controller
             $monthName = $date->format('F');
             $year = $date->year;
 
-            // Count absences for this month
             $monthAbsences = $absences->filter(function ($absence) use ($date) {
                 return $absence->from_date->format('Y-m') === $date->format('Y-m');
             })->count();
 
-            // Calculate percentage
             $percentage = $totalEmployees > 0 ? round(($monthAbsences / $totalEmployees) * 100, 1) : 0;
 
             $monthlyData[] = [
@@ -464,10 +412,6 @@ class AbsenceController extends Controller
         return $monthlyData;
     }
 
-    /**
-     * Update the status of an absence request.
-     * Supports two-stage approval workflow: Supervisor -> HR
-     */
     public function updateStatus(Request $request, Absence $absence)
     {
         $user = Auth::user();
@@ -484,15 +428,12 @@ class AbsenceController extends Controller
             'request_data' => $request->all(),
         ]);
 
-        // Determine which approval stage is being processed
         if (($isSupervisor || $isSuperAdmin) && $request->has('supervisor_status')) {
-            // Supervisor approval stage
             $validated = $request->validate([
                 'supervisor_status' => 'required|in:approved,rejected',
                 'supervisor_comments' => 'nullable|string',
             ]);
 
-            // Validate user can approve for this department (Supervisor, Admin, HR, or Manager)
             if (!$isSuperAdmin && !$user->canEvaluateDepartment($absence->department)) {
                 $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
                 if (!in_array($absence->department, $supervisedDepartments)) {
@@ -522,13 +463,10 @@ class AbsenceController extends Controller
                 'status' => $supervisorStatus === 'approved' ? 'Pending HR Approval' : 'Rejected by Supervisor',
             ]);
 
-            // Reload relationships for broadcasting
             $absence->load(['supervisorApprover', 'hrApprover', 'employee']);
 
-            // Broadcast real-time update for supervisor approval
             event(new AbsenceSupervisorApproved($absence));
 
-            // Notify employee of supervisor decision
             event(new RequestStatusUpdated(
                 'absence',
                 $absence->status,
@@ -542,9 +480,7 @@ class AbsenceController extends Controller
                 ]
             ));
         } elseif (($isHR || $isSuperAdmin) && $request->has('hr_status')) {
-            // HR approval stage - Check supervisor status
             if ($absence->supervisor_status === 'rejected') {
-                // If supervisor rejected, only Super Admin can override
                 if (!$isSuperAdmin) {
                     Log::warning('[ABSENCE UPDATE] HR cannot approve/reject when supervisor rejected:', [
                         'absence_id' => $absence->id,
@@ -556,7 +492,6 @@ class AbsenceController extends Controller
                     return redirect()->back()->withErrors(['error' => 'This absence request was rejected by the supervisor. HR cannot perform any actions on rejected requests.']);
                 }
             } elseif ($absence->supervisor_status !== 'approved') {
-                // Supervisor hasn't approved yet (pending or null)
                 if (!$isSuperAdmin) {
                     Log::warning('[ABSENCE UPDATE] HR cannot approve before supervisor:', [
                         'absence_id' => $absence->id,
@@ -587,15 +522,13 @@ class AbsenceController extends Controller
                 'hr_approved_at' => now(),
                 'hr_comments' => $validated['hr_comments'] ?? null,
                 'status' => $hrStatus === 'approved' ? 'Approved' : 'Rejected by HR',
-                'approved_at' => now(), // Legacy field
-                'approved_by' => $user->id, // Legacy field
-                'approval_comments' => $validated['hr_comments'] ?? null, // Legacy field
+                'approved_at' => now(),
+                'approved_by' => $user->id,
+                'approval_comments' => $validated['hr_comments'] ?? null,
             ]);
 
-            // Reload relationships for broadcasting
             $absence->load(['supervisorApprover', 'hrApprover', 'employee']);
 
-            // Handle credit management only on HR approval
             $absenceCredits = AbsenceCredit::getOrCreateForEmployee($absence->employee_id);
             if ($hrStatus === 'approved') {
                 $absenceCredits->useCredits($absence->days);
@@ -605,10 +538,8 @@ class AbsenceController extends Controller
                 ]);
             }
 
-            // Broadcast real-time update for HR approval
             event(new AbsenceHRApproved($absence));
 
-            // Notify both supervisor AND employee after HR decision
             event(new RequestStatusUpdated(
                 'absence',
                 $absence->status,
@@ -622,7 +553,6 @@ class AbsenceController extends Controller
                 ]
             ));
         } else {
-            // Legacy support or invalid request
             Log::warning('[ABSENCE UPDATE] Invalid approval request:', [
                 'absence_id' => $absence->id,
                 'user_id' => $user->id,
@@ -641,49 +571,34 @@ class AbsenceController extends Controller
         return redirect()->route('absence.absence-approve')->with('success', 'Absence status updated successfully!');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Absence $absence)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Absence $absence)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Absence $absence)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Absence $absence)
     {
         try {
             $absence->delete();
 
-            // Check if this is an AJAX request
             if (request()->expectsJson()) {
                 return response()->json(['success' => true, 'message' => 'Absence request deleted successfully!']);
             }
 
-            // For direct visits, redirect back to the absence index page
             return redirect()->route('absence.index')->with('success', 'Absence request deleted successfully!');
         } catch (Exception $e) {
             Log::error('Absence deletion failed: ' . $e->getMessage());
 
-            // Check if this is an AJAX request
             if (request()->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Failed to delete absence request. Please try again.'], 500);
             }
@@ -698,15 +613,10 @@ class AbsenceController extends Controller
         $isSupervisor = $user->isSupervisor();
         $isSuperAdmin = $user->isSuperAdmin();
 
-        // Get evaluable departments based on user role
-        // HR and Manager see all departments, Admin and Supervisor see only assigned
         $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-        // Base query for absences - load all relationships
         $absenceQuery = Absence::with('employee', 'approver', 'supervisorApprover', 'hrApprover');
 
-        // Filter absences based on user role
-        // HR and Manager already get all absences, so only filter for Admin and Supervisor
         $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
         $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
 
@@ -732,7 +642,6 @@ class AbsenceController extends Controller
             'status' => $absence->status,
             'picture' => $absence->employee ? $absence->employee->picture : null,
             'employee_name' => $absence->employee ? $absence->employee->employee_name : $absence->full_name,
-            // Supervisor approval fields
             'supervisor_status' => $absence->supervisor_status,
             'supervisor_approved_by' => $absence->supervisor_approved_by,
             'supervisor_approved_at' => $absence->supervisor_approved_at ? $absence->supervisor_approved_at->format('Y-m-d H:i:s') : null,
@@ -742,7 +651,6 @@ class AbsenceController extends Controller
                 'name' => $absence->supervisorApprover->fullname,
                 'email' => $absence->supervisorApprover->email,
             ] : null,
-            // HR approval fields
             'hr_status' => $absence->hr_status,
             'hr_approved_by' => $absence->hr_approved_by,
             'hr_approved_at' => $absence->hr_approved_at ? $absence->hr_approved_at->format('Y-m-d H:i:s') : null,
@@ -767,12 +675,8 @@ class AbsenceController extends Controller
         ]);
     }
 
-    /**
-     * Get approved absences for Employee Absenteeism Report
-     */
     public function approvedAbsences()
     {
-        // Get all approved absences (where hr_status is 'approved' or status is 'approved')
         $absences = Absence::with(['employee', 'supervisorApprover', 'hrApprover'])
             ->where(function ($query) {
                 $query->where('hr_status', 'approved')
@@ -783,18 +687,15 @@ class AbsenceController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get HR employee
         $hrEmployee = User::whereHas('roles', function ($query) {
             $query->whereIn('name', ['HR', 'HR Manager', 'HR Personnel']);
         })->first();
 
         $approvedAbsences = $absences->map(function ($absence) {
-            // Get department supervisor from supervisor_departments table
             $departmentSupervisor = SupervisorDepartment::where('department', $absence->department)
                 ->with('user')
                 ->first();
 
-            // Get HR person from hr_department_assignments table
             $departmentHR = HRDepartmentAssignment::where('department', $absence->department)
                 ->with('user')
                 ->first();

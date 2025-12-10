@@ -15,17 +15,13 @@ use Illuminate\Support\Facades\Auth;
 class EmployeeController extends Controller
 {
     use EmployeeFilterTrait;
-    /**
-     * Generate a unique employee ID for Add Crew employees
-     * Format: AC + 6 digits (AC000001 to AC999999)
-     */
+
     private function generateAddCrewEmployeeId(): string
     {
-        $maxAttempts = 100; // Prevent infinite loop
+        $maxAttempts = 100;
         $attempts = 0;
 
         do {
-            // Generate a random 6-digit number
             $randomDigits = str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
             $employeeId = 'AC' . $randomDigits;
             $exists = Employee::where('employeeid', $employeeId)->exists();
@@ -33,10 +29,8 @@ class EmployeeController extends Controller
         } while ($exists && $attempts < $maxAttempts);
 
         if ($attempts >= $maxAttempts) {
-            // Fallback: use timestamp-based ID if too many collisions
             $timestampDigits = str_pad(substr(time(), -4), 4, '0', STR_PAD_LEFT);
             $employeeId = 'AC' . $timestampDigits;
-            // Still check if this exists, if so append random digit
             if (Employee::where('employeeid', $employeeId)->exists()) {
                 $fallbackDigits = str_pad(substr(time(), -4) . rand(0, 9), 4, '0', STR_PAD_LEFT);
                 $employeeId = 'AC' . $fallbackDigits;
@@ -46,26 +40,18 @@ class EmployeeController extends Controller
         return $employeeId;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): Response
     {
         $user = Auth::user();
         $isSupervisor = $user->isSupervisor();
         $isSuperAdmin = $user->isSuperAdmin();
 
-        // Get evaluable departments based on user role
-        // HR and Manager see all departments, Admin and Supervisor see only assigned
         $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-        // Base query for employees
         $employeeQuery = Employee::with(['fingerprints', 'evaluations' => function ($q) {
             $q->orderBy('created_at', 'desc');
         }]);
 
-        // Filter employees based on user role
-        // HR and Manager already get all employees, so only filter for Admin and Supervisor
         $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
         $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
 
@@ -91,7 +77,6 @@ class EmployeeController extends Controller
                 'date_of_birth' => $employee->date_of_birth,
                 'gender'        => $employee->gender,
                 'marital_status' => $employee->marital_status,
-                // 'nationality'   => $employee->nationality,
                 'address'       => $employee->address,
                 'city'          => $employee->city,
                 'state'         => $employee->state,
@@ -103,19 +88,15 @@ class EmployeeController extends Controller
                 'pin'           => $employee->pin,
                 'gmail_password' => $employee->gmail_password,
                 'recommendation_letter' => $employee->recommendation_letter,
-                // HDMF fields
                 'hdmf_user_id' => $employee->hdmf_user_id,
                 'hdmf_username' => $employee->hdmf_username,
                 'hdmf_password' => $employee->hdmf_password,
-                // SSS fields
                 'sss_user_id' => $employee->sss_user_id,
                 'sss_username' => $employee->sss_username,
                 'sss_password' => $employee->sss_password,
-                // Philhealth fields
                 'philhealth_user_id' => $employee->philhealth_user_id,
                 'philhealth_username' => $employee->philhealth_username,
                 'philhealth_password' => $employee->philhealth_password,
-                // TIN fields
                 'tin_user_id' => $employee->tin_user_id,
                 'tin_username' => $employee->tin_username,
                 'tin_password' => $employee->tin_password,
@@ -126,7 +107,7 @@ class EmployeeController extends Controller
                         'employee_id' => $fp->employee_id,
                         'finger_name' => $fp->finger_name,
                         'fingerprint_template' => base64_encode($fp->fingerprint_template),
-                        'fingerprint_image' => $fp->fingerprint_image ?: null, // return as-is, no base64_encode
+                        'fingerprint_image' => $fp->fingerprint_image ?: null,
                         'fingerprint_captured_at' => $fp->fingerprint_captured_at,
                         'created_at' => $fp->created_at,
                         'updated_at' => $fp->updated_at,
@@ -136,21 +117,17 @@ class EmployeeController extends Controller
             ];
         });
 
-        // Calculate totals based on filtered data
         $totalEmployee = $employees->count();
         $totalDepartment = $isSupervisor && !empty($supervisedDepartments)
             ? count($supervisedDepartments)
             : Employee::distinct('department')->count();
 
-        // Calculate work status counts based on filtered data
         $workStatusCounts = [
             'Regular' => $employees->where('work_status', 'Regular')->count(),
             'Add Crew' => $employees->where('work_status', 'Add Crew')->count(),
             'Probationary' => $employees->where('work_status', 'Probationary')->count(),
-            // 'Sessional' => $employees->where('work_status', 'Sessional')->count(),
         ];
 
-        // Previous period calculations - also filter by supervisor role
         $prevMonthStart = now()->subMonth()->startOfMonth();
         $prevEmployeeQuery = Employee::where('created_at', '<', now()->startOfMonth());
         $prevDepartmentQuery = Employee::where('created_at', '<', now()->startOfMonth());
@@ -207,9 +184,6 @@ class EmployeeController extends Controller
         ]);
     }
 
-    /**
-     * API: Return all employees with fingerprints as JSON
-     */
     public function apiIndex(Request $request)
     {
         $employees = Employee::with('fingerprints')->orderBy('created_at', 'desc')->get();
@@ -228,7 +202,6 @@ class EmployeeController extends Controller
                 'date_of_birth' => $employee->date_of_birth,
                 'gender'        => $employee->gender,
                 'marital_status' => $employee->marital_status,
-                // 'nationality'   => $employee->nationality,
                 'address'       => $employee->address,
                 'city'          => $employee->city,
                 'state'         => $employee->state,
@@ -239,19 +212,15 @@ class EmployeeController extends Controller
                 'position'      => $employee->position,
                 'gmail_password' => $employee->gmail_password,
                 'recommendation_letter' => $employee->recommendation_letter,
-                // HDMF fields
                 'hdmf_user_id' => $employee->hdmf_user_id,
                 'hdmf_username' => $employee->hdmf_username,
                 'hdmf_password' => $employee->hdmf_password,
-                // SSS fields
                 'sss_user_id' => $employee->sss_user_id,
                 'sss_username' => $employee->sss_username,
                 'sss_password' => $employee->sss_password,
-                // Philhealth fields
                 'philhealth_user_id' => $employee->philhealth_user_id,
                 'philhealth_username' => $employee->philhealth_username,
                 'philhealth_password' => $employee->philhealth_password,
-                // TIN fields
                 'tin_user_id' => $employee->tin_user_id,
                 'tin_username' => $employee->tin_username,
                 'tin_password' => $employee->tin_password,
@@ -275,13 +244,9 @@ class EmployeeController extends Controller
 
     public function create() {}
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(EmployeeRequest $request)
     {
         try {
-            // Log the incoming request data for debugging
             \Log::info('Employee creation request received', [
                 'employeeid' => $request->employeeid,
                 'firstname' => $request->firstname,
@@ -293,7 +258,6 @@ class EmployeeController extends Controller
                 . ($request->middlename ? $request->middlename . ' ' : '')
                 . $request->lastname;
 
-            // Auto-generate employee ID for Add Crew employees
             $employeeId = $request->employeeid;
             if ($request->work_status === 'Add Crew' && empty($employeeId)) {
                 $employeeId = $this->generateAddCrewEmployeeId();
@@ -310,7 +274,6 @@ class EmployeeController extends Controller
                 'phone'           => $request->phone,
                 'gender'          => $request->gender,
                 'marital_status'  => $request->marital_status,
-                // 'nationality'     => $request->nationality,
                 'address'         => $request->address,
                 'city'            => $request->city,
                 'state'           => $request->state,
@@ -322,25 +285,20 @@ class EmployeeController extends Controller
                 'department'      => $request->department,
                 'position'        => $request->position,
                 'gmail_password' => $request->gmail_password,
-                // HDMF fields
                 'hdmf_user_id' => $request->hdmf_user_id,
                 'hdmf_username' => $request->hdmf_username,
                 'hdmf_password' => $request->hdmf_password,
-                // SSS fields
                 'sss_user_id' => $request->sss_user_id,
                 'sss_username' => $request->sss_username,
                 'sss_password' => $request->sss_password,
-                // Philhealth fields
                 'philhealth_user_id' => $request->philhealth_user_id,
                 'philhealth_username' => $request->philhealth_username,
                 'philhealth_password' => $request->philhealth_password,
-                // TIN fields
                 'tin_user_id' => $request->tin_user_id,
                 'tin_username' => $request->tin_username,
                 'tin_password' => $request->tin_password,
             ];
 
-            // Log the data array before creating
             \Log::info('Employee data array prepared', $data);
 
             if ($request->hasFile('picture')) {
@@ -357,7 +315,6 @@ class EmployeeController extends Controller
                 $data['recommendation_letter'] = '/storage/' . $path;
             }
 
-            // Try to create the employee with error handling
             try {
                 $employee = Employee::create($data);
                 \Log::info('Employee::create() called successfully', ['employee_id' => $employee->id ?? 'null']);
@@ -370,14 +327,12 @@ class EmployeeController extends Controller
             }
 
             if ($employee) {
-                // Log the successful creation for debugging
                 \Log::info('Employee created successfully', [
                     'employee_id' => $employee->id,
                     'employeeid' => $employee->employeeid,
                     'employee_name' => $employee->employee_name
                 ]);
 
-                // Only return JSON for API requests
                 if ($request->wantsJson() || $request->is('api/*')) {
                     return response()->json([
                         'status' => 'success',
@@ -385,7 +340,6 @@ class EmployeeController extends Controller
                         'employee' => $employee,
                     ], 201);
                 }
-                // For Inertia/web requests, redirect back with success message
                 return redirect()->back()->with('success', 'Employee created successfully');
             } else {
                 \Log::error('Employee creation returned null/empty result');

@@ -106,13 +106,11 @@ export default function PublicAttendancePage() {
             <Head title="Employee Attendance" />
 
             <div className="border-b bg-white shadow-sm">
-                <div className="container mx-auto flex items-center justify-between px-4 py-4">
-                    <BackButton href="/" label="Back to Home" variant="ghost" className="text-gray-700 hover:text-gray-900" />
+                <div className="container mx-auto flex items-center justify-center px-4 py-4">
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold text-cfar-400">AGB Enterprises</h1>
+                        <h1 className="text-2xl font-bold text-cfar-400">AGOC Enterprises</h1>
                         <p className="text-sm text-gray-600">Attendance System</p>
                     </div>
-                    <div className="w-32"></div>
                 </div>
             </div>
 
@@ -227,22 +225,26 @@ export default function PublicAttendancePage() {
                     </Card>
                 </div>
 
-                <Card className="mt-6 shadow-xl">
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <CardTitle className="flex items-center gap-2 text-xl">
-                                    <CheckCircle2 className="h-5 w-5 text-cfar-400" />
-                                    Today's Attendance Records
-                                </CardTitle>
-                                <CardDescription>List of employees who have recorded attendance today</CardDescription>
+                <div className="mt-6">
+                    <div className="mb-4">
+                        <BackButton href="/" label="Back to Home" variant="ghost" className="text-gray-700 hover:text-gray-900" />
+                    </div>
+                    <Card className="shadow-xl">
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="flex items-center gap-2 text-xl">
+                                        <CheckCircle2 className="h-5 w-5 text-cfar-400" />
+                                        Today's Attendance Records
+                                    </CardTitle>
+                                    <CardDescription>List of employees who have recorded attendance today</CardDescription>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={fetchTodayAttendance} disabled={isLoadingAttendance} className="gap-2">
+                                    <RefreshCw className={`h-4 w-4 ${isLoadingAttendance ? 'animate-spin' : ''}`} />
+                                    Refresh
+                                </Button>
                             </div>
-                            <Button variant="outline" size="sm" onClick={fetchTodayAttendance} disabled={isLoadingAttendance} className="gap-2">
-                                <RefreshCw className={`h-4 w-4 ${isLoadingAttendance ? 'animate-spin' : ''}`} />
-                                Refresh
-                            </Button>
-                        </div>
-                    </CardHeader>
+                        </CardHeader>
                     <CardContent>
                         {isLoadingAttendance ? (
                             <div className="flex items-center justify-center py-12">
@@ -321,7 +323,8 @@ export default function PublicAttendancePage() {
                             </div>
                         )}
                     </CardContent>
-                </Card>
+                    </Card>
+                </div>
             </div>
 
             <QRCodeScannerModal open={showCameraModal} onOpenChange={setShowCameraModal} onAttendanceRecorded={fetchTodayAttendance} />

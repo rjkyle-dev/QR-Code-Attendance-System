@@ -10,14 +10,10 @@ use Illuminate\Support\Facades\Log;
 use App\Traits\EmployeeFilterTrait;
 use Illuminate\Support\Facades\Auth;
 
-
-
 class ServiceTenureController extends Controller
 {
     use EmployeeFilterTrait;
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         return Inertia::render('service-tenure/index');
@@ -27,7 +23,6 @@ class ServiceTenureController extends Controller
     {
         $user = Auth::user();
 
-        // Use filtered employees based on user role
         $baseQuery = Employee::with(['serviceTenure' => function ($q) {
             $q->orderBy('created_at', 'desc');
         }]);
@@ -37,7 +32,6 @@ class ServiceTenureController extends Controller
         $employeeList = $employees->map(function ($employee) {
             $latestServiceTenure = $employee->serviceTenure->first();
 
-            // Calculate length of service from service_tenure date
             $lengthOfService = '';
             if ($employee->service_tenure) {
                 $startDate = \Carbon\Carbon::parse($employee->service_tenure);
@@ -46,15 +40,11 @@ class ServiceTenureController extends Controller
                 $lengthOfService = $diff->y . ' years, ' . $diff->m . ' months';
             }
 
-            // Status logic: Active if payment not fully done AND not retired, Inactive if payment fully done OR retired
-            $status = 'Active'; // Default to Active
+            $status = 'Active';
             if ($latestServiceTenure) {
-                // Check if payment is fully done (remaining_years = 0 means fully paid)
                 $isPaymentFullyDone = $latestServiceTenure->remaining_years <= 0;
-                // Use the status field from service_tenures table
                 $serviceTenureStatus = $latestServiceTenure->status;
 
-                // If payment is fully done or status indicates inactive, mark as inactive
                 if ($isPaymentFullyDone || ($serviceTenureStatus && strtolower($serviceTenureStatus) === 'inactive')) {
                     $status = 'Inactive';
                 }
@@ -83,7 +73,6 @@ class ServiceTenureController extends Controller
     {
         $user = Auth::user();
 
-        // Use filtered employees based on user role
         $baseQuery = Employee::with(['serviceTenure' => function ($q) {
             $q->orderBy('created_at', 'desc');
         }]);
@@ -93,7 +82,6 @@ class ServiceTenureController extends Controller
         $employeeList = $employees->map(function ($employee) {
             $latestServiceTenure = $employee->serviceTenure->first();
 
-            // Calculate length of service from service_tenure date
             $lengthOfService = '';
             if ($employee->service_tenure) {
                 $startDate = \Carbon\Carbon::parse($employee->service_tenure);
@@ -102,15 +90,11 @@ class ServiceTenureController extends Controller
                 $lengthOfService = $diff->y . ' years, ' . $diff->m . ' months';
             }
 
-            // Status logic: Active if payment not fully done AND not retired, Inactive if payment fully done OR retired
-            $status = 'Active'; // Default to Active
+            $status = 'Active';
             if ($latestServiceTenure) {
-                // Check if payment is fully done (remaining_years = 0 means fully paid)
                 $isPaymentFullyDone = $latestServiceTenure->remaining_years <= 0;
-                // Use the status field from service_tenures table
                 $serviceTenureStatus = $latestServiceTenure->status;
 
-                // If payment is fully done or status indicates inactive, mark as inactive
                 if ($isPaymentFullyDone || ($serviceTenureStatus && strtolower($serviceTenureStatus) === 'inactive')) {
                     $status = 'Inactive';
                 }
@@ -140,23 +124,18 @@ class ServiceTenureController extends Controller
         try {
             $user = Auth::user();
 
-            // Base query with additional filters for pay advancement
             $baseQuery = Employee::with(['serviceTenure' => function ($q) {
                 $q->orderBy('created_at', 'desc');
             }])
                 ->where('work_status', 'Regular');
-            // ->whereNotNull('service_tenure') // Only employees with service tenure date
 
-            // Use filtered employees based on user role
             $employees = $this->getFilteredEmployees($user, $baseQuery);
 
-            // Debug: Log the count of employees found
             Log::info('Pay Advancement - Employees found: ' . $employees->count());
 
             $employeeList = $employees->map(function ($employee) {
                 $latestServiceTenure = $employee->serviceTenure->first();
 
-                // Calculate length of service from service_tenure date
                 $lengthOfService = '';
                 $totalYears = 0;
                 if ($employee->service_tenure) {
@@ -167,7 +146,6 @@ class ServiceTenureController extends Controller
                     $totalYears = $diff->y ?? 0;
                 }
 
-                // Calculate remaining years
                 $claimedYears = $latestServiceTenure ? $latestServiceTenure->years_claim : 0;
                 $remainingYears = max(0, $totalYears - $claimedYears);
 
@@ -185,7 +163,6 @@ class ServiceTenureController extends Controller
                 ];
             });
 
-            // Debug: Log the processed employee list
             Log::info('Pay Advancement - Processed employees: ' . $employeeList->count());
 
             return Inertia::render('service-tenure/pay-advancement', [
@@ -200,9 +177,6 @@ class ServiceTenureController extends Controller
         }
     }
 
-    /**
-     * Store pay advancement request
-     */
     public function storePayAdvancement(Request $request)
     {
         try {
@@ -214,7 +188,6 @@ class ServiceTenureController extends Controller
                 'remarks' => 'nullable|string|max:500',
             ]);
 
-            // Check if employee has enough remaining years
             $employee = Employee::findOrFail($validated['employee_id']);
             $latestServiceTenure = $employee->serviceTenure()->latest()->first();
 
@@ -231,7 +204,6 @@ class ServiceTenureController extends Controller
                 ]);
             }
 
-            // Create or update service tenure record
             $newClaimedYears = $claimedYears + $validated['years_to_pay'];
             $newRemainingYears = max(0, $totalYears - $newClaimedYears);
 
@@ -261,15 +233,11 @@ class ServiceTenureController extends Controller
         return Inertia::render('service-tenure/report');
     }
 
-    /**
-     * Recalculate service tenure for all employees
-     */
     public function recalculate()
     {
         try {
             $user = Auth::user();
 
-            // Use filtered employees based on user role
             $baseQuery = Employee::with(['serviceTenure' => function ($q) {
                 $q->orderBy('created_at', 'desc');
             }]);
@@ -279,7 +247,6 @@ class ServiceTenureController extends Controller
             $employeeList = $employees->map(function ($employee) {
                 $latestServiceTenure = $employee->serviceTenure->first();
 
-                // Calculate length of service from service_tenure date
                 $lengthOfService = '';
                 if ($employee->service_tenure) {
                     $startDate = \Carbon\Carbon::parse($employee->service_tenure);
@@ -288,15 +255,11 @@ class ServiceTenureController extends Controller
                     $lengthOfService = $diff->y . ' years, ' . $diff->m . ' months';
                 }
 
-                // Status logic: Active if payment not fully done AND not retired, Inactive if payment fully done OR retired
-                $status = 'Active'; // Default to Active
+                $status = 'Active';
                 if ($latestServiceTenure) {
-                    // Check if payment is fully done (remaining_years = 0 means fully paid)
                     $isPaymentFullyDone = $latestServiceTenure->remaining_years <= 0;
-                    // Use the status field from service_tenures table
                     $serviceTenureStatus = $latestServiceTenure->status;
 
-                    // If payment is fully done or status indicates inactive, mark as inactive
                     if ($isPaymentFullyDone || ($serviceTenureStatus && strtolower($serviceTenureStatus) === 'inactive')) {
                         $status = 'Inactive';
                     }
@@ -325,49 +288,31 @@ class ServiceTenureController extends Controller
         }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(ServiceTenure $serviceTenure)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(ServiceTenure $serviceTenure)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, ServiceTenure $serviceTenure)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(ServiceTenure $serviceTenure)
     {
         //

@@ -84,7 +84,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'department' => 'required|string|max:255',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'roles' => 'array',
             'roles.*' => 'exists:roles,id',
         ]);
@@ -99,7 +99,6 @@ class UserController extends Controller
                 'department' => $request->department,
             ];
 
-            // Handle profile image upload
             if ($request->hasFile('profile_image')) {
                 $image = $request->file('profile_image');
                 $imageName = time() . '_' . $image->getClientOriginalName();
@@ -107,16 +106,8 @@ class UserController extends Controller
                 $userData['profile_image'] = '/storage/uploads/' . $imageName;
             }
 
-            // if ($request->hasFile('picture')) {
-            //     $file = $request->file('picture');
-            //     $filename = time() . '_' . $file->getClientOriginalName();
-            //     $path = $file->storeAs('uploads', $filename, 'public');
-            //     $data['picture'] = '/storage/' . $path;
-            // }
-
             $user = User::create($userData);
 
-            // Handle roles
             if ($request->has('roles')) {
                 $roles = [];
                 if (is_string($request->roles)) {
@@ -146,7 +137,7 @@ class UserController extends Controller
             'lastname' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'department' => 'required|string|max:255',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'roles' => 'array',
             'roles.*' => 'exists:roles,id',
         ]);
@@ -160,7 +151,6 @@ class UserController extends Controller
                 'department' => $request->department,
             ];
 
-            // Handle profile image upload
             if ($request->hasFile('profile_image')) {
                 $image = $request->file('profile_image');
                 $imageName = time() . '_' . $image->getClientOriginalName();
@@ -170,7 +160,6 @@ class UserController extends Controller
 
             $user->update($userData);
 
-            // Handle roles
             if ($request->has('roles')) {
                 $roles = [];
                 if (is_string($request->roles)) {

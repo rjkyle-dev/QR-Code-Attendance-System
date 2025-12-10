@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Models\ManagerDepartmentAssignment;
 use App\Traits\EmployeeFilterTrait;
 use Illuminate\Http\Request;
-// use Inertia\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Log;
@@ -25,24 +24,17 @@ use App\Mail\LeaveApprovalEmail;
 class LeaveController extends Controller
 {
     use EmployeeFilterTrait;
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index(): Response
     {
         $user = Auth::user();
         $isSupervisor = $user->isSupervisor();
         $isSuperAdmin = $user->isSuperAdmin();
 
-        // Get evaluable departments based on user role
-        // HR and Manager see all departments, Admin and Supervisor see only assigned
         $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-        // Base query for leaves
         $leaveQuery = Leave::with('employee');
 
-        // Filter leaves based on user role
-        // HR and Manager already get all leaves, so only filter for Admin and Supervisor
         $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
         $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
 
@@ -82,14 +74,12 @@ class LeaveController extends Controller
             ];
         })->toArray();
 
-        // Fetch employees for dropdown - filter by user role
         $employeeQuery = Employee::select('id', 'employeeid', 'employee_name', 'department', 'position');
         if (!$isSuperAdmin && !$isHR && !$isManager && !empty($supervisedDepartments)) {
             $employeeQuery->whereIn('department', $supervisedDepartments);
         }
         $employees = $employeeQuery->get();
 
-        // Calculate leave stats (current)
         $totalLeaves = Leave::count();
         $pendingLeaves = Leave::where('leave_status', 'Pending')->count();
         $approvedLeaves = Leave::where('leave_status', 'Approved')->count();
@@ -97,7 +87,6 @@ class LeaveController extends Controller
         $cancelledLeaves = Leave::where('leave_status', 'Cancelled')->count();
         $approvalRate = $totalLeaves > 0 ? round(($approvedLeaves / $totalLeaves) * 100, 2) : 0;
 
-        // Add leave credits information for each employee
         $employeesWithCredits = $employees->map(function ($employee) {
             $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id);
             return [
@@ -112,7 +101,6 @@ class LeaveController extends Controller
             ];
         })->toArray();
 
-        // Previous period (previous month)
         $prevMonthStart = now()->subMonth()->startOfMonth();
         $prevMonthEnd = now()->subMonth()->endOfMonth();
         $prevTotalLeaves = Leave::whereBetween('created_at', [$prevMonthStart, $prevMonthEnd])->count();
@@ -138,23 +126,16 @@ class LeaveController extends Controller
         ];
 
         return Inertia::render('leave/index', [
-            'leave'     => $leaveList,  // Pass transformed data to Inertia
-            'employees' => $employeesWithCredits,  // Pass employees with credits for dropdown
-            'leaveStats' => $leaveStats, // Pass leave stats for section cards
+            'leave'     => $leaveList,
+            'employees' => $employeesWithCredits,
+            'leaveStats' => $leaveStats,
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         try {
@@ -168,7 +149,6 @@ class LeaveController extends Controller
                 'leave_date_reported' => 'required|date',
             ]);
 
-            // Check if employee has enough credits (credits = number of days)
             $employee = Employee::find($request->employee_id);
             $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id);
 
@@ -184,9 +164,9 @@ class LeaveController extends Controller
             $leave->leave_days = $request->leave_days;
             $leave->leave_reason = $request->leave_reason;
             $leave->leave_date_reported = $request->leave_date_reported;
-            $leave->leave_status = 'Pending Supervisor Approval'; // Initial status for two-stage approval
-            $leave->supervisor_status = 'pending'; // Set supervisor status to pending
-            $leave->hr_status = null; // HR status not yet applicable
+            $leave->leave_status = 'Pending Supervisor Approval';
+            $leave->supervisor_status = 'pending';
+            $leave->hr_status = null;
             $leave->leave_comments = $request->leave_comments ?? '';
 
             $leave->save();
@@ -199,7 +179,6 @@ class LeaveController extends Controller
                 'hr_status' => $leave->hr_status,
             ]);
 
-            // Create notification for the supervisor of the employee's department
             $employee = Employee::find($request->employee_id);
             $supervisor = User::getSupervisorForDepartment($employee->department);
 
@@ -238,7 +217,6 @@ class LeaveController extends Controller
                 ]);
             }
 
-            // Broadcast to supervisors
             try {
                 Log::info('[LEAVE STORE] Broadcasting LeaveRequested event...', [
                     'leave_id' => $leave->id,
@@ -259,7 +237,6 @@ class LeaveController extends Controller
                 ]);
             }
 
-            // Return JSON for axios requests, redirect for form submissions
             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
@@ -268,7 +245,6 @@ class LeaveController extends Controller
                 ]);
             }
 
-            // Redirect based on context (employee portal vs admin)
             if ($request->routeIs('employee-view.leave.store')) {
                 return redirect()->route('employee-view.leave')->with('success', 'Leave request submitted successfully!');
             }
@@ -284,17 +260,10 @@ class LeaveController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Leave $leave)
     {
-        //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Leave $leave)
     {
         $leave->load(['employee', 'supervisorApprover', 'hrApprover']);
@@ -318,7 +287,6 @@ class LeaveController extends Controller
                 'leave_status' => $leave->leave_status,
                 'leave_date_reported' => $leave->leave_date_reported,
                 'leave_date_approved' => $leave->leave_date_approved,
-                // Supervisor approval fields
                 'supervisor_status' => $leave->supervisor_status,
                 'supervisor_approved_by' => $leave->supervisor_approved_by,
                 'supervisor_approved_at' => $leave->supervisor_approved_at,
@@ -328,7 +296,6 @@ class LeaveController extends Controller
                     'name' => $leave->supervisorApprover->fullname,
                     'email' => $leave->supervisorApprover->email,
                 ] : null,
-                // HR approval fields
                 'hr_status' => $leave->hr_status,
                 'hr_approved_by' => $leave->hr_approved_by,
                 'hr_approved_at' => $leave->hr_approved_at,
@@ -338,7 +305,6 @@ class LeaveController extends Controller
                     'name' => $leave->hrApprover->fullname,
                     'email' => $leave->hrApprover->email,
                 ] : null,
-                // Employee info 
                 'employee' => $leave->employee ? [
                     'employeeid' => $leave->employee->employeeid,
                     'employee_name' => $leave->employee->employee_name,
@@ -351,10 +317,6 @@ class LeaveController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     * Handles two-stage approval: Supervisor → HR
-     */
     public function update(Request $request, Leave $leave)
     {
         try {
@@ -381,7 +343,6 @@ class LeaveController extends Controller
                 $oldSupervisorStatus = $leave->supervisor_status;
                 $oldHRStatus = $leave->hr_status;
 
-                // Update basic leave information
                 $leave->leave_start_date = $request->leave_start_date;
                 $leave->leave_end_date = $request->leave_end_date;
                 $leave->leave_type = $request->leave_type;
@@ -389,10 +350,7 @@ class LeaveController extends Controller
                 $leave->leave_date_reported = $request->leave_date_reported;
                 $leave->leave_reason = $request->leave_reason;
 
-                // Handle two-stage approval workflow
-                // Stage 1: Supervisor Approval
                 if ($request->has('supervisor_status') && ($isSupervisor || $isSuperAdmin)) {
-                    // If not super admin, verify user has access to this employee's department
                     if (!$isSuperAdmin) {
                         $employee = $leave->employee;
                         if (!$employee || !$user->canEvaluateDepartment($employee->department)) {
@@ -424,7 +382,6 @@ class LeaveController extends Controller
                         $leave->supervisor_comments = $request->supervisor_comments ?? $leave->supervisor_comments;
 
                         if ($supervisorStatus === 'approved') {
-                            // Supervisor approved → Move to HR approval stage
                             $leave->leave_status = 'Pending HR Approval';
                             $leave->hr_status = 'pending';
 
@@ -434,7 +391,6 @@ class LeaveController extends Controller
                                 'hr_status' => $leave->hr_status,
                             ]);
 
-                            // Notify HR personnel for the employee's department
                             $employee = $leave->employee;
                             if ($employee) {
                                 $hrPersonnel = User::getAllHRForDepartment($employee->department);
@@ -463,13 +419,11 @@ class LeaveController extends Controller
                                     ]);
                                 }
 
-                                // Broadcast to HR
                                 event(new LeaveRequested($leave));
                             }
                         } elseif ($supervisorStatus === 'rejected') {
-                            // Supervisor rejected → Final rejection
                             $leave->leave_status = 'Rejected by Supervisor';
-                            $leave->hr_status = null; // HR approval not needed
+                            $leave->hr_status = null;
 
                             Log::info('[LEAVE UPDATE] Supervisor rejected:', [
                                 'leave_id' => $leave->id,
@@ -477,7 +431,6 @@ class LeaveController extends Controller
                                 'comments' => $leave->supervisor_comments,
                             ]);
 
-                            // Notify employee about rejection
                             event(new RequestStatusUpdated('leave', 'Rejected by Supervisor', $leave->employee_id, $leave->id, [
                                 'leave_type' => $leave->leave_type,
                                 'leave_start_date' => $leave->leave_start_date,
@@ -490,7 +443,6 @@ class LeaveController extends Controller
                     }
                 }
 
-                // Stage 2: HR Approval
                 if ($request->has('hr_status') && ($isHR || $isSuperAdmin)) {
                     $hrStatus = strtolower($request->hr_status);
 
@@ -501,7 +453,6 @@ class LeaveController extends Controller
                         'supervisor_status' => $leave->supervisor_status,
                     ]);
 
-                    // Check if supervisor has approved first
                     if ($leave->supervisor_status !== 'approved') {
                         Log::warning('[LEAVE UPDATE] HR attempted approval but supervisor has not approved:', [
                             'leave_id' => $leave->id,
@@ -516,7 +467,6 @@ class LeaveController extends Controller
                         $leave->hr_approved_at = now();
                         $leave->hr_comments = $request->hr_comments ?? $leave->hr_comments;
 
-                        // Set approval date when finally approved
                         if (!empty($request->leave_date_approved)) {
                             $leave->leave_date_approved = $request->leave_date_approved;
                         } else {
@@ -524,7 +474,6 @@ class LeaveController extends Controller
                         }
 
                         if ($hrStatus === 'approved') {
-                            // HR approved → Final approval
                             $leave->leave_status = 'Approved';
 
                             Log::info('[LEAVE UPDATE] HR approved - Final approval:', [
@@ -533,10 +482,8 @@ class LeaveController extends Controller
                                 'leave_date_approved' => $leave->leave_date_approved,
                             ]);
 
-                            // Handle credit management - Only deduct credits when HR approves (final approval)
                             $leaveCredits = LeaveCredit::getOrCreateForEmployee($leave->employee_id);
 
-                            // Check if credits were already deducted (in case of status change)
                             if ($oldStatus !== 'Approved') {
                                 $leaveCredits->useCredits($leave->leave_days);
                                 Log::info('[LEAVE UPDATE] Credits deducted:', [
@@ -546,7 +493,6 @@ class LeaveController extends Controller
                                 ]);
                             }
 
-                            // Notify employee and supervisor about final approval
                             event(new RequestStatusUpdated('leave', 'Approved', $leave->employee_id, $leave->id, [
                                 'leave_type' => $leave->leave_type,
                                 'leave_start_date' => $leave->leave_start_date,
@@ -555,7 +501,6 @@ class LeaveController extends Controller
                                 'approved_by_name' => $user->fullname,
                             ]));
                         } elseif ($hrStatus === 'rejected') {
-                            // HR rejected → Final rejection
                             $leave->leave_status = 'Rejected by HR';
 
                             Log::info('[LEAVE UPDATE] HR rejected:', [
@@ -564,7 +509,6 @@ class LeaveController extends Controller
                                 'comments' => $leave->hr_comments,
                             ]);
 
-                            // Notify employee about rejection
                             event(new RequestStatusUpdated('leave', 'Rejected by HR', $leave->employee_id, $leave->id, [
                                 'leave_type' => $leave->leave_type,
                                 'leave_start_date' => $leave->leave_start_date,
@@ -577,8 +521,6 @@ class LeaveController extends Controller
                     }
                 }
 
-                // Handle legacy status updates (for backward compatibility and Super Admin override)
-                // Only override if HR or Supervisor approval wasn't just processed
                 if (
                     $isSuperAdmin && $request->has('leave_status') &&
                     !($request->has('hr_status') && in_array(strtolower($request->hr_status), ['approved', 'rejected'])) &&
@@ -592,18 +534,15 @@ class LeaveController extends Controller
                         'new_status' => $newStatus,
                     ]);
 
-                    // Update leave status and comments
                     $leave->leave_status = $newStatus;
                     $leave->leave_comments = $request->leave_comments ?? $leave->leave_comments;
 
-                    // Set approval date
                     if (!empty($request->leave_date_approved)) {
                         $leave->leave_date_approved = $request->leave_date_approved;
                     } elseif (in_array($newStatus, ['Approved', 'Pending HR Approval'])) {
                         $leave->leave_date_approved = now()->format('Y-m-d');
                     }
 
-                    // Handle credit management for Super Admin
                     $leaveCredits = LeaveCredit::getOrCreateForEmployee($leave->employee_id);
 
                     if ($newStatus === 'Approved' && $oldStatus !== 'Approved') {
@@ -620,7 +559,6 @@ class LeaveController extends Controller
                         ]);
                     }
 
-                    // Notify if status changed
                     if ($oldStatus !== $newStatus) {
                         event(new RequestStatusUpdated('leave', $newStatus, $leave->employee_id, $leave->id, [
                             'leave_type' => $leave->leave_type,
@@ -629,7 +567,6 @@ class LeaveController extends Controller
                         ]));
                     }
                 } else {
-                    // For non-admin users, update comments if provided
                     $leave->leave_comments = $request->leave_comments ?? $leave->leave_comments;
                 }
 
@@ -656,9 +593,6 @@ class LeaveController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         $leave = Leave::findOrFail($id);
@@ -666,9 +600,6 @@ class LeaveController extends Controller
         return redirect()->back()->with('success', 'Leave deleted');
     }
 
-    /**
-     * Display employee's own leave requests.
-     */
     public function employeeIndex()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
@@ -678,7 +609,6 @@ class LeaveController extends Controller
             return redirect()->route('employeelogin');
         }
 
-        // Get employee's leave requests
         $leaveRequests = Leave::where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->get()
@@ -707,7 +637,6 @@ class LeaveController extends Controller
                 ];
             })->toArray();
 
-        // Calculate leave stats for the employee
         $totalLeaves = Leave::where('employee_id', $employee->id)->count();
         $pendingLeaves = Leave::where('employee_id', $employee->id)->where('leave_status', 'Pending')->count();
         $approvedLeaves = Leave::where('employee_id', $employee->id)->where('leave_status', 'Approved')->count();
@@ -729,20 +658,14 @@ class LeaveController extends Controller
         ]);
     }
 
-    /**
-     * Display leave credit summary for all employees.
-     */
     public function creditSummary()
     {
         $user = Auth::user();
         $isSupervisor = $user->isSupervisor();
         $isSuperAdmin = $user->isSuperAdmin();
 
-        // Get evaluable departments based on user role
-        // HR and Manager see all departments, Admin and Supervisor see only assigned
         $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-        // Fetch employees for the credit summary - filter by user role
         $employeeQuery = Employee::select('id', 'employeeid', 'employee_name', 'department', 'position');
         $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
         $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
@@ -752,7 +675,6 @@ class LeaveController extends Controller
         }
         $employees = $employeeQuery->get();
 
-        // Add leave credits information for each employee
         $employeesWithCredits = $employees->map(function ($employee) {
             $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id);
             return [
@@ -767,7 +689,6 @@ class LeaveController extends Controller
             ];
         })->toArray();
 
-        // Get monthly leave statistics for the chart
         $monthlyLeaveStats = $this->getMonthlyLeaveStats($supervisedDepartments);
 
         return Inertia::render('leave/leave-credit', [
@@ -781,22 +702,16 @@ class LeaveController extends Controller
         ]);
     }
 
-    /**
-     * Get monthly leave statistics for chart display.
-     */
     private function getMonthlyLeaveStats($supervisedDepartments = [])
     {
-        // Base query for leaves
         $leaveQuery = Leave::query();
 
-        // Filter by supervised departments if supervisor
         if (!empty($supervisedDepartments)) {
             $leaveQuery->whereHas('employee', function ($query) use ($supervisedDepartments) {
                 $query->whereIn('department', $supervisedDepartments);
             });
         }
 
-        // Get leaves from the last 12 months
         $startDate = now()->subMonths(11)->startOfMonth();
         $endDate = now()->endOfMonth();
 
@@ -805,14 +720,12 @@ class LeaveController extends Controller
             ->where('leave_status', 'Approved')
             ->get();
 
-        // Get total employee count for percentage calculations
         $employeeQuery = Employee::query();
         if (!empty($supervisedDepartments)) {
             $employeeQuery->whereIn('department', $supervisedDepartments);
         }
         $totalEmployees = $employeeQuery->count();
 
-        // Group leaves by month
         $monthlyData = [];
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
@@ -820,12 +733,10 @@ class LeaveController extends Controller
             $monthName = $date->format('F');
             $year = $date->year;
 
-            // Count leaves for this month
             $monthLeaves = $leaves->filter(function ($leave) use ($date) {
                 return $leave->leave_start_date->format('Y-m') === $date->format('Y-m');
             })->count();
 
-            // Calculate percentage
             $percentage = $totalEmployees > 0 ? round(($monthLeaves / $totalEmployees) * 100, 1) : 0;
 
             $monthlyData[] = [
@@ -840,10 +751,6 @@ class LeaveController extends Controller
         return $monthlyData;
     }
 
-    /**
-     * Send leave approval email to employee
-     * Only HR can send emails
-     */
     public function sendEmail(Request $request, Leave $leave)
     {
         try {
@@ -851,7 +758,6 @@ class LeaveController extends Controller
             $isHR = $user->isHR();
             $isSuperAdmin = $user->isSuperAdmin();
 
-            // Check if user is HR or Super Admin
             if (!$isHR && !$isSuperAdmin) {
                 Log::warning('[LEAVE SEND EMAIL] Unauthorized attempt to send email:', [
                     'leave_id' => $leave->id,
@@ -862,10 +768,8 @@ class LeaveController extends Controller
                 return redirect()->back()->with('error', 'Only HR personnel can send leave approval emails.');
             }
 
-            // Load necessary relationships
             $leave->load(['employee', 'supervisorApprover', 'hrApprover']);
 
-            // Check if employee exists
             if (!$leave->employee) {
                 Log::warning('[LEAVE SEND EMAIL] Employee not found:', [
                     'leave_id' => $leave->id,
@@ -875,7 +779,6 @@ class LeaveController extends Controller
                 return redirect()->back()->with('error', 'Employee not found.');
             }
 
-            // Check if employee has email
             if (!$leave->employee->email) {
                 Log::warning('[LEAVE SEND EMAIL] Employee email not found:', [
                     'leave_id' => $leave->id,
@@ -886,7 +789,6 @@ class LeaveController extends Controller
                 return redirect()->back()->with('error', 'Employee email address is not set. Please update the employee profile with a valid email address.');
             }
 
-            // Validate email format
             $email = trim($leave->employee->email);
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 Log::warning('[LEAVE SEND EMAIL] Invalid email format:', [
@@ -899,7 +801,6 @@ class LeaveController extends Controller
                 return redirect()->back()->with('error', 'Invalid email address format: "' . $email . '". Please update the employee profile with a valid email address (e.g., user@example.com).');
             }
 
-            // Send email (use validated email variable)
             Mail::to($email)->send(new LeaveApprovalEmail($leave));
 
             Log::info('[LEAVE SEND EMAIL] Email sent successfully:', [
@@ -922,12 +823,8 @@ class LeaveController extends Controller
         }
     }
 
-    /**
-     * Get approved leaves for Employee Leave List report
-     */
     public function approvedLeaves(): Response
     {
-        // Get all approved leaves (where hr_status is 'approved' or leave_status is 'Approved')
         $leaves = Leave::with(['employee', 'supervisorApprover', 'hrApprover'])
             ->where(function ($query) {
                 $query->where('hr_status', 'approved')
@@ -940,7 +837,6 @@ class LeaveController extends Controller
         $approvedLeaves = $leaves->map(function ($leave) {
             $department = $leave->employee ? $leave->employee->department : null;
 
-            // Get HR for the department
             $departmentHR = null;
             if ($department) {
                 $hrUser = User::getHRForDepartment($department);
@@ -952,7 +848,6 @@ class LeaveController extends Controller
                 }
             }
 
-            // Get Manager for the department
             $departmentManager = null;
             if ($department) {
                 $managerAssignment = ManagerDepartmentAssignment::where('department', $department)
@@ -966,7 +861,6 @@ class LeaveController extends Controller
                 }
             }
 
-            // Get leave credits for the employee
             $usedCredits = null;
             $remainingCredits = null;
             if ($leave->employee) {

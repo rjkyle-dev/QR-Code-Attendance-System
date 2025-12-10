@@ -17,9 +17,6 @@ use Illuminate\Support\Facades\DB;
 
 class EvaluationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $user = Auth::user();
@@ -33,7 +30,6 @@ class EvaluationController extends Controller
             'evaluable_departments' => $user->getEvaluableDepartments(),
         ]);
 
-        // Get employees based on user role
         $employees = $this->getEmployeesForUser($user);
 
         $employeeList = $employees->map(function ($employee) {
@@ -42,7 +38,6 @@ class EvaluationController extends Controller
                 ? EvaluationConfiguration::getFrequencyForDepartment($employee->department)
                 : 'annual';
 
-            // Debug logging for frequency lookup
             Log::info('Employee frequency lookup:', [
                 'employee_name' => $employee->employee_name,
                 'department' => $employee->department,
@@ -73,7 +68,6 @@ class EvaluationController extends Controller
                 'evaluation_frequency' => $frequency,
             ];
 
-            // Debug: Log the final employee data
             Log::info('Final employee data for ' . $employee->employee_name . ':', [
                 'department' => $employeeData['department'],
                 'evaluation_frequency' => $employeeData['evaluation_frequency'],
@@ -83,18 +77,15 @@ class EvaluationController extends Controller
             return $employeeData;
         });
 
-        // Debug: Log the employee list details
         Log::info('EmployeeList for Evaluation Table:', [
             'total_count' => $employeeList->count(),
             'departments' => $employeeList->pluck('department')->unique()->toArray(),
             'sample_employees' => $employeeList->take(5)->toArray()
         ]);
 
-        // Debug: Log all evaluation configurations
         $allConfigs = \App\Models\EvaluationConfiguration::all();
         Log::info('All evaluation configurations:', $allConfigs->toArray());
 
-        // Debug: Log unique departments from employees vs configurations
         $employeeDepartments = $employeeList->pluck('department')->unique()->toArray();
         $configDepartments = $allConfigs->pluck('department')->toArray();
         Log::info('Department comparison:', [
@@ -103,7 +94,6 @@ class EvaluationController extends Controller
             'missing_departments' => array_diff($employeeDepartments, $configDepartments)
         ]);
 
-        // Debug: Log what's being sent to frontend
         Log::info('Data being sent to frontend:', [
             'total_employees' => $employeeList->count(),
             'sample_employee' => $employeeList->first(),
@@ -121,9 +111,6 @@ class EvaluationController extends Controller
         ]);
     }
 
-    /**
-     * Get employees based on user role and permissions
-     */
     private function getEmployeesForUser($user)
     {
         $query = Employee::with(['evaluations' => function ($q) {
@@ -131,25 +118,20 @@ class EvaluationController extends Controller
         }]);
 
         if ($user->isSuperAdmin()) {
-            // Super admin can see all employees
             Log::info('User is Super Admin - showing all employees');
             return $query->orderBy('employee_name')->get();
         }
 
-        // HR Personnel can see all employees from all departments (no filtering by assignment)
         if ($user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists()) {
             Log::info('User is HR Personnel with can_evaluate - showing all employees');
             return $query->orderBy('employee_name')->get();
         }
 
-        // Manager can see all employees from all departments (no filtering by assignment)
         if ($user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists()) {
             Log::info('User is Manager with can_evaluate - showing all employees');
             return $query->orderBy('employee_name')->get();
         }
 
-        // Get all evaluable departments for the user (from Supervisor or Admin assignments)
-        // Note: HR and Manager are already handled above to show all employees
         $evaluableDepartments = $user->getEvaluableDepartments();
 
         if (empty($evaluableDepartments)) {
@@ -160,12 +142,9 @@ class EvaluationController extends Controller
                 'is_manager' => $user->isManager(),
                 'has_admin_assignments' => $user->adminAssignments()->exists(),
             ]);
-            return collect(); // No departments assigned
+            return collect();
         }
 
-        // User can evaluate employees in their assigned departments
-        // - Supervisor: their assigned departments
-        // - Admin (e.g., Mr. Kyle): only their assigned departments (e.g., Utility)
         $employees = $query->whereIn('department', $evaluableDepartments)
             ->orderBy('employee_name')
             ->get();
@@ -193,27 +172,19 @@ class EvaluationController extends Controller
         return $employees;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('evaluations.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $user = Auth::user();
 
-        // Check if user can evaluate
         if (!$user->canEvaluate()) {
             return back()->withErrors(['evaluation' => 'You do not have permission to create evaluations.']);
         }
 
-        // Validate input
         $validated = $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'work_quality' => 'required|integer|min:1|max:10',
@@ -225,15 +196,12 @@ class EvaluationController extends Controller
             'comment' => 'nullable|string',
         ]);
 
-        // Get the employee to check department permissions
         $employee = Employee::findOrFail($validated['employee_id']);
 
-        // Check if user can evaluate this employee
         if (!$user->isSuperAdmin() && !$user->canEvaluateDepartment($employee->department)) {
             return back()->withErrors(['evaluation' => 'You do not have permission to evaluate employees in this department.']);
         }
 
-        // Check evaluation frequency rules (Super Admin can bypass)
         if (!$user->isSuperAdmin()) {
             $frequency = EvaluationConfiguration::getFrequencyForDepartment($employee->department);
             $now = now();
@@ -241,7 +209,6 @@ class EvaluationController extends Controller
             $currentYear = $now->year;
 
             if ($frequency === 'annual') {
-                // Annual evaluation: Check if already evaluated this year
                 $existingEvaluation = Evaluation::where('employee_id', $validated['employee_id'])
                     ->where('evaluation_year', $currentYear)
                     ->first();
@@ -255,7 +222,6 @@ class EvaluationController extends Controller
                     ]);
                 }
             } else {
-                // Semi-annual evaluation: Check if already evaluated this period
                 $existingEvaluation = Evaluation::where('employee_id', $validated['employee_id'])
                     ->where('evaluation_period', $currentPeriod)
                     ->where('evaluation_year', $currentYear)
@@ -273,12 +239,10 @@ class EvaluationController extends Controller
             }
         }
 
-        // Calculate current period and year
         $now = now();
         $currentPeriod = Evaluation::calculatePeriod($now);
         $currentYear = $now->year;
 
-        // Calculate average
         $criteria = [
             $validated['work_quality'],
             $validated['safety_compliance'],
@@ -289,7 +253,6 @@ class EvaluationController extends Controller
         ];
         $average = number_format(array_sum($criteria) / count($criteria), 1);
 
-        // Save evaluation
         $evaluation = Evaluation::create([
             'employee_id' => $validated['employee_id'],
             'work_quality' => $validated['work_quality'],
@@ -298,7 +261,7 @@ class EvaluationController extends Controller
             'teamwork' => $validated['teamwork'],
             'punctuality' => $validated['punctuality'],
             'organization' => $validated['organization'],
-            'ratings' => $average, // calculated here, not from request
+            'ratings' => $average,
             'comment' => $validated['comment'] ?? '',
             'rating_date' => $now->toDateString(),
             'period' => $currentPeriod,
@@ -307,34 +270,22 @@ class EvaluationController extends Controller
         return redirect()->route('evaluation.index')->with('success', 'Evaluation created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Evaluation $evaluation)
     {
         return view('evaluations.show', compact('evaluation'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Evaluation $evaluation)
     {
         return view('evaluations.edit', compact('evaluation'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Evaluation $evaluation)
     {
         $evaluation->update($request->all());
         return redirect()->route('evaluation.index')->with('success', 'Evaluation updated successfully');
     }
 
-    /**
-     * Remove the specified resource.
-     */
     public function destroy(Evaluation $evaluation)
     {
         $evaluation->delete();
@@ -345,13 +296,10 @@ class EvaluationController extends Controller
     {
         $user = Auth::user();
 
-        // Get all departments from the global departments list
         $departments = ['Monthly', 'Packing Plant', 'Harvesting', 'Pest & Decease', 'Coop Area', 'Engineering', 'Admin', 'Utility'];
 
-        // Get employees based on user role and permissions
         $employees = $this->getEmployeesForUser($user);
 
-        // Get evaluation configurations for departments - convert to array format for frontend
         $evaluationConfigs = EvaluationConfiguration::all()->map(function ($config) {
             return [
                 'department' => $config->department,
@@ -359,11 +307,6 @@ class EvaluationController extends Controller
             ];
         })->toArray();
 
-        // Get supervisor assignments from database
-        // Fetches from supervisor_departments table where:
-        // - department column matches the selected department (e.g., "Packing Plant")
-        // - can_evaluate is true
-        // Returns the employee's full name (firstname + lastname) from the users table
         Log::info('[EVALUATION DEBUG] Fetching supervisor assignments from database');
         $allSupervisorAssignments = \App\Models\SupervisorDepartment::with('user')->get();
         Log::info('[EVALUATION DEBUG] Total supervisor assignments found:', ['count' => $allSupervisorAssignments->count()]);
@@ -375,12 +318,9 @@ class EvaluationController extends Controller
         Log::info('[EVALUATION DEBUG] Supervisor assignments with can_evaluate=true:', ['count' => $supervisorAssignments->count()]);
 
         $supervisorAssignments = $supervisorAssignments->map(function ($assignment) {
-            // Try to get the employee's actual name from the employees table using email
-            // This ensures we get the real employee name, not just the user account name
             $employee = Employee::where('email', $assignment->user->email)->first();
 
             if ($employee) {
-                // Use employee_name if available, otherwise construct from firstname + lastname
                 $fullName = $employee->employee_name ?? trim(($employee->firstname ?? '') . ' ' . ($employee->lastname ?? ''));
                 Log::info('[EVALUATION DEBUG] Found employee record for supervisor:', [
                     'user_email' => $assignment->user->email,
@@ -388,7 +328,6 @@ class EvaluationController extends Controller
                     'employee_id' => $employee->id,
                 ]);
             } else {
-                // Fallback to user's name if no employee record found
                 $firstName = $assignment->user->firstname ?? '';
                 $lastName = $assignment->user->lastname ?? '';
                 $fullName = trim($firstName . ' ' . $lastName);
@@ -398,7 +337,6 @@ class EvaluationController extends Controller
                 ]);
             }
 
-            // If name is still empty, fallback to email or a default message
             if (empty($fullName)) {
                 $fullName = $assignment->user->email ?? 'Unknown Supervisor';
             }
@@ -406,12 +344,11 @@ class EvaluationController extends Controller
             $result = [
                 'id' => $assignment->id,
                 'department' => $assignment->department,
-                'supervisor_name' => $fullName, // Employee's actual name from employees table (e.g., "Kyle Lastname")
+                'supervisor_name' => $fullName,
                 'supervisor_email' => $assignment->user->email,
                 'can_evaluate' => $assignment->can_evaluate,
             ];
 
-            // DEBUG: Log each assignment
             Log::info('[EVALUATION DEBUG] Supervisor assignment:', $result);
 
             return $result;
@@ -419,7 +356,6 @@ class EvaluationController extends Controller
 
         Log::info('[EVALUATION DEBUG] Final supervisor assignments array:', ['count' => $supervisorAssignments->count(), 'data' => $supervisorAssignments->toArray()]);
 
-        // Get HR assignments
         $hrAssignments = \App\Models\HRDepartmentAssignment::with('user')->get()->map(function ($assignment) {
             return [
                 'id' => $assignment->id,
@@ -433,7 +369,6 @@ class EvaluationController extends Controller
             ];
         });
 
-        // Get Manager assignments
         $managerAssignments = \App\Models\ManagerDepartmentAssignment::with('user')->get()->map(function ($assignment) {
             return [
                 'id' => $assignment->id,
@@ -463,19 +398,14 @@ class EvaluationController extends Controller
         ]);
     }
 
-    /**
-     * Store a department evaluation
-     */
     public function storeDepartmentEvaluation(Request $request)
     {
         $user = Auth::user();
 
-        // Check if user can evaluate
         if (!$user->canEvaluate()) {
             return back()->withErrors(['evaluation' => 'You do not have permission to create evaluations.']);
         }
 
-        // Validate input
         $validated = $request->validate([
             'department' => 'required|string',
             'employee_id' => 'required|exists:employees,id',
@@ -500,15 +430,12 @@ class EvaluationController extends Controller
             'evaluator' => 'required|string',
         ]);
 
-        // Get the employee to check department permissions
         $employee = Employee::findOrFail($validated['employee_id']);
 
-        // Check if user can evaluate this employee
         if (!$user->isSuperAdmin() && !$user->canEvaluateDepartment($employee->department)) {
             return back()->withErrors(['evaluation' => 'You do not have permission to evaluate employees in this department.']);
         }
 
-        // Check evaluation frequency rules (Super Admin can bypass)
         if (!$user->isSuperAdmin()) {
             $frequency = $employee->department
                 ? EvaluationConfiguration::getFrequencyForDepartment($employee->department)
@@ -529,7 +456,6 @@ class EvaluationController extends Controller
             ]);
 
             if ($frequency === 'annual') {
-                // Annual evaluation: Check if already evaluated this year
                 $existingEvaluation = Evaluation::where('employee_id', $validated['employee_id'])
                     ->where('evaluation_year', $currentYear)
                     ->first();
@@ -548,7 +474,6 @@ class EvaluationController extends Controller
                     ]);
                 }
             } else {
-                // Semi-annual evaluation: Check if already evaluated this period
                 $existingEvaluation = Evaluation::where('employee_id', $validated['employee_id'])
                     ->where('evaluation_period', $currentPeriod)
                     ->where('evaluation_year', $currentYear)
@@ -587,7 +512,6 @@ class EvaluationController extends Controller
             ]);
         }
 
-        // Calculate work functions average
         $workFunctionScores = [];
         foreach ($validated['workFunctions'] as $function => $scores) {
             if (isset($scores['workQuality']) && isset($scores['workEfficiency'])) {
@@ -596,7 +520,6 @@ class EvaluationController extends Controller
         }
         $workFunctionAvg = !empty($workFunctionScores) ? array_sum($workFunctionScores) / count($workFunctionScores) : 0;
 
-        // Calculate work attitude average
         $workAttitudeScores = [
             $validated['workAttitude']['responsible'],
             $validated['workAttitude']['jobKnowledge'],
@@ -606,7 +529,6 @@ class EvaluationController extends Controller
         ];
         $workAttitudeAvg = array_sum($workAttitudeScores) / count($workAttitudeScores);
 
-        // Calculate total rating
         $totalRating = (
             $validated['attendance']['rating'] +
             $validated['attitudeSupervisor']['rating'] +
@@ -615,7 +537,6 @@ class EvaluationController extends Controller
             $workFunctionAvg
         ) / 5;
 
-        // Calculate current period and year
         $now = now();
         $currentPeriod = Evaluation::calculatePeriod($now);
         $currentYear = $now->year;
@@ -623,7 +544,6 @@ class EvaluationController extends Controller
         try {
             DB::beginTransaction();
 
-            // Log the data being processed
             Log::info('Processing department evaluation:', [
                 'validated_data' => $validated,
                 'calculated_ratings' => [
@@ -635,7 +555,6 @@ class EvaluationController extends Controller
                 'current_year' => $currentYear,
             ]);
 
-            // Get the actual evaluation frequency for this department
             $departmentFrequency = !empty($validated['department'])
                 ? EvaluationConfiguration::getFrequencyForDepartment($validated['department'])
                 : 'annual';
@@ -646,11 +565,10 @@ class EvaluationController extends Controller
                 'employee_id' => $validated['employee_id']
             ]);
 
-            // Save main evaluation
             $evaluation = Evaluation::create([
                 'employee_id' => $validated['employee_id'],
                 'department' => $validated['department'],
-                'evaluation_frequency' => $departmentFrequency, // Use actual department frequency
+                'evaluation_frequency' => $departmentFrequency,
                 'evaluator' => $validated['evaluator'],
                 'observations' => $validated['observations'] ?? '',
                 'total_rating' => (float) number_format($totalRating, 1),
@@ -661,7 +579,6 @@ class EvaluationController extends Controller
 
             Log::info('Main evaluation created:', ['evaluation_id' => $evaluation->id]);
 
-            // Save attendance data
             $attendance = EvaluationAttendance::create([
                 'evaluation_id' => $evaluation->id,
                 'days_late' => $validated['attendance']['daysLate'],
@@ -672,7 +589,6 @@ class EvaluationController extends Controller
 
             Log::info('Attendance data created:', ['attendance_id' => $attendance->id]);
 
-            // Save attitudes data
             $attitudes = EvaluationAttitudes::create([
                 'evaluation_id' => $evaluation->id,
                 'supervisor_rating' => $validated['attitudeSupervisor']['rating'],
@@ -683,7 +599,6 @@ class EvaluationController extends Controller
 
             Log::info('Attitudes data created:', ['attitudes_id' => $attitudes->id]);
 
-            // Save work attitude data
             $workAttitude = EvaluationWorkAttitude::create([
                 'evaluation_id' => $evaluation->id,
                 'responsible' => $validated['workAttitude']['responsible'],
@@ -696,7 +611,6 @@ class EvaluationController extends Controller
 
             Log::info('Work attitude data created:', ['work_attitude_id' => $workAttitude->id]);
 
-            // Save work functions data
             $workFunctionCount = 0;
             foreach ($validated['workFunctions'] as $functionName => $scores) {
                 if (is_array($scores) && isset($scores['workQuality']) && isset($scores['workEfficiency'])) {
@@ -744,9 +658,6 @@ class EvaluationController extends Controller
         }
     }
 
-    /**
-     * Check if employee has existing evaluation for current period
-     */
     public function checkExistingEvaluation($employeeId, $department)
     {
         $frequency = $department
@@ -778,33 +689,27 @@ class EvaluationController extends Controller
         }
 
         if ($existingEvaluation) {
-            // Debug: Log the loaded relationships
             Log::info('Existing evaluation found:', [
                 'evaluation_id' => $existingEvaluation->id,
                 'has_attendance' => $existingEvaluation->attendance ? 'Yes' : 'No',
                 'has_attitudes' => $existingEvaluation->attitudes ? 'Yes' : 'No',
                 'has_workAttitude' => $existingEvaluation->workAttitude ? 'Yes' : 'No',
-                // For hasMany relations, ensure we check if the collection is not empty
                 'has_workFunctions' => ($existingEvaluation->relationLoaded('workFunctions') && $existingEvaluation->workFunctions->isNotEmpty()) ? 'Yes' : 'No',
                 'workFunctions_count' => $existingEvaluation->relationLoaded('workFunctions') ? $existingEvaluation->workFunctions->count() : 0,
             ]);
 
-            // Debug: Log work functions data if it exists
             if ($existingEvaluation->relationLoaded('workFunctions') && $existingEvaluation->workFunctions->isNotEmpty()) {
                 Log::info('Work functions data:', $existingEvaluation->workFunctions->toArray());
             }
 
-            // Debug: Log work attitude data if it exists
             if ($existingEvaluation->workAttitude) {
                 Log::info('Work attitude data:', $existingEvaluation->workAttitude->toArray());
             }
 
             $periodLabel = $frequency === 'annual' ? $currentYear : ($currentPeriod === 1 ? 'January to June' : 'July to December') . ' ' . $currentYear;
 
-            // Convert the evaluation to an array to ensure proper JSON serialization
             $evaluationArray = $existingEvaluation->toArray();
 
-            // Manually add the relationships as arrays
             if ($existingEvaluation->attendance) {
                 $evaluationArray['attendance'] = $existingEvaluation->attendance->toArray();
             }
@@ -814,12 +719,10 @@ class EvaluationController extends Controller
             if ($existingEvaluation->workAttitude) {
                 $evaluationArray['workAttitude'] = $existingEvaluation->workAttitude->toArray();
             }
-            // Only include workFunctions if there are any
             if ($existingEvaluation->relationLoaded('workFunctions') && $existingEvaluation->workFunctions->isNotEmpty()) {
                 $evaluationArray['workFunctions'] = $existingEvaluation->workFunctions->toArray();
             }
 
-            // Debug: Log the final response data
             $responseData = [
                 'exists' => true,
                 'evaluation' => $evaluationArray,
@@ -833,7 +736,6 @@ class EvaluationController extends Controller
                 'has_attendance_in_array' => isset($evaluationArray['attendance']),
                 'has_attitudes_in_array' => isset($evaluationArray['attitudes']),
                 'has_workAttitude_in_array' => isset($evaluationArray['workAttitude']),
-                // Report presence based on actual count
                 'has_workFunctions_in_array' => isset($evaluationArray['workFunctions']) && count($evaluationArray['workFunctions']) > 0,
                 'workFunctions_count_in_array' => isset($evaluationArray['workFunctions']) ? count($evaluationArray['workFunctions']) : 0,
             ]);
@@ -845,9 +747,6 @@ class EvaluationController extends Controller
         return ['exists' => false];
     }
 
-    /**
-     * Get evaluation frequencies for all departments
-     */
     public function getFrequencies()
     {
         try {
@@ -872,25 +771,19 @@ class EvaluationController extends Controller
         }
     }
 
-    /**
-     * Update evaluation frequency for a department
-     */
     public function updateFrequency(Request $request, $department)
     {
         $user = Auth::user();
 
-        // Check if user is super admin or can evaluate
         if (!$user->isSuperAdmin() && !$user->canEvaluate()) {
             return back()->withErrors(['evaluation' => 'You do not have permission to update evaluation frequencies.']);
         }
 
         try {
-            // Validate request
             $validated = $request->validate([
                 'evaluation_frequency' => 'required|in:semi_annual,annual',
             ]);
 
-            // Update or create configuration
             EvaluationConfiguration::updateOrCreate(
                 ['department' => $department],
                 ['evaluation_frequency' => $validated['evaluation_frequency']]
@@ -914,18 +807,12 @@ class EvaluationController extends Controller
         return Inertia::render('evaluation/evaluation-settings');
     }
 
-    /**
-     * Get evaluations by department for report
-     * Only returns employees who have been evaluated
-     */
     public function departmentEvaluationsReport(Request $request, $department)
     {
         $user = Auth::user();
 
-        // Decode department name (handle URL encoding)
         $department = urldecode($department);
 
-        // Get all evaluations for the department with all relationships
         $evaluations = Evaluation::with([
             'employee',
             'attendance',
@@ -940,11 +827,9 @@ class EvaluationController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Transform evaluations for frontend
         $evaluationList = $evaluations->map(function ($evaluation) {
             $employee = $evaluation->employee;
 
-            // Get Supervisor for the department
             $departmentSupervisor = null;
             if ($employee->department) {
                 $supervisorAssignment = \App\Models\SupervisorDepartment::where('department', $employee->department)
@@ -959,7 +844,6 @@ class EvaluationController extends Controller
                 }
             }
 
-            // Get Manager for the department
             $departmentManager = null;
             if ($employee->department) {
                 $managerAssignment = \App\Models\ManagerDepartmentAssignment::where('department', $employee->department)

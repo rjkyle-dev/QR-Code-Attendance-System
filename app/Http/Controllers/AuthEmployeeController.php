@@ -21,9 +21,6 @@ use Illuminate\Http\RedirectResponse;
 
 class AuthEmployeeController extends Controller
 {
-    /**
-     * Display employee dashboard (requires authentication)
-     */
     public function index()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
@@ -33,7 +30,6 @@ class AuthEmployeeController extends Controller
             return redirect()->route('employeelogin');
         }
 
-        // Get real data for dashboard
         $dashboardData = $this->getDashboardData($employee);
 
         return Inertia::render('employee-view/dashboard', [
@@ -51,37 +47,29 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Get dashboard data for employee
-     */
     private function getDashboardData($employee)
     {
         $currentMonth = Carbon::now()->startOfMonth();
         $currentYear = Carbon::now()->year;
 
-        // Leave Balance (using credits)
         $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id, $currentYear);
         $leaveBalance = $leaveCredits->remaining_credits;
 
-        // Absence Credits
         $absenceCredits = AbsenceCredit::getOrCreateForEmployee($employee->id);
         $absenceBalance = $absenceCredits->remaining_credits;
 
-        // Absence Count (this month)
         $absenceCount = Absence::where('employee_id', $employee->id)
             ->where('status', 'approved')
             ->whereMonth('from_date', $currentMonth->month)
             ->whereYear('from_date', $currentMonth->year)
             ->count();
 
-        // Latest Evaluation Rating
         $latestEvaluation = Evaluation::where('employee_id', $employee->id)
             ->orderBy('rating_date', 'desc')
             ->first();
 
         $evaluationRating = $latestEvaluation ? $this->calculateAverageRating($latestEvaluation) : 0;
 
-        // Attendance Percentage (this month)
         $totalWorkDays = $this->getTotalWorkDays($currentMonth);
         $presentDays = Attendance::where('employee_id', $employee->id)
             ->where('attendance_status', 'Present')
@@ -91,14 +79,10 @@ class AuthEmployeeController extends Controller
 
         $attendancePercentage = $totalWorkDays > 0 ? round(($presentDays / $totalWorkDays) * 100, 1) : 0;
 
-        // Productivity (estimated based on attendance and evaluations)
-        // For 10-star scale: convert to percentage (10 stars = 100%, so multiply by 10)
         $productivity = min(100, round(($attendancePercentage * 0.7) + ($evaluationRating * 10 * 0.3), 1));
 
-        // Recent Activities
         $recentActivities = $this->getRecentActivities($employee);
 
-        // Get Leave Requests
         $leaveRequests = Leave::where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->get()
@@ -115,7 +99,6 @@ class AuthEmployeeController extends Controller
                 ];
             });
 
-        // Get Absence Requests
         $absenceRequests = Absence::where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->get()
@@ -132,7 +115,6 @@ class AuthEmployeeController extends Controller
                 ];
             });
 
-        // Get Notifications for Employee
         $notifications = \App\Models\Notification::where('type', 'like', '%employee%')
             ->orWhere('type', 'like', '%leave%')
             ->orWhere('type', 'like', '%absence%')
@@ -166,7 +148,6 @@ class AuthEmployeeController extends Controller
             'attendancePercentage' => $attendancePercentage,
             'productivity' => $productivity,
             'recentActivities' => $recentActivities,
-            // Enhanced data
             'leaveCredits' => [
                 'remaining' => $leaveCredits->remaining_credits,
                 'used' => $leaveCredits->used_credits,
@@ -184,9 +165,6 @@ class AuthEmployeeController extends Controller
         ];
     }
 
-    /**
-     * Calculate average rating from evaluation
-     */
     private function calculateAverageRating($evaluation)
     {
         $ratings = [
@@ -201,17 +179,12 @@ class AuthEmployeeController extends Controller
         return round(array_sum($ratings) / count($ratings), 1);
     }
 
-    /**
-     * Convert rating string to number
-     */
     private function convertRatingToNumber($rating)
     {
-        // If it's already a number (1-10 scale), return it as is
         if (is_numeric($rating) && $rating >= 1 && $rating <= 10) {
             return (float) $rating;
         }
 
-        // Fallback for old text-based ratings
         $ratingMap = [
             'Excellent' => 10,
             'Very Good' => 8,
@@ -223,9 +196,6 @@ class AuthEmployeeController extends Controller
         return $ratingMap[$rating] ?? 6;
     }
 
-    /**
-     * Get total work days in a month (excluding weekends)
-     */
     private function getTotalWorkDays($month)
     {
         $days = 0;
@@ -241,14 +211,10 @@ class AuthEmployeeController extends Controller
         return $days;
     }
 
-    /**
-     * Get recent activities for employee
-     */
     private function getRecentActivities($employee)
     {
         $activities = [];
 
-        // Recent leave requests
         $recentLeaves = Leave::where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->limit(2)
@@ -259,12 +225,11 @@ class AuthEmployeeController extends Controller
                 'id' => 'leave_' . $leave->id,
                 'title' => ucfirst($leave->leave_type) . ' Leave request ' . $leave->leave_status,
                 'timeAgo' => $leave->created_at->diffForHumans(),
-                'status' => strtolower($leave->leave_status), // Convert to lowercase for consistent status mapping
+                'status' => strtolower($leave->leave_status),
                 'type' => 'leave'
             ];
         }
 
-        // Recent absence requests
         $recentAbsences = Absence::where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->limit(2)
@@ -275,12 +240,11 @@ class AuthEmployeeController extends Controller
                 'id' => 'absence_' . $absence->id,
                 'title' => ucfirst($absence->absence_type) . ' Absence request ' . $absence->status,
                 'timeAgo' => $absence->created_at->diffForHumans(),
-                'status' => strtolower($absence->status), // Convert to lowercase for consistent status mapping
+                'status' => strtolower($absence->status),
                 'type' => 'absence'
             ];
         }
 
-        // Recent return to work requests
         $recentReturnWork = ReturnWork::where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->limit(2)
@@ -291,12 +255,11 @@ class AuthEmployeeController extends Controller
                 'id' => 'return_work_' . $returnWork->id,
                 'title' => 'Return to Work request ' . $returnWork->status,
                 'timeAgo' => $returnWork->created_at->diffForHumans(),
-                'status' => strtolower($returnWork->status), // Convert to lowercase for consistent status mapping
+                'status' => strtolower($returnWork->status),
                 'type' => 'return_work'
             ];
         }
 
-        // Recent evaluations
         $recentEvaluations = Evaluation::where('employee_id', $employee->id)
             ->orderBy('rating_date', 'desc')
             ->limit(1)
@@ -312,7 +275,6 @@ class AuthEmployeeController extends Controller
             ];
         }
 
-        // Sort by most recent and limit to 4
         usort($activities, function ($a, $b) {
             return strtotime($b['timeAgo']) - strtotime($a['timeAgo']);
         });
@@ -320,17 +282,11 @@ class AuthEmployeeController extends Controller
         return array_slice($activities, 0, 4);
     }
 
-    /**
-     * Show employee login form
-     */
     public function create(): Response
     {
         return Inertia::render('employee-view/login');
     }
 
-    /**
-     * Handle employee login
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -352,26 +308,19 @@ class AuthEmployeeController extends Controller
             ]);
         }
 
-        // Store employee session
         Session::put('employee_id', $employee->employeeid);
         Session::put('employee_name', $employee->employee_name);
 
         return redirect()->route('employee-view');
     }
 
-    /**
-     * Handle employee logout
-     */
     public function logout()
     {
         Session::forget(['employee_id', 'employee_name']);
-        Session::flush(); // Clear all session data
+        Session::flush();
         return redirect()->route('employeelogin')->with('status', 'You have been successfully logged out.');
     }
 
-    /**
-     * Reset employee PIN
-     */
     public function resetPin(Request $request)
     {
         $request->validate([
@@ -396,9 +345,6 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Display employee profile
-     */
     public function profile()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
@@ -415,14 +361,11 @@ class AuthEmployeeController extends Controller
                 'picture' => $employee->picture,
                 'email' => $employee->email,
                 'phone' => $employee->phone,
-                'address' => null, // Add address field to employee model if needed
+                'address' => null,
             ]
         ]);
     }
 
-    /**
-     * Display employee attendance
-     */
     public function attendance()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
@@ -441,9 +384,6 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Display employee QR code page
-     */
     public function qrCode()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
@@ -467,21 +407,16 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Display employee evaluations
-     */
     public function evaluations()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
 
-        // Log request context
         Log::info('[EmployeeView] Fetching evaluations page', [
             'session_employee_id' => Session::get('employee_id'),
             'resolved_employee_id' => $employee?->id,
             'resolved_employee_name' => $employee?->employee_name,
         ]);
 
-        // Get latest evaluation with relations (new structure)
         $evaluation = Evaluation::with(['attendance', 'attitudes', 'workAttitude', 'workFunctions'])
             ->where('employee_id', $employee->id)
             ->orderBy('rating_date', 'desc')
@@ -518,7 +453,6 @@ class AuthEmployeeController extends Controller
                 'id' => $evaluation->id,
                 'ratings' => $evaluation->ratings ?? null,
                 'rating_date' => optional($evaluation->rating_date)->format('Y-m-d'),
-                // legacy flat fields (some historical records)
                 'work_quality' => $evaluation->work_quality ?? null,
                 'safety_compliance' => $evaluation->safety_compliance ?? null,
                 'punctuality' => $evaluation->punctuality ?? null,
@@ -526,7 +460,6 @@ class AuthEmployeeController extends Controller
                 'organization' => $evaluation->organization ?? null,
                 'equipment_handling' => $evaluation->equipment_handling ?? null,
                 'comment' => $evaluation->comment ?? null,
-                // new structure
                 'total_rating' => $evaluation->total_rating,
                 'evaluation_year' => $evaluation->evaluation_year,
                 'evaluation_period' => $evaluation->evaluation_period,
@@ -564,14 +497,10 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Display employee leave
-     */
     public function leave()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
 
-        // Calculate leave balance (using credits)
         $currentYear = Carbon::now()->year;
         $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id, $currentYear);
         $leaveBalance = $leaveCredits->remaining_credits;
@@ -591,9 +520,6 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Display employee absence form
-     */
     public function absence()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
@@ -612,14 +538,10 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Display employee return to work form
-     */
     public function returnWork()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
 
-        // Get previous absences for reference
         $previousAbsences = Absence::where('employee_id', $employee->id)
             ->where('status', 'approved')
             ->orderBy('from_date', 'desc')
@@ -649,14 +571,10 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Display employee leave/absence records
-     */
     public function records()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
 
-        // Get leave records
         $leaveRecords = Leave::where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->get()
@@ -672,7 +590,6 @@ class AuthEmployeeController extends Controller
                 ];
             });
 
-        // Get absence records
         $absenceRecords = Absence::where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->get()
@@ -688,12 +605,10 @@ class AuthEmployeeController extends Controller
                 ];
             });
 
-        // Combine and sort records
         $allRecords = $leaveRecords->concat($absenceRecords)
             ->sortByDesc('submitted')
             ->values();
 
-        // Calculate summary (using credits)
         $currentYear = Carbon::now()->year;
         $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id, $currentYear);
         $leaveBalance = $leaveCredits->remaining_credits;
@@ -721,36 +636,20 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
-        //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
-        //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        //
     }
 
     public function logouts(Request $request): RedirectResponse
@@ -763,9 +662,6 @@ class AuthEmployeeController extends Controller
         return redirect('home');
     }
 
-    /**
-     * Display employee profile settings page
-     */
     public function profileSettings()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
@@ -786,9 +682,6 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Update employee profile (name and picture)
-     */
     public function updateProfile(Request $request)
     {
         $request->validate([
@@ -815,9 +708,6 @@ class AuthEmployeeController extends Controller
         return back()->with('status', 'Profile updated successfully.');
     }
 
-    /**
-     * Update employee password/PIN
-     */
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -837,9 +727,6 @@ class AuthEmployeeController extends Controller
         return back()->with('status', 'Password updated successfully.');
     }
 
-    /**
-     * Mark notification as read
-     */
     public function markNotificationAsRead(Request $request)
     {
         $request->validate([
@@ -855,9 +742,6 @@ class AuthEmployeeController extends Controller
         return back()->with('success', 'Notification marked as read');
     }
 
-    /**
-     * Mark all notifications as read
-     */
     public function markAllNotificationsAsRead(Request $request)
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->firstOrFail();
@@ -873,9 +757,6 @@ class AuthEmployeeController extends Controller
         return back()->with('success', 'All notifications marked as read');
     }
 
-    /**
-     * Refresh dashboard data for real-time updates
-     */
     public function refreshDashboard()
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
@@ -901,9 +782,6 @@ class AuthEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Store return to work notification
-     */
     public function storeReturnWork(Request $request)
     {
         $request->validate([
@@ -920,7 +798,6 @@ class AuthEmployeeController extends Controller
         ]);
 
         try {
-            // Create return to work record
             $returnWork = \App\Models\ReturnWork::create([
                 'employee_id' => $request->employee_id,
                 'full_name' => $request->full_name,
@@ -936,7 +813,6 @@ class AuthEmployeeController extends Controller
                 'submitted_at' => now(),
             ]);
 
-            // Get employee info for notification
             $employee = Employee::find($request->employee_id);
             $supervisor = \App\Models\User::getSupervisorForDepartment($employee->department);
 
@@ -948,7 +824,6 @@ class AuthEmployeeController extends Controller
                 'supervisor_name' => $supervisor ? $supervisor->name : 'NONE',
             ]);
 
-            // Broadcast return to work notification using Laravel Echo Reverb
             try {
                 Log::info('Broadcasting ReturnWorkRequested event...', [
                     'return_work_id' => $returnWork->id,

@@ -13,22 +13,16 @@ class PayrollController extends Controller
 {
   use EmployeeFilterTrait;
 
-  /**
-   * Display the payroll page.
-   */
   public function index(): Response
   {
     $user = Auth::user();
     $isSupervisor = $user->isSupervisor();
     $isSuperAdmin = $user->isSuperAdmin();
 
-    // Get evaluable departments based on user role
     $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
 
-    // Base query for employees
     $employeeQuery = Employee::query();
 
-    // Filter employees based on user role
     $isHR = $user->isHR() && $user->hrAssignments()->where('can_evaluate', true)->exists();
     $isManager = $user->isManager() && $user->managerAssignments()->where('can_evaluate', true)->exists();
 
@@ -64,13 +58,11 @@ class PayrollController extends Controller
       ];
     });
 
-    // Calculate totals based on filtered data
     $totalEmployee = $employees->count();
     $totalDepartment = $isSupervisor && !empty($supervisedDepartments)
       ? count($supervisedDepartments)
       : Employee::distinct('department')->count();
 
-    // Calculate work status counts based on filtered data
     $workStatusCounts = [
       'Regular' => $employees->where('work_status', 'Regular')->count(),
       'Add Crew' => $employees->where('work_status', 'Add Crew')->count(),
