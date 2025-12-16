@@ -290,18 +290,23 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
 
                 toast.success('Employee info saved! Generating QR code...');
 
+                // Reset form state
                 reset();
                 setDate(undefined);
                 setBirth(undefined);
                 setPreview('');
                 setSelectedFile(null);
-                setRecommendationPreview('');
-                setSelectedRecommendationFile(null);
-                setRecommendationFileName('');
+                setNbiClearancePreview('');
+                setSelectedNbiClearanceFile(null);
+                setNbiClearanceFileName('');
 
+                // Set QR code modal to open first, then close main modal
+                // This ensures the QR modal state is set before the main modal closes
+                setShowQrCodeModal(true);
+                
+                // Close main modal after a brief delay
                 setTimeout(() => {
                     onClose();
-                    setShowQrCodeModal(true);
                 }, 100);
 
                 if (onSuccess) {
@@ -416,33 +421,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                         <div>
                             <h3 className="text-lg font-bold">Personal Information</h3>
                         </div>
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <Label htmlFor="work_status">Work Status</Label>
-                                <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                                <Select
-                                    value={data.work_status}
-                                    onValueChange={(value) => {
-                                        console.log('Selected Work Status:', value);
-                                        setData('work_status', value);
-                                    }}
-                                    aria-invalid={!!errors.work_status}
-                                >
-                                    <SelectTrigger className="border-green-300 focus:border-cfar-500">
-                                        <SelectValue placeholder="Select Work Status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {workStatusData.map((work_status: string) => (
-                                            <SelectItem key={work_status} value={work_status}>
-                                                {work_status}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.work_status} />
-                            </div>
-                            {!isAddCrew && (
-                                <div className="">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2"> <div className="">
                                     <Label>Employee ID</Label>
                                     <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                                     <Input
@@ -455,20 +434,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     />
                                     <InputError message={errors.employeeid} />
                                 </div>
-                            )}
-                            {isAddCrew && (
-                                <div className="">
-                                    <Label>Employee ID</Label>
-                                    <Input
-                                        type="text"
-                                        value={data.employeeid || 'Generating...'}
-                                        readOnly
-                                        className="border-green-300 bg-gray-50 focus:border-cfar-500"
-                                        aria-invalid={!!errors.employeeid}
-                                    />
-                                </div>
-                            )}
-                            <>
                                 <div>
                                     <Label>Firstname</Label>
                                     <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
@@ -574,7 +539,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         <InputError message={errors.date_of_birth} />
                                     </div>
                                 </div>
-                                {!isAddCrew && (
+                               
                                     <div>
                                         <div className="flex flex-col gap-3">
                                             <Label htmlFor="date" className="px-1">
@@ -613,9 +578,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                             <InputError message={errors.service_tenure} />
                                         </div>
                                     </div>
-                                )}
+                              
 
-                                {!isAddCrew && (
+                            
                                     <div>
                                         <Label htmlFor="departments">Departments</Label>
                                         <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
@@ -640,8 +605,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         </Select>
                                         <InputError message={errors.department} />
                                     </div>
-                                )}
-                                {!isAddCrew && (
+                               
+                              
                                     <div>
                                         <Label htmlFor="positions">Positions</Label>
                                         <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
@@ -673,8 +638,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         </Select>
                                         <InputError message={errors.position} />
                                     </div>
-                                )}
-                                {!isAddCrew && (
+                               
+                              
                                     <div>
                                         <Label htmlFor="marital_status">Marital Status</Label>
                                         <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
@@ -699,8 +664,32 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         </Select>
                                         <InputError message={errors.marital_status} />
                                     </div>
-                                )}
-                            </>
+                                    <div>
+                                <Label htmlFor="work_status">Work Status</Label>
+                                <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
+                                <Select
+                                    value={data.work_status}
+                                    onValueChange={(value) => {
+                                        console.log('Selected Work Status:', value);
+                                        setData('work_status', value);
+                                    }}
+                                    aria-invalid={!!errors.work_status}
+                                >
+                                    <SelectTrigger className="border-green-300 focus:border-cfar-500">
+                                        <SelectValue placeholder="Select Work Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {workStatusData.map((work_status: string) => (
+                                            <SelectItem key={work_status} value={work_status}>
+                                                {work_status}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.work_status} />
+                            </div>
+                               
+                           
                         </div>
                         <div className="mt-4"></div>
                         <>
@@ -786,8 +775,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                 </div>
                             </div>
                         </>
-                        <div>{!isAddCrew && <h3 className="text-lg font-bold">Gmail Account</h3>}</div>
-                        {!isAddCrew && (
+                        <div><h3 className="text-lg font-bold">Gmail Account</h3></div>
+                        
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <Label>Email Address</Label>
@@ -816,16 +805,16 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     <InputError message={errors.gmail_password} />
                                 </div>
                             </div>
-                        )}
-                        <div>{!isAddCrew && <h3 className="text-lg font-bold">HDMF</h3>}</div>
-                        {!isAddCrew && (
+                     
+                            <div><h3 className="text-lg font-bold">Gov Account:</h3></div>
+            
+                         
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <Label>ID</Label>
-
+                                    <Label>HDMF Number</Label>
                                     <Input
                                         type="text"
-                                        placeholder="Enter user id..."
+                                        placeholder="Enter number..."
                                         value={data.hdmf_user_id}
                                         onChange={(e) => setData('hdmf_user_id', e.target.value)}
                                         className={`border-green-300 focus:border-cfar-500 ${errors.hdmf_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
@@ -833,21 +822,12 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     />
                                     <InputError message={errors.hdmf_user_id} />
                                 </div>
-                            </div>
-                        )}
-
-                        {!isAddCrew && (
-                            <>
-                                <div>
-                                    <h3 className="text-lg font-bold">SSS</h3>
-                                </div>
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <Label>ID</Label>
+                                        <Label>SSS Number</Label>
 
                                         <Input
                                             type="text"
-                                            placeholder="Enter user id..."
+                                            placeholder="Enter number..."
                                             value={data.sss_user_id}
                                             onChange={(e) => setData('sss_user_id', e.target.value)}
                                             className={`border-green-300 focus:border-cfar-500 ${errors.sss_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
@@ -855,22 +835,12 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         />
                                         <InputError message={errors.sss_user_id} />
                                     </div>
-                                </div>
-                            </>
-                        )}
-
-                        {!isAddCrew && (
-                            <>
-                                <div>
-                                    <h3 className="text-lg font-bold">Philhealth</h3>
-                                </div>
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <Label>ID</Label>
+                                        <Label>Philhealt Number</Label>
 
                                         <Input
                                             type="text"
-                                            placeholder="Enter user id..."
+                                            placeholder="Enter number..."
                                             value={data.philhealth_user_id}
                                             onChange={(e) => setData('philhealth_user_id', e.target.value)}
                                             className={`border-green-300 focus:border-cfar-500 ${errors.philhealth_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
@@ -878,17 +848,11 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         />
                                         <InputError message={errors.philhealth_user_id} />
                                     </div>
-                                </div>
-                            </>
-                        )}
-                        <div>{!isAddCrew && <h3 className="text-lg font-bold">Tin</h3>}</div>
-                        {!isAddCrew && (
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <Label htmlFor="state">ID</Label>
+                                    <Label htmlFor="state">Tin Number</Label>
                                     <Input
                                         type="number"
-                                        placeholder="Enter your id.."
+                                        placeholder="Enter number.."
                                         value={data.tin_user_id}
                                         onChange={(e) => setData('tin_user_id', e.target.value)}
                                         className="border-green-300 focus:border-cfar-500"
@@ -896,10 +860,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     />
                                     <InputError message={errors.tin_user_id} />
                                 </div>
-                            </div>
-                        )}
-                        <div>{!isAddCrew && <h3 className="text-lg font-bold">NBI Clearance</h3>}</div>
-                        {!isAddCrew && (
+                                </div>
+                            
+                        <div><h3 className="text-lg font-bold">NBI Clearance</h3></div>
+                      
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="col-span-2">
                                     <Label>Upload NBI Clearance</Label>
@@ -977,7 +941,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     </div>
                                 )}
                             </div>
-                        )}
+                        
 
                         <div className="mt-3 ml-auto flex justify-end">
                             <Button type="submit" tabIndex={0} variant="main" disabled={processing || !!savedEmployee}>

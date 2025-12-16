@@ -26,7 +26,7 @@ class PermissionSeeder extends Seeder
       'Add Employee',
       'Update Employee',
       'Delete Employee',
-      'Refresh Employee',
+
 
       // Attendance permissions
       'View Attendance Details',

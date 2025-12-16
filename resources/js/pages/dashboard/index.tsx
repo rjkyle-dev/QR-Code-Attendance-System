@@ -20,7 +20,6 @@ import { Head, router } from '@inertiajs/react';
 import { LayoutGrid } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { SectionCards } from './components/section-cards';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/tabs';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -365,42 +364,35 @@ function SidebarHoverLogic(
                                     )}
                                 </div>
                             </div>
-                            <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
-                                <div className="mt-2 w-full overflow-x-auto pb-2">
-                                    <TabsList className="gap-2">
-                                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                                    </TabsList>
-                                </div>
-                                <TabsContent value="overview" className="space-y-4">
-                                    <div className="flex flex-1 flex-col">
-                                        <div className="relative flex flex-1 flex-col">
-                                            <div className="@container/main flex flex-1 flex-col gap-2">
-                                                <div className="flex flex-col">
-                                                    <SectionCards
-                                                        totalEmployee={props.totalEmployee}
-                                                        totalDepartment={props.totalDepartment}
-                                                        totalLeave={props.totalLeave}
-                                                        pendingLeave={props.pendingLeave}
-                                                        isSupervisor={props.isSupervisor}
-                                                        roleContent={roleContent}
-                                                    />
-                                                </div>
+                            <div className="space-y-4">
+                                <div className="flex flex-1 flex-col">
+                                    <div className="relative flex flex-1 flex-col">
+                                        <div className="@container/main flex flex-1 flex-col gap-2">
+                                            <div className="flex flex-col">
+                                                <SectionCards
+                                                    totalEmployee={props.totalEmployee}
+                                                    totalDepartment={props.totalDepartment}
+                                                    totalLeave={props.totalLeave}
+                                                    pendingLeave={props.pendingLeave}
+                                                    isSupervisor={props.isSupervisor}
+                                                    roleContent={roleContent}
+                                                />
                                             </div>
                                         </div>
                                     </div>
-                                    <Separator className="shadow-sm" />
-                                    <ChartAreaInteractive />
-                                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-                                        <div className="lg:col-span-2 lg:row-span-2">
-                                            {/* <ChartBarLabels /> */}
-                                            <ChartLineLabelLeave data={props.monthlyLeaveStats || []} />
-                                        </div>
-                                        <div className="lg:col-span-2 lg:row-span-2">
-                                            <ChartLineLabel data={props.monthlyAbsenceStats || []} />
-                                        </div>
+                                </div>
+                                <Separator className="shadow-sm" />
+                                <ChartAreaInteractive />
+                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+                                    <div className="lg:col-span-2 lg:row-span-2">
+                                        {/* <ChartBarLabels /> */}
+                                        <ChartLineLabelLeave data={props.monthlyLeaveStats || []} />
                                     </div>
-                                </TabsContent>
-                            </Tabs>
+                                    <div className="lg:col-span-2 lg:row-span-2">
+                                        <ChartLineLabel data={props.monthlyAbsenceStats || []} />
+                                    </div>
+                                </div>
+                            </div>
                         </Main>
                     </>
                 )}

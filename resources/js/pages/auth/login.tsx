@@ -35,7 +35,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <AuthLayout title="Welcome" description="Login to your account">
+        <AuthLayout title="Welcome" description="">
             <Head title="Log in" />
 
             <LoginLoadingModal isOpen={processing} />

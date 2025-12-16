@@ -265,18 +265,20 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                     setSavedEmployee(updatedEmployee);
                     onUpdate(updatedEmployee);
 
-                    // Reset form but keep savedEmployee for fingerprint modal
+                    // Reset form but keep savedEmployee for QR code modal
                     reset();
                     setDate(undefined);
                     setBirth(undefined);
                     setPreview('');
                     setSelectedFile(null);
 
-                    // Close main modal and open QR code modal
-                    // Use setTimeout to ensure state is set before modal transition
+                    // Set QR code modal to open first, then close main modal
+                    // This ensures the QR modal state is set before the main modal closes
+                    setShowQrCodeModal(true);
+                    
+                    // Close main modal after a brief delay
                     setTimeout(() => {
                         onClose();
-                        setShowQrCodeModal(true);
                     }, 100);
                 } else {
                     closeModalWithDelay(1200);

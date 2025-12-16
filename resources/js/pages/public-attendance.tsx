@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
 import { ArrowDown, ArrowUp, Camera, CheckCircle2, Loader2, RefreshCw, User } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -115,16 +115,12 @@ export default function PublicAttendancePage() {
             </div>
 
             <div className="container mx-auto max-w-4xl px-4 py-8">
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button onClick={() => setShowCameraModal(true)} size="lg" className="gap-2">
-                        <Camera className="h-5 w-5" />
-                        QR Code Scanner
-                    </Button>
-                </div>
+                
 
                 {/* Statistics Cards */}
                 <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Total Attendance Card */}
+                    
                     <Card className="border-l-4 border-teal-500 bg-gradient-to-br from-teal-50 to-white shadow-lg">
                         <CardHeader className="pb-2">
                             <CardDescription className="text-sm font-medium text-gray-600">Total Attendance</CardDescription>
@@ -226,9 +222,12 @@ export default function PublicAttendancePage() {
                 </div>
 
                 <div className="mt-6">
-                    <div className="mb-4">
-                        <BackButton href="/" label="Back to Home" variant="ghost" className="text-gray-700 hover:text-gray-900" />
-                    </div>
+                <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                    <Button onClick={() => setShowCameraModal(true)} size="lg" variant="main" className="gap-2 m-4">
+                        <Camera className="h-5 w-5" />
+                        QR Code Scanner
+                    </Button>
+                </div>
                     <Card className="shadow-xl">
                         <CardHeader>
                             <div className="flex items-center justify-between">
@@ -324,6 +323,12 @@ export default function PublicAttendancePage() {
                         )}
                     </CardContent>
                     </Card>
+                    <div className="mt-4 flex flex-col sm:flex-row gap-4 justify-end">
+                        {/* <Button href="/" label="Cancel" variant="main" className="text-gray-700 hover:text-gray-900" /> */}
+                        <Button type="button" variant="main" onClick={() => router.visit(route('home'))}>
+                    Back
+                </Button>
+                    </div>
                 </div>
             </div>
 
