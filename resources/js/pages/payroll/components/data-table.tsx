@@ -13,7 +13,7 @@ import {
     SortingState,
     useReactTable,
 } from '@tanstack/react-table';
-import { Plus, RotateCw } from 'lucide-react';
+import { RotateCw, FileText } from 'lucide-react';
 import * as React from 'react';
 
 import { DataTableViewOptions } from '@/components/column-toggle';
@@ -21,7 +21,7 @@ import { DataTablePagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useState } from 'react';
-import AddPaymentModal from './addemployeemodal';
+import { router } from '@inertiajs/react';
 
 import { DataTableToolbar } from './data-tool-bar';
 import { usePermission } from '@/hooks/user-permission';
@@ -37,7 +37,6 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-    const [isModelOpen, setIsModelOpen] = useState(false);
     const { can } = usePermission();
     const table = useReactTable({
         data,
@@ -82,11 +81,23 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
                         {refreshing ? 'Refreshing...' : 'Refresh'}
                     </Button>
                     
-                    {can('Add Employee') && (
-                    <Button variant="main" className="" onClick={() => setIsModelOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                            Add Employee
-                        </Button>
+                    {can('View Payroll') && (
+                    <Button 
+                        variant="main" 
+                        className="" 
+                        onClick={() => {
+                            const currentDate = new Date();
+                            router.post('/payroll/generate', {
+                                month: currentDate.toISOString(),
+                                cutoff: '2nd',
+                                employee_id: undefined, // Generate for all employees
+                            });
+                        }}
+                        title="Generate Payroll for All Employees"
+                    >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Generate Payroll for All
+                    </Button>
                     )}
                     </div>
                     <DropdownMenuContent align="end">
@@ -150,8 +161,6 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
             <div className="flex items-center justify-end space-x-2 py-4">
                 <DataTablePagination table={table} />
             </div>
-
-            <AddPaymentModal isOpen={isModelOpen} onClose={() => setIsModelOpen(false)} />
         </div>
     );
 }

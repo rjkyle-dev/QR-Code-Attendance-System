@@ -7,10 +7,16 @@ import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sideb
 import type { Employee } from '@/hooks/employees';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { BanknoteIcon } from 'lucide-react';
 import { useState } from 'react';
 import { PayrollPeriodSelector } from './components/payroll-period-selector';
+import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DataTable } from './components/data-table';
+import { columns } from './components/columns';
+import { usePermission } from '@/hooks/user-permission';
+import ViewEmployeeDetails from './components/viewemployeedetails';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -62,11 +68,17 @@ export default function Payroll({
     positions = [],
     user_permissions,
 }: Props) {
+    const { can } = usePermission();
     const [loading] = useState(false);
+    const [isViewOpen, setIsViewOpen] = useState(false);
+    const [viewEmployee, setViewEmployee] = useState<Employee | null>(null);
 
     const handleGenerateReport = (data: { month: Date; cutoff: string; employeeId?: string }) => {
-        console.log('Generate payroll report:', data);
-        // TODO: Implement payroll report generation
+        router.post('/payroll/generate', {
+            month: data.month.toISOString(),
+            cutoff: data.cutoff,
+            employee_id: data.employeeId,
+        });
     };
 
     return (
@@ -94,10 +106,44 @@ export default function Payroll({
                             <div className="space-y-4">
                                 <PayrollPeriodSelector employees={employee} onGenerate={handleGenerateReport} />
                             </div>
+                            <Separator className="shadow-sm" />
+
+                            <div className="m-3 no-scrollbar">
+                                    <Card className="border-main dark:bg-backgrounds overflow-hidden bg-background drop-shadow-lg">
+                                        <CardHeader>
+                                            <CardTitle>Employee List</CardTitle>
+                                            <CardDescription>List of employee</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="overflow-x-auto">
+                                            <DataTable
+                                                columns={columns(
+                                                    can,
+                                                    setIsViewOpen,
+                                                    setViewEmployee
+                                                )}
+                                                data={employee}
+                                            />
+                                        </CardContent>
+                                    </Card>
+                            </div>
                         </Main>
                     )}
                 </SidebarInset>
             </SidebarHoverLogic>
+            
+            {/* View Employee Modal */}
+            {isViewOpen && viewEmployee && (
+                <ViewEmployeeDetails
+                    employee={viewEmployee}
+                    isOpen={isViewOpen}
+                    onClose={() => {
+                        setIsViewOpen(false);
+                        setViewEmployee(null);
+                    }}
+                    onEdit={() => {}}
+                    onDelete={() => {}}
+                />
+            )}
         </SidebarProvider>
     );
 }

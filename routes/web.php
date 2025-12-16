@@ -169,6 +169,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Payroll
     Route::middleware(['permission:View Payroll'])->group(function () {
         Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
+        Route::post('payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
+        Route::get('payroll/{id}', [PayrollController::class, 'show'])->name('payroll.show');
+    });
+
+    // System Settings
+    Route::middleware(['permission:View Settings'])->group(function () {
+        Route::get('system-settings', function () {
+            return Inertia::render('system-settings/index');
+        })->name('system-settings.index');
+        Route::get('system-settings/payroll', [\App\Http\Controllers\PayrollSettingsController::class, 'index'])->name('system-settings.payroll');
+        Route::post('system-settings/payroll/update', [\App\Http\Controllers\PayrollSettingsController::class, 'update'])->name('system-settings.payroll.update');
+        Route::post('system-settings/payroll/reset-all', [\App\Http\Controllers\PayrollSettingsController::class, 'resetAll'])->name('system-settings.payroll.reset-all');
+        Route::get('system-settings/department', function () {
+            return Inertia::render('system-settings/department');
+        })->name('system-settings.department');
+        Route::get('system-settings/position', function () {
+            return Inertia::render('system-settings/position');
+        })->name('system-settings.position');
     });
 });
 

@@ -136,6 +136,21 @@ class Employee extends Model
         return $this->hasMany(EmployeeQrToken::class);
     }
 
+    public function salarySettings()
+    {
+        return $this->hasMany(EmployeeSalarySetting::class)->where('is_active', true)->latest('effective_date');
+    }
+
+    public function currentSalarySetting()
+    {
+        return $this->salarySettings()->first();
+    }
+
+    public function payrolls()
+    {
+        return $this->hasMany(Payroll::class);
+    }
+
     /**
      * Get current year's leave credits
      */
