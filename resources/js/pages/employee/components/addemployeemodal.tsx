@@ -13,12 +13,12 @@ import { ChevronDownIcon, Save, User } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
-    departments as departmentsData,
     gender as genderData,
-    getPositionsForDepartment,
     maritalStatus as maritalStatusData,
     workStatus as workStatusData,
 } from '../../../hooks/data';
+import { useDepartments } from '../../../hooks/use-departments';
+import { usePositionsByDepartment } from '../../../hooks/use-positions';
 import EmployeeQrCodeModal from './employee-qr-code-modal';
 
 interface EmployeeDetails {
@@ -29,12 +29,12 @@ interface EmployeeDetails {
 
 const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
     const { can } = usePermission();
+    const { departments: departmentsData } = useDepartments();
     const [openService, setOpenService] = useState(false);
     const [openBirth, setOpenBirth] = useState(false);
     const [date, setDate] = useState<Date | undefined>(undefined);
     const [birth, setBirth] = useState<Date | undefined>(undefined);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-    const [availablePositions, setAvailablePositions] = useState<string[]>([]);
 
     const [preview, setPreview] = useState<string>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -180,13 +180,12 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
         }
     }, [data.work_status]);
 
+    const { positions: availablePositions } = usePositionsByDepartment(data.department);
+
     useEffect(() => {
         if (data.department) {
-            const positions = getPositionsForDepartment(data.department);
-            setAvailablePositions(positions);
             setData('position', '');
         } else {
-            setAvailablePositions([]);
             setData('position', '');
         }
     }, [data.department, setData]);

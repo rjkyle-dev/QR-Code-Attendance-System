@@ -181,12 +181,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('system-settings/payroll', [\App\Http\Controllers\PayrollSettingsController::class, 'index'])->name('system-settings.payroll');
         Route::post('system-settings/payroll/update', [\App\Http\Controllers\PayrollSettingsController::class, 'update'])->name('system-settings.payroll.update');
         Route::post('system-settings/payroll/reset-all', [\App\Http\Controllers\PayrollSettingsController::class, 'resetAll'])->name('system-settings.payroll.reset-all');
-        Route::get('system-settings/department', function () {
-            return Inertia::render('system-settings/department');
-        })->name('system-settings.department');
-        Route::get('system-settings/position', function () {
-            return Inertia::render('system-settings/position');
-        })->name('system-settings.position');
+        Route::get('system-settings/department', [\App\Http\Controllers\DepartmentController::class, 'index'])->name('system-settings.department');
+        Route::post('system-settings/department', [\App\Http\Controllers\DepartmentController::class, 'store'])->name('system-settings.department.store');
+        Route::put('system-settings/department/{id}', [\App\Http\Controllers\DepartmentController::class, 'update'])->name('system-settings.department.update');
+        Route::delete('system-settings/department/{id}', [\App\Http\Controllers\DepartmentController::class, 'destroy'])->name('system-settings.department.destroy');
+        Route::get('system-settings/position', [\App\Http\Controllers\PositionController::class, 'index'])->name('system-settings.position');
+        Route::post('system-settings/position', [\App\Http\Controllers\PositionController::class, 'store'])->name('system-settings.position.store');
+        Route::put('system-settings/position/{id}', [\App\Http\Controllers\PositionController::class, 'update'])->name('system-settings.position.update');
+        Route::delete('system-settings/position/{id}', [\App\Http\Controllers\PositionController::class, 'destroy'])->name('system-settings.position.destroy');
     });
 });
 

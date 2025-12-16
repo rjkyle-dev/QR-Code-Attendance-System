@@ -37,6 +37,9 @@ Route::post('/employee/store', [EmployeeController::class, 'store']);
 Route::get('/fingerprint/all', [FingerprintController::class, 'all']);
 Route::get('/employee/all', [ApiEmployeeController::class, 'index']);
 Route::get('/employees', [ApiEmployeeController::class, 'index']); // Alias for /employee/all
+Route::get('/departments/all', [\App\Http\Controllers\DepartmentController::class, 'getAll']);
+Route::get('/positions/all', [\App\Http\Controllers\PositionController::class, 'getAll']);
+Route::get('/positions/by-department', [\App\Http\Controllers\PositionController::class, 'getByDepartment']);
 Route::get('/employees/packing-plant', function (Request $request) {
     $startDate = $request->query('start_date');
     $endDate = $request->query('end_date');
