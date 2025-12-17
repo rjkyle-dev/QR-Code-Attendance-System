@@ -63,9 +63,14 @@ return [
     | will be used by the PHP date and date-time functions. The timezone
     | is set to "UTC" by default as it is suitable for most use cases.
     |
+    | IMPORTANT: For attendance session validation, set APP_TIMEZONE in your
+    | .env file to match your local timezone (e.g., Asia/Manila for UTC+8).
+    | Session times are stored as time-only values and will be compared using
+    | this timezone.
+    |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     /*
     |--------------------------------------------------------------------------

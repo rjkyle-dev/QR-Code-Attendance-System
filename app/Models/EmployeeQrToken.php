@@ -36,10 +36,11 @@ class EmployeeQrToken extends Model
 
     /**
      * Check if token is expired
+     * Always returns false - tokens never expire
      */
     public function isExpired(): bool
     {
-        return $this->expires_at->isPast();
+        return false; // QR codes never expire
     }
 
     /**
@@ -52,10 +53,11 @@ class EmployeeQrToken extends Model
 
     /**
      * Check if token is valid (not expired and not used)
+     * Only checks if used - expiration is ignored
      */
     public function isValid(): bool
     {
-        return !$this->isExpired() && !$this->isUsed();
+        return !$this->isUsed(); // Only check if used, expiration is ignored
     }
 
     /**
@@ -72,11 +74,11 @@ class EmployeeQrToken extends Model
 
     /**
      * Scope to get valid tokens
+     * Only checks if unused - expiration is ignored
      */
     public function scopeValid($query)
     {
-        return $query->where('expires_at', '>', now())
-            ->whereNull('used_at');
+        return $query->whereNull('used_at'); // Only check if unused, expiration is ignored
     }
 
     /**

@@ -81,7 +81,7 @@ const columns = (
                             <div className="text-sm font-medium text-gray-900">{name}</div>
                             <div className="flex flex-1 space-x-1">
                                 <div className="text-xs text-gray-500">{empid}</div>
-                                <QrCode className={`size-4 ${row.original.qr_code_secret ? 'text-cfar-400' : 'text-red-500'}`} />
+                                <QrCode className={`size-4 ${row.original.id ? 'text-cfar-400' : 'text-red-500'}`} />
                             </div>
                         </div>
                     </div>

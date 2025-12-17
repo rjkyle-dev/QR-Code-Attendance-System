@@ -40,7 +40,7 @@ export default function Login({ status }: LoginProps) {
             <div className="mx-auto grid w-full max-w-2xl overflow-hidden rounded-xl bg-cfar-500 shadow-xl md:grid-cols-2">
                 {/* Left image */}
                 <div className="relative hidden md:block">
-                    <img src="/test10.jpg" alt="Employee" className="h-full w-full object-cover" />
+                    <img src="/login-side-image.png" alt="Employee" className="h-full w-full object-cover" />
                 </div>
 
                 {/* Right form panel */}

@@ -203,7 +203,7 @@ class Employee extends Model
     /**
      * Generate a QR code token for attendance
      * 
-     * @param int $expiresInSeconds Number of seconds until token expires (default: 60)
+     * @param int $expiresInSeconds Number of seconds until token expires (ignored - tokens never expire)
      * @return EmployeeQrToken
      */
     public function generateQrToken(int $expiresInSeconds = 60): EmployeeQrToken
@@ -211,13 +211,15 @@ class Employee extends Model
         // Generate unique token
         $token = bin2hex(random_bytes(32)); // 64 character hex string
 
-        // Create expiration time
-        $expiresAt = Carbon::now()->addSeconds($expiresInSeconds);
+        // Set expiration time to maximum MySQL TIMESTAMP value (2038-01-19 03:14:07 UTC)
+        // This is effectively no expiration for practical purposes
+        $expiresAt = Carbon::create(2038, 1, 19, 3, 14, 7);
 
-        // Invalidate any existing valid tokens for this employee (prevent multiple active QR codes)
+        // Delete any existing valid tokens for this employee (prevent multiple active QR codes)
+        // This ensures only one active QR code exists per employee at a time
         $this->qrTokens()
             ->valid()
-            ->update(['used_at' => now()]);
+            ->delete();
 
         // Create new token
         $qrToken = $this->qrTokens()->create([
@@ -231,7 +233,7 @@ class Employee extends Model
     /**
      * Generate QR code data (payload for QR code)
      * 
-     * @param int $expiresInSeconds Number of seconds until token expires
+     * @param int $expiresInSeconds Number of seconds until token expires (ignored - tokens never expire)
      * @return array
      */
     public function generateQrCodeData(int $expiresInSeconds = 60): array
@@ -254,7 +256,7 @@ class Employee extends Model
         return [
             'token' => $qrToken->token,
             'expires_at' => $qrToken->expires_at->toIso8601String(),
-            'expires_in' => $expiresInSeconds,
+            'expires_in' => 0, // No expiration
             'qr_data' => $payload,
         ];
     }

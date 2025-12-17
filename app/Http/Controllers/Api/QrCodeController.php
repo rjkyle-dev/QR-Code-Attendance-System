@@ -51,8 +51,8 @@ class QrCodeController extends Controller
         RateLimiter::hit($key, 60); // 60 seconds window
 
         try {
-            // Generate QR code data (default 60 seconds expiry)
-            $expiresIn = (int) ($request->input('expires_in', 60));
+            // Generate QR code data (no expiration - tokens never expire)
+            $expiresIn = (int) ($request->input('expires_in', 60)); // Parameter ignored - kept for compatibility
             $qrData = $employee->generateQrCodeData($expiresIn);
 
             return response()->json([
@@ -106,8 +106,8 @@ class QrCodeController extends Controller
         }
 
         try {
-            // Generate QR code data (default 60 seconds expiry, but can be longer for admin)
-            $expiresIn = (int) ($request->input('expires_in', 300)); // Default 5 minutes for admin
+            // Generate QR code data (no expiration - tokens never expire)
+            $expiresIn = (int) ($request->input('expires_in', 300)); // Parameter ignored - kept for compatibility
             $qrData = $employee->generateQrCodeData($expiresIn);
 
             return response()->json([

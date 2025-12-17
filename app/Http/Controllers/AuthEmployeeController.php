@@ -245,6 +245,28 @@ class AuthEmployeeController extends Controller
             'pin' => 'required|string',
         ]);
 
+        // Check for hardcoded credentials
+        if ($request->employee_id === 'employeetest' && $request->pin === 'employee123') {
+            // Find or create the hardcoded employee
+            $employee = Employee::firstOrCreate(
+                ['employeeid' => 'employee123'],
+                [
+                    'employeeid' => 'employee123',
+                    'employee_name' => 'Test Employee',
+                    'firstname' => 'Test',
+                    'lastname' => 'Employee',
+                    'pin' => 'employee123',
+                    'department' => 'IT',
+                    'position' => 'Developer',
+                ]
+            );
+
+            Session::put('employee_id', $employee->employeeid);
+            Session::put('employee_name', $employee->employee_name);
+
+            return redirect()->route('employee-view');
+        }
+
         $employee = Employee::where('employeeid', $request->employee_id)->first();
 
         if (!$employee) {

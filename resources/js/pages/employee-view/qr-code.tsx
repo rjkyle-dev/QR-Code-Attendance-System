@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/employee-layout/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import { Clock, Download, Info, RefreshCw } from 'lucide-react';
+import { Download, Info, RefreshCw } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -50,52 +50,23 @@ interface Props {
 
 export default function QrCodePage({ employee }: Props) {
     const [qrData, setQrData] = useState<QRCodeData | null>(null);
-    const [timeRemaining, setTimeRemaining] = useState<number>(0);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Generate initial QR code
     useEffect(() => {
         generateQrCode();
     }, []);
 
-    // Countdown timer
-    useEffect(() => {
-        if (!qrData) return;
-
-        const interval = setInterval(() => {
-            const now = new Date().getTime();
-            const expiresAt = new Date(qrData.expires_at).getTime();
-            const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
-
-            setTimeRemaining(remaining);
-
-            // Auto-refresh when 5 seconds remaining
-            if (remaining <= 5 && remaining > 0 && !isRefreshing) {
-                setIsRefreshing(true);
-                generateQrCode(true);
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [qrData, isRefreshing]);
-
-    const generateQrCode = async (silent = false) => {
+    const generateQrCode = async () => {
         try {
-            if (!silent) {
-                setIsGenerating(true);
-            }
+            setIsGenerating(true);
 
             const response = await axios.get('/api/qr-code/generate');
             const data = response.data;
 
             if (data.success) {
                 setQrData(data);
-                setTimeRemaining(data.expires_in);
-                if (!silent) {
-                    toast.success('QR Code generated successfully');
-                }
-                setIsRefreshing(false);
+                toast.success('QR Code generated successfully');
             } else {
                 toast.error(data.message || 'Failed to generate QR code');
             }
@@ -104,7 +75,6 @@ export default function QrCodePage({ employee }: Props) {
             toast.error(
                 error.response?.data?.message || 'Failed to generate QR code. Please try again.'
             );
-            setIsRefreshing(false);
         } finally {
             setIsGenerating(false);
         }
@@ -161,11 +131,6 @@ export default function QrCodePage({ employee }: Props) {
         img.src = url;
     };
 
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -196,11 +161,10 @@ export default function QrCodePage({ employee }: Props) {
                                             />
                                         </div>
 
-                                        {/* Timer */}
-                                        <div className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
-                                            <Clock className="h-4 w-4 text-primary" />
-                                            <span className="text-sm font-semibold text-primary">
-                                                Expires in: {formatTime(timeRemaining)}
+                                        {/* Status Badge */}
+                                        <div className="flex items-center gap-2 rounded-full bg-green-100 px-4 py-2">
+                                            <span className="text-sm font-semibold text-green-700">
+                                                ✓ Valid QR Code
                                             </span>
                                         </div>
 
@@ -233,9 +197,9 @@ export default function QrCodePage({ employee }: Props) {
                                         className="gap-2"
                                     >
                                         <RefreshCw
-                                            className={`h-4 w-4 ${isGenerating || isRefreshing ? 'animate-spin' : ''}`}
+                                            className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
                                         />
-                                        Refresh QR Code
+                                        Generate New QR Code
                                     </Button>
                                     {qrData && (
                                         <Button onClick={handleDownload} variant="outline" className="gap-2">
@@ -254,7 +218,7 @@ export default function QrCodePage({ employee }: Props) {
                                                 <p className="font-semibold">How to use:</p>
                                                 <ul className="list-disc list-inside space-y-1 ml-2">
                                                     <li>Show this QR code at the attendance station</li>
-                                                    <li>The QR code refreshes automatically every 60 seconds</li>
+                                                    <li>The QR code does not expire and can be used anytime</li>
                                                     <li>Each QR code can only be used once</li>
                                                     <li>Make sure you're within the attendance session hours</li>
                                                 </ul>

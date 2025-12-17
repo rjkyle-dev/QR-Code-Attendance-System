@@ -785,15 +785,14 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                         {!isAddCrew && (
                             <>
                                 <div>
-                                    <h3 className="text-lg font-bold">HDMF</h3>
+                                    <h3 className="text-lg font-bold">Gov Account:</h3>
                                 </div>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <Label>ID</Label>
-                                        <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
+                                        <Label>HDMF Number</Label>
                                         <Input
                                             type="text"
-                                            placeholder="Enter user id..."
+                                            placeholder="Enter number..."
                                             value={data.hdmf_user_id}
                                             onChange={(e) => setData('hdmf_user_id', e.target.value)}
                                             className={`border-green-300 focus:border-cfar-500 ${errors.hdmf_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
@@ -801,16 +800,23 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                         />
                                         <InputError message={errors.hdmf_user_id} />
                                     </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-bold">Philhealth</h3>
-                                </div>
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <div className="">
-                                        <Label>ID</Label>
+                                    <div>
+                                        <Label>SSS Number</Label>
                                         <Input
                                             type="text"
-                                            placeholder="Enter your philhealth..."
+                                            placeholder="Enter number..."
+                                            value={data.sss_user_id}
+                                            onChange={(e) => setData('sss_user_id', e.target.value)}
+                                            className={`border-green-300 focus:border-cfar-500 ${errors.sss_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
+                                            aria-invalid={!!errors.sss_user_id}
+                                        />
+                                        <InputError message={errors.sss_user_id} />
+                                    </div>
+                                    <div>
+                                        <Label>Philhealth Number</Label>
+                                        <Input
+                                            type="text"
+                                            placeholder="Enter number..."
                                             value={data.philhealth_user_id}
                                             onChange={(e) => setData('philhealth_user_id', e.target.value)}
                                             className="border-green-300 focus:border-cfar-500"
@@ -818,42 +824,17 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                         />
                                         <InputError message={errors.philhealth_user_id} />
                                     </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="text-lg font-bold">Tin</h3>
-                                </div>
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <Label htmlFor="state">ID</Label>
+                                        <Label htmlFor="state">Tin Number</Label>
                                         <Input
                                             type="number"
-                                            placeholder="Enter your id.."
+                                            placeholder="Enter number.."
                                             value={data.tin_user_id}
                                             onChange={(e) => setData('tin_user_id', e.target.value)}
                                             className="border-green-300 focus:border-cfar-500"
                                             aria-invalid={!!errors.tin_user_id}
                                         />
                                         <InputError message={errors.tin_user_id} />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="text-lg font-bold">SSS</h3>
-                                </div>
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <div>
-                                        <Label>ID</Label>
-                                        {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter user id..."
-                                            value={data.sss_user_id}
-                                            onChange={(e) => setData('sss_user_id', e.target.value)}
-                                            className={`border-green-300 focus:border-cfar-500 ${errors.sss_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
-                                            aria-invalid={!!errors.sss_user_id}
-                                        />
-                                        <InputError message={errors.sss_user_id} />
                                     </div>
                                 </div>
                             </>

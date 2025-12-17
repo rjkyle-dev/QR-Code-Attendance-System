@@ -83,35 +83,6 @@ class AttendanceController extends Controller
         ]);
     }
 
-    public function dailyChecking()
-    {
-        $employees = \App\Models\Employee::where('department', 'Production')
-            ->select('id', 'employeeid', 'employee_name', 'department', 'position', 'work_status')
-            ->orderBy('employee_name', 'asc')
-            ->get();
-
-        $packingPlantSupervisor = \App\Models\User::getSupervisorForDepartment('Packing Plant');
-        $preparedBy = $packingPlantSupervisor
-            ? trim(($packingPlantSupervisor->firstname ?? '') . ' ' . ($packingPlantSupervisor->lastname ?? ''))
-            : '';
-
-        $hrAssignment = HRDepartmentAssignment::where('department', 'Packing Plant')
-            ->with('user')
-            ->first();
-
-        $checkedBy = '';
-        if ($hrAssignment && $hrAssignment->user) {
-            $hrUser = $hrAssignment->user;
-            $checkedBy = trim(($hrUser->firstname ?? '') . ' ' . ($hrUser->lastname ?? ''));
-        }
-
-        return Inertia::render('attendance/DailyCheckingPage', [
-            'employees' => $employees,
-            'preparedBy' => $preparedBy,
-            'checkedBy' => $checkedBy,
-        ]);
-    }
-
     public function create()
     {
         //

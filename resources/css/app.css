@@ -530,14 +530,11 @@
 
 .auth-bg {
     min-height: 100vh;
-    background-image: url('/bgcfar.jpg');
+    background-image: url('/agoc-bg.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-color: rgba(0, 0, 0, 0.5);
     background-blend-mode: overlay;
-    background-color: rgba(0, 0, 0, 0.5);
-    background-blend-mode: overlay;
-    background-color: rgba(0, 0, 0, 0.5);
 }

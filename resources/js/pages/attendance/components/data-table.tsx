@@ -92,12 +92,6 @@ export function DataTable<TData, TValue>({ columns, data, attendance, sessions, 
                                 Set Session Times
                             </Button>
                         )}
-                        <Button 
-                          onClick={() => router.visit('/attendance/daily-checking')}
-                        variant="main">
-                            <FileText className="mr-2 h-4 w-4" />
-                            PP Crew Check
-                        </Button>
                         {/* <Button variant="main" onClick={() => setIsModelOpen(true)}>
                             <Plus className="mr-2 h-4 w-4" />
                             Start Attendance

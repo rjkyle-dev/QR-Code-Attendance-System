@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { QrCode, Menu, X, Shield } from "lucide-react";
+import { Menu, X, Shield, Users } from "lucide-react";
 import { useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { type SharedData } from "@/types";
@@ -14,14 +14,23 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <QrCode className="w-5 h-5 text-primary-foreground" />
+            <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center overflow-hidden">
+              <img src="/AGOC.png" alt="AGOC Logo" className="w-full h-full object-contain" />
             </div>
             <span className="font-heading font-semibold text-lg">HRMS</span>
           </div>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+             <Link
+                            href={route('employeelogin')}
+                            className="m bg-main-600 hover:bg-main flex w-auto rounded-md border border-transparent p-2 px-5 py-1.5 text-lg leading-normal font-semibold text-white transition-all duration-300 ease-in-out hover:border-green-700 dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
+                        >
+                            <div className="flex w-auto">
+                                <Users className="animate-shield-glow motion-rotate-in-45 mt-1 mr-2 h-4 w-4 text-cfar-400" />
+                                Employee
+                            </div>
+                        </Link>
             {auth.user ? (
               <Link href={route('dashboard.index')}>
                 <Button variant="ghost" size="sm">Dashboard</Button>

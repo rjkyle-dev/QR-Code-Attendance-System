@@ -24,7 +24,7 @@ const HeroSection = () => {
             
             <h1 className="animate-fade-up-delay-1 font-heading text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
             Amalgated Agoc  
-              <span className="text-gradient block">(Amalgated Group Of Companies)</span>
+              <span className="text-emerald-500 block text-2xl">(Amalgated Group Of Companies)</span>
             </h1>
             
               <p className="animate-fade-up-delay-2 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0">
@@ -42,17 +42,17 @@ const HeroSection = () => {
             
             {/* <div className="animate-fade-up-delay-3 flex items-center gap-8 justify-center lg:justify-start pt-4">
               <div className="text-center">
-                <div className="font-heading text-2xl font-bold text-gradient">99.9%</div>
+                <div className="font-heading text-2xl font-bold text-emerald-500">99.9%</div>
                 <div className="text-sm text-muted-foreground">Uptime</div>
               </div>
               <div className="w-px h-12 bg-border" />
               <div className="text-center">
-                <div className="font-heading text-2xl font-bold text-gradient">50K+</div>
+                <div className="font-heading text-2xl font-bold text-emerald-500">50K+</div>
                 <div className="text-sm text-muted-foreground">Active Users</div>
               </div>
               <div className="w-px h-12 bg-border" />
               <div className="text-center">
-                <div className="font-heading text-2xl font-bold text-gradient">&lt;2s</div>
+                <div className="font-heading text-2xl font-bold text-emerald-500">&lt;2s</div>
                 <div className="text-sm text-muted-foreground">Check-in Time</div>
               </div>
             </div> */}

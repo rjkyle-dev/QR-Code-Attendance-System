@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { router } from '@inertiajs/react';
-import { Calendar, ClipboardCheck, Clock, Download, FileText, RefreshCw, Users } from 'lucide-react';
+import { Calendar, Clock, Download, FileText, RefreshCw, Users } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -71,7 +71,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ totalToday = 0, onRe
                     <div>
                         <CardTitle className="flex items-center gap-2 text-green-800">
                             <Clock className="h-5 w-5" />
-                            Quick Actions
+                            Quick ActionsFeatures
                         </CardTitle>
                         <CardDescription>Manage attendance operations efficiently</CardDescription>
                     </div>
@@ -149,16 +149,6 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ totalToday = 0, onRe
                     </Button> */}
 
                    
-
-                    {/* Daily Checking PP Crew */}
-                    <Button
-                        variant="outline"
-                        className="hover-lift h-auto flex-col gap-2 border-emerald-300 bg-white py-4 transition-all hover:border-emerald-500 hover:bg-emerald-50"
-                        onClick={() => router.visit('/attendance/daily-checking')}
-                    >
-                        <ClipboardCheck className="h-5 w-5 text-emerald-600" />
-                        <span className="text-xs font-medium text-gray-700">PP Crew Check</span>
-                    </Button>
                 </div>
 
                 {/* Status Indicator */}

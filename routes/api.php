@@ -10,7 +10,6 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\Api\EmployeeController as ApiEmployeeController;
 use App\Http\Controllers\Api\AttendanceController as ApiAttendanceController;
 use App\Http\Controllers\Api\AttendanceSessionController;
-use App\Http\Controllers\Api\DailyCheckingController;
 use App\Http\Controllers\Api\QrCodeController;
 use App\Http\Controllers\Api\QrAttendanceController;
 use App\Http\Controllers\GenderDevelopmentReportController;
@@ -109,16 +108,6 @@ Route::get('/attendance/all', [ApiAttendanceController::class, 'index']);
 Route::get('/attendance-sessions', [AttendanceSessionController::class, 'index'])->name('attendance-sessions.index');
 Route::post('/attendance-sessions', [AttendanceSessionController::class, 'store']);
 Route::put('/attendance-sessions/{attendanceSession}', [AttendanceSessionController::class, 'update']);
-
-// Daily Checking API
-Route::post('/daily-checking/store', [DailyCheckingController::class, 'store']);
-Route::get('/daily-checking/for-date', [DailyCheckingController::class, 'getForDate']);
-Route::get('/daily-checking/by-microteam', [DailyCheckingController::class, 'getByMicroteam']);
-Route::get('/daily-checking/locked-employees', [DailyCheckingController::class, 'getLockedEmployees']);
-Route::get('/daily-checking/settings', [DailyCheckingController::class, 'getSettings']);
-Route::post('/daily-checking/settings', [DailyCheckingController::class, 'saveSettings']);
-Route::get('/daily-checking/hr', [DailyCheckingController::class, 'getHR']);
-Route::get('/daily-checking/manager', [DailyCheckingController::class, 'getManager']);
 
 // QR Code API - Employee authentication required (via session)
 Route::middleware(['web', 'employee.auth'])->group(function () {

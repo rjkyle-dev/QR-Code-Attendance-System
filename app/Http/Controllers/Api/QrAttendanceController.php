@@ -50,13 +50,6 @@ class QrAttendanceController extends Controller
 
             // Validate token
             if (!$qrToken->isValid()) {
-                if ($qrToken->isExpired()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'QR code has expired. Please generate a new one.'
-                    ], 400);
-                }
-
                 if ($qrToken->isUsed()) {
                     return response()->json([
                         'success' => false,
@@ -100,7 +93,11 @@ class QrAttendanceController extends Controller
             }
 
             // Check attendance session validation
-            $now = Carbon::now();
+            // Use application timezone for consistent time comparison with session times
+            // Session times are stored as time-only values and should be interpreted in the app timezone
+            // Make sure APP_TIMEZONE in .env matches your local timezone (e.g., Asia/Manila for UTC+8)
+            $appTimezone = env('APP_TIMEZONE', config('app.timezone', 'UTC'));
+            $now = Carbon::now($appTimezone);
             $sessionValidation = $this->validateAttendanceSession($now);
 
             if (!$sessionValidation['allowed']) {
@@ -190,21 +187,45 @@ class QrAttendanceController extends Controller
         }
 
         $currentTime = $now->format('H:i:s');
+        $activeSessions = [];
 
         foreach ($sessions as $session) {
             // Check time-in window
             if ($session->time_in_start && $session->time_in_end) {
+                $startNormalized = $this->normalizeTimeString($session->time_in_start);
+                $endNormalized = $this->normalizeTimeString($session->time_in_end);
+                
                 if ($this->isTimeInRange($now, $session->time_in_start, $session->time_in_end)) {
+                    Log::debug('Session validation passed - time-in', [
+                        'session' => $session->session_name,
+                        'current_time' => $currentTime,
+                        'time_in_start' => $startNormalized,
+                        'time_in_end' => $endNormalized,
+                    ]);
                     return [
                         'allowed' => true,
                         'session' => $session->session_name,
                     ];
                 }
+                
+                $activeSessions[] = [
+                    'name' => $session->session_name,
+                    'time_in' => $startNormalized . ' - ' . $endNormalized,
+                ];
             }
 
             // Check time-out window
             if ($session->time_out_start && $session->time_out_end) {
+                $startNormalized = $this->normalizeTimeString($session->time_out_start);
+                $endNormalized = $this->normalizeTimeString($session->time_out_end);
+                
                 if ($this->isTimeInRange($now, $session->time_out_start, $session->time_out_end)) {
+                    Log::debug('Session validation passed - time-out', [
+                        'session' => $session->session_name,
+                        'current_time' => $currentTime,
+                        'time_out_start' => $startNormalized,
+                        'time_out_end' => $endNormalized,
+                    ]);
                     return [
                         'allowed' => true,
                         'session' => $session->session_name,
@@ -213,10 +234,42 @@ class QrAttendanceController extends Controller
             }
         }
 
+        // No active session found - log for debugging
+        $sessionDetails = [];
+        foreach ($sessions as $session) {
+            $sessionDetails[] = [
+                'name' => $session->session_name,
+                'time_in' => $session->time_in_start ? $this->normalizeTimeString($session->time_in_start) . ' - ' . $this->normalizeTimeString($session->time_in_end) : null,
+                'time_out' => $session->time_out_start ? $this->normalizeTimeString($session->time_out_start) . ' - ' . $this->normalizeTimeString($session->time_out_end) : null,
+            ];
+        }
+        
+        Log::warning('Attendance session validation failed', [
+            'current_time' => $currentTime,
+            'current_datetime' => $now->toDateTimeString(),
+            'timezone' => $now->timezone->getName(),
+            'sessions' => $sessionDetails,
+        ]);
+
+        // Build detailed error message
+        $sessionInfo = '';
+        if (!empty($sessionDetails)) {
+            $sessionInfo = ' Available sessions: ';
+            foreach ($sessionDetails as $detail) {
+                if ($detail['time_in']) {
+                    $sessionInfo .= $detail['name'] . ' (Time In: ' . $detail['time_in'] . ')';
+                }
+                if ($detail['time_out']) {
+                    $sessionInfo .= ($detail['time_in'] ? ', ' : '') . 'Time Out: ' . $detail['time_out'];
+                }
+                $sessionInfo .= '; ';
+            }
+        }
+
         // No active session found
         return [
             'allowed' => false,
-            'message' => 'Attendance not allowed outside session hours.',
+            'message' => 'Cannot make an attendance because out of sessions. Current time: ' . $currentTime . ' (' . $now->timezone->getName() . ').' . $sessionInfo,
             'current_session' => null,
         ];
     }
@@ -224,11 +277,15 @@ class QrAttendanceController extends Controller
     /**
      * Check if time is within range (handles overnight ranges)
      */
-    private function isTimeInRange(Carbon $time, string $startTime, string $endTime): bool
+    private function isTimeInRange(Carbon $time, $startTime, $endTime): bool
     {
+        // Normalize time strings to H:i:s format for comparison
         $timeOfDay = $time->format('H:i:s');
-        $start = Carbon::parse($startTime)->format('H:i:s');
-        $end = Carbon::parse($endTime)->format('H:i:s');
+        
+        // Normalize start and end times - handle both string and Carbon instances
+        // Database time columns return as strings in "H:i:s" format
+        $start = $this->normalizeTimeString($startTime);
+        $end = $this->normalizeTimeString($endTime);
 
         // Normal range (same day)
         if ($start <= $end) {
@@ -237,6 +294,65 @@ class QrAttendanceController extends Controller
 
         // Overnight range (crosses midnight)
         return $timeOfDay >= $start || $timeOfDay <= $end;
+    }
+
+    /**
+     * Normalize time string to H:i:s format
+     * Handles both string and Carbon instances
+     */
+    private function normalizeTimeString($time): string
+    {
+        // If it's a Carbon instance, format it directly
+        if ($time instanceof Carbon) {
+            return $time->format('H:i:s');
+        }
+        
+        // Convert to string and remove any whitespace
+        $time = trim((string) $time);
+        
+        // If empty, return default
+        if (empty($time)) {
+            return '00:00:00';
+        }
+        
+        // If already in H:i:s format, return as is
+        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $time)) {
+            return $time;
+        }
+        
+        // If in H:i format, add seconds
+        if (preg_match('/^\d{2}:\d{2}$/', $time)) {
+            return $time . ':00';
+        }
+        
+        // Try to parse with Carbon using createFromFormat
+        try {
+            // Try H:i:s format first
+            $parsed = Carbon::createFromFormat('H:i:s', $time);
+            return $parsed->format('H:i:s');
+        } catch (\Exception $e) {
+            // If parsing fails, try H:i format
+            try {
+                $parsed = Carbon::createFromFormat('H:i', $time);
+                return $parsed->format('H:i:s');
+            } catch (\Exception $e2) {
+                // If all parsing fails, try Carbon::parse as fallback
+                try {
+                    // Use today's date with the time for proper parsing
+                    $today = Carbon::today();
+                    $parsed = Carbon::parse($today->format('Y-m-d') . ' ' . $time);
+                    return $parsed->format('H:i:s');
+                } catch (\Exception $e3) {
+                    Log::warning('Failed to normalize time string', [
+                        'time' => $time,
+                        'type' => gettype($time),
+                        'error' => $e3->getMessage()
+                    ]);
+                    // Return original time if all parsing fails (shouldn't happen with valid DB data)
+                    return $time;
+                }
+            }
+        }
     }
 
     /**
@@ -399,7 +515,11 @@ class QrAttendanceController extends Controller
             RateLimiter::hit($rateLimitKey, 60);
 
             // Check attendance session validation
-            $now = Carbon::now();
+            // Use application timezone for consistent time comparison with session times
+            // Session times are stored as time-only values and should be interpreted in the app timezone
+            // Make sure APP_TIMEZONE in .env matches your local timezone (e.g., Asia/Manila for UTC+8)
+            $appTimezone = env('APP_TIMEZONE', config('app.timezone', 'UTC'));
+            $now = Carbon::now($appTimezone);
             $sessionValidation = $this->validateAttendanceSession($now);
 
             if (!$sessionValidation['allowed']) {

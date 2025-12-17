@@ -20,7 +20,7 @@ export default function AuthImgLayout({
             <Card className="overflow-hidden border-none p-0 shadow-2xl">
                 <CardContent className="grid p-0 md:grid-cols-2">
                     <div className="relative hidden bg-muted md:block">
-                        <img src="/banana.jpg" alt="Image" className="absolute inset-0 h-full w-full object-cover" />
+                        <img src="/login-side-image.png" alt="Image" className="absolute inset-0 h-full w-full object-cover" />
                     </div>
                     <div className="flex flex-col gap-6 bg-cfar-500 p-6 md:p-8">
                         <div className="text-center] flex flex-col items-center">

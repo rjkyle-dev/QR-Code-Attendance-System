@@ -135,10 +135,10 @@ const getMainNavItems = (): NavItem[] => [
         permission: 'View Report',
     },
     {
-        title: 'System Settings',
+        title: 'Configuration',
         href: '/system-settings',
         icon: Settings,
-        permission: 'View System Settings',
+        permission: 'View Configuration',
     },
 ];
 

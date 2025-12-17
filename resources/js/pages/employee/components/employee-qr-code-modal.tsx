@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import axios from 'axios';
-import { Clock, Download, Loader2, QrCode, RefreshCw } from 'lucide-react';
+import { Download, Loader2, QrCode, RefreshCw } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -44,7 +44,6 @@ interface EmployeeQrCodeModalProps {
 
 export default function EmployeeQrCodeModal({ isOpen, onClose, employee }: EmployeeQrCodeModalProps) {
     const [qrData, setQrData] = useState<QRCodeData | null>(null);
-    const [timeRemaining, setTimeRemaining] = useState<number>(0);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -55,24 +54,8 @@ export default function EmployeeQrCodeModal({ isOpen, onClose, employee }: Emplo
         } else {
             // Reset state when modal closes
             setQrData(null);
-            setTimeRemaining(0);
         }
     }, [isOpen, employee?.id]);
-
-    // Countdown timer
-    useEffect(() => {
-        if (!qrData) return;
-
-        const interval = setInterval(() => {
-            const now = new Date().getTime();
-            const expiresAt = new Date(qrData.expires_at).getTime();
-            const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
-
-            setTimeRemaining(remaining);
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [qrData]);
 
     const generateQrCode = async () => {
         if (!employee?.id) {
@@ -93,7 +76,6 @@ export default function EmployeeQrCodeModal({ isOpen, onClose, employee }: Emplo
 
             if (data.success) {
                 setQrData(data);
-                setTimeRemaining(data.expires_in);
                 toast.success('QR Code generated successfully');
             } else {
                 toast.error(data.message || 'Failed to generate QR code');
@@ -106,8 +88,37 @@ export default function EmployeeQrCodeModal({ isOpen, onClose, employee }: Emplo
         }
     };
 
-    const handleRefresh = () => {
-        generateQrCode();
+    const handleRefresh = async () => {
+        if (!employee?.id) {
+            toast.error('Employee information is required');
+            return;
+        }
+
+        try {
+            setIsRefreshing(true);
+            setIsGenerating(true);
+
+            // Generate new QR code - backend will delete old one
+            const response = await axios.post('/api/qr-code/generate-for-employee', {
+                employee_id: employee.id,
+                expires_in: 300, // Parameter ignored - kept for compatibility
+            });
+
+            const data = response.data;
+
+            if (data.success) {
+                setQrData(data);
+                toast.success('New QR Code generated. Old QR code has been deleted.');
+            } else {
+                toast.error(data.message || 'Failed to generate new QR code');
+            }
+        } catch (error: any) {
+            console.error('QR code refresh error:', error);
+            toast.error(error.response?.data?.message || 'Failed to generate new QR code. Please try again.');
+        } finally {
+            setIsRefreshing(false);
+            setIsGenerating(false);
+        }
     };
 
     const handleDownload = () => {
@@ -156,11 +167,6 @@ export default function EmployeeQrCodeModal({ isOpen, onClose, employee }: Emplo
         }
     };
 
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
 
     if (!employee) {
         return null;
@@ -211,12 +217,6 @@ export default function EmployeeQrCodeModal({ isOpen, onClose, employee }: Emplo
                                     includeMargin={true}
                                 />
                             </div>
-
-                            {/* Timer */}
-                            <div className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
-                                <Clock className="h-4 w-4 text-primary" />
-                                <span className="text-sm font-semibold text-primary">Expires in: {formatTime(timeRemaining)}</span>
-                            </div>
                         </div>
                     )}
 
@@ -234,9 +234,9 @@ export default function EmployeeQrCodeModal({ isOpen, onClose, employee }: Emplo
                             <p className="font-semibold">Instructions:</p>
                             <ul className="ml-2 list-inside list-disc space-y-1">
                                 <li>Employee can show this QR code at attendance stations</li>
-                                <li>QR code is valid for 5 minutes</li>
+                                <li>QR code does not expire</li>
                                 <li>Each QR code can only be used once</li>
-                                <li>Employee can generate new QR codes from their portal</li>
+                                <li>Click "Refresh" to generate a new QR code (old one will be deleted)</li>
                             </ul>
                         </div>
                     </div>

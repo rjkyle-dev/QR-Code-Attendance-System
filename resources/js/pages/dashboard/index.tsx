@@ -20,6 +20,7 @@ import { Head, router } from '@inertiajs/react';
 import { LayoutGrid } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { SectionCards } from './components/section-cards';
+import { WelcomeBanner } from './components/welcome-banner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -223,6 +224,7 @@ export default function Index({
                 supervisorEmployees={supervisorEmployees}
                 notifications={notificationList}
                 unreadNotificationCount={unreadCount}
+                auth={auth}
             />
         </SidebarProvider>
     );
@@ -249,6 +251,7 @@ function SidebarHoverLogic(
         }>;
         notifications: any[];
         unreadNotificationCount: number;
+        auth?: any;
     },
 ) {
     // Debug logging
@@ -334,6 +337,16 @@ function SidebarHoverLogic(
                 ) : (
                     <>
                         <Main>
+                            {/* Welcome Banner */}
+                            {props.auth?.user && (
+                                <div className="mb-6">
+                                    <WelcomeBanner
+                                        user={props.auth.user}
+                                        userRole={props.userRole}
+                                        supervisedDepartments={props.supervisedDepartments}
+                                    />
+                                </div>
+                            )}
                             <div className="mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4">
                                 <div>
                                     <div className="ms-2 flex items-center">

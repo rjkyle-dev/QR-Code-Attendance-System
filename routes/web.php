@@ -85,7 +85,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // IMPORTANT: Define specific routes BEFORE resource routes to avoid route conflicts
         // The resource route creates 'attendance/{attendance}' which would match 'attendance/manage' if defined first
         Route::get('attendance/manage', [AttendanceController::class, 'index'])->name('attendance.index');
-        Route::get('attendance/daily-checking', [AttendanceController::class, 'dailyChecking'])->name('attendance.daily-checking');
         Route::get('attendance/qr-scanner', function () {
             return Inertia::render('attendance/qr-scanner');
         })->name('attendance.qr-scanner');

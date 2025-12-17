@@ -5,9 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Employee } from '@/hooks/employees';
 import { usePermission } from '@/hooks/user-permission';
 import { useForm } from '@inertiajs/react';
-import { Briefcase, Building, Calendar, Edit, Fingerprint, Key, Mail, MapPin, Phone, Trash2, User } from 'lucide-react';
+import { Briefcase, Building, Calendar, Download, Edit, Key, Mail, MapPin, Phone, QrCode, Trash2, User } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useState } from 'react';
-import FingerprintCapture from './fingerprintcapture';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 interface EmployeeDetailsModalProps {
     employee: Employee | null; // Accepts the new backend response shape
@@ -18,27 +20,25 @@ interface EmployeeDetailsModalProps {
     onRegisterFingerprint?: (employee: Employee) => void;
 }
 
+interface QRCodeData {
+    token: string;
+    expires_at: string;
+    expires_in: number;
+    qr_data: {
+        employee_id: number;
+        employeeid: string;
+        token: string;
+        expires_at: string;
+        signature: string;
+    };
+}
+
 const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRegisterFingerprint }: EmployeeDetailsModalProps) => {
     const [date, setDate] = useState<Date | undefined>(undefined);
     const [birth, setBirth] = useState<Date | undefined>(undefined);
-    const [fingerprintData, setFingerprintData] = useState<any | null>(null);
-    const [fingerprintSaved, setFingerprintSaved] = useState(false);
-    const [savingFingerprint, setSavingFingerprint] = useState(false);
     const { can } = usePermission();
-    // Add WebSocket logic to listen for fingerprint_data and display it
-    const [wsFingerprintData, setWsFingerprintData] = useState<any | null>(null);
-    useEffect(() => {
-        const ws = new WebSocket('ws://localhost:8080');
-        ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'fingerprint_data') {
-                    setWsFingerprintData(data);
-                }
-            } catch {}
-        };
-        return () => ws.close();
-    }, []);
+    const [qrData, setQrData] = useState<QRCodeData | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -131,8 +131,15 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
             if (employee.date_of_birth) {
                 setBirth(new Date(employee.date_of_birth));
             }
+
+            // Generate QR code when employee is loaded
+            if (employee.id && isOpen) {
+                generateQrCode();
+            }
+        } else {
+            setQrData(null);
         }
-    }, [employee]);
+    }, [employee, isOpen]);
 
     const handleDelete = () => {
         if (employee) {
@@ -140,29 +147,77 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
         }
     };
 
-    // Function to check fingerprint status
-    const getFingerprintStatus = () => {
-        if (!employee) return { hasFingerprint: false, count: 0, status: 'No Employee' };
-
-        if (employee.fingerprints && employee.fingerprints.length > 0) {
-            return {
-                hasFingerprint: true,
-                count: employee.fingerprints.length,
-                status: 'Fingerprint Registered',
-            };
+    const generateQrCode = async () => {
+        if (!employee?.id) {
+            return;
         }
 
-        return {
-            hasFingerprint: false,
-            count: 0,
-            status: 'No Fingerprint Registered',
-        };
+        try {
+            setIsGenerating(true);
+            const response = await axios.post('/api/qr-code/generate-for-employee', {
+                employee_id: employee.id,
+                expires_in: 300, // 5 minutes
+            });
+
+            const data = response.data;
+
+            if (data.success) {
+                setQrData(data);
+            } else {
+                toast.error(data.message || 'Failed to generate QR code');
+            }
+        } catch (error: any) {
+            console.error('QR code generation error:', error);
+            toast.error(error.response?.data?.message || 'Failed to generate QR code. Please try again.');
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
-    const fingerprintStatus = getFingerprintStatus();
+    const handleDownload = () => {
+        if (!qrData || !employee) return;
 
-    const handleFingerprintCapture = (fingerprintData: any) => {
-        setFingerprintData(fingerprintData);
+        try {
+            // Find the QR code SVG element
+            const svgElement = document.querySelector(`#qr-code-svg-${employee.id}`) as SVGSVGElement;
+            if (!svgElement) {
+                toast.error('QR code not found');
+                return;
+            }
+
+            // Convert SVG to image
+            const svgData = new XMLSerializer().serializeToString(svgElement);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const downloadUrl = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        link.download = `qr-code-${employee.employeeid || employee.id}-${Date.now()}.png`;
+                        link.click();
+                        URL.revokeObjectURL(downloadUrl);
+                        URL.revokeObjectURL(url);
+                        toast.success('QR Code downloaded successfully');
+                    }
+                });
+            };
+            img.src = url;
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download QR code');
+        }
     };
 
     return (
@@ -471,60 +526,74 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                             </Card>
                         )}
 
-                        {/* Fingerprints Section - Updated with registration functionality */}
+                        {/* QR Code Section */}
                         <Card className="border-2 border-green-200 shadow-sm">
                             <CardHeader>
                                 <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg font-semibold text-green-800">Fingerprints</CardTitle>
-                                    {/* Fingerprint Status Badge - Updated with proper colors */}
-                                    <Badge
-                                        className={`px-3 py-1 text-sm font-medium ${
-                                            fingerprintStatus.hasFingerprint
-                                                ? 'border border-green-300 bg-green-100 text-green-800'
-                                                : 'border border-red-300 bg-red-100 text-red-800'
-                                        }`}
-                                    >
-                                        <Fingerprint
-                                            className={`mr-2 h-4 w-4 ${fingerprintStatus.hasFingerprint ? 'text-green-600' : 'text-red-600'}`}
-                                        />
-                                        {fingerprintStatus.status}
+                                    <CardTitle className="text-lg font-semibold text-green-800">QR Code</CardTitle>
+                                    <Badge className="border border-green-300 bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
+                                        <QrCode className="mr-2 h-4 w-4 text-green-600" />
+                                        Attendance QR Code
                                     </Badge>
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                {/* Fingerprint Capture Component - Added from editemployeemodal.tsx */}
                                 <div className="space-y-4">
-                                    <div className="md:col-span-2">
-                                        <h4 className="text-md mb-3 flex items-center gap-2 font-semibold text-green-800">
-                                            <Fingerprint className="text-main h-4 w-4" />
-                                            Fingerprint Capture
-                                        </h4>
-                                        <FingerprintCapture
-                                            onFingerprintCaptured={handleFingerprintCapture}
-                                            employeeId={data.employeeid}
-                                            employeeDatabaseId={employee?.id}
-                                            workStatus={data.work_status}
-                                            employeeFingerprints={employee?.fingerprints || []}
-                                        />
-
-                                        {/* WebSocket Fingerprint Preview - Added from editemployeemodal.tsx */}
-                                        {wsFingerprintData && (
-                                            <div className="mt-4 text-center">
-                                                <div className="mb-2 font-medium text-green-800">Fingerprint Preview:</div>
-                                                <img
-                                                    src={`data:image/png;base64,${wsFingerprintData.fingerprint_image}`}
-                                                    alt="Fingerprint Preview"
-                                                    className="mx-auto h-32 w-32 border object-contain"
+                                    {qrData ? (
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="rounded-lg border-4 border-green-300 bg-white p-4 shadow-lg">
+                                                <QRCodeSVG
+                                                    id={`qr-code-svg-${employee?.id}`}
+                                                    value={JSON.stringify(qrData.qr_data)}
+                                                    size={256}
+                                                    level="H"
+                                                    includeMargin={true}
                                                 />
-                                                <div className="text-xs text-green-600">
-                                                    Captured at:{' '}
-                                                    {wsFingerprintData.fingerprint_captured_at
-                                                        ? new Date(wsFingerprintData.fingerprint_captured_at).toLocaleString()
-                                                        : ''}
-                                                </div>
                                             </div>
-                                        )}
-                                    </div>
+                                            <div className="flex gap-3">
+                                                <Button
+                                                    onClick={handleDownload}
+                                                    className="bg-green-600 px-6 py-2 text-white hover:bg-green-700"
+                                                >
+                                                    <Download className="mr-2 h-4 w-4" />
+                                                    Download QR Code
+                                                </Button>
+                                                <Button
+                                                    onClick={generateQrCode}
+                                                    disabled={isGenerating}
+                                                    variant="outline"
+                                                    className="px-6 py-2"
+                                                >
+                                                    {isGenerating ? 'Generating...' : 'Refresh QR Code'}
+                                                </Button>
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm text-gray-600">
+                                                    This QR code is valid for 5 minutes and can be used for attendance scanning.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-4 py-8">
+                                            {isGenerating ? (
+                                                <>
+                                                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-green-200 border-t-green-600"></div>
+                                                    <p className="text-sm text-gray-600">Generating QR code...</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <QrCode className="h-12 w-12 text-gray-400" />
+                                                    <p className="text-sm text-gray-600">No QR code available</p>
+                                                    <Button
+                                                        onClick={generateQrCode}
+                                                        className="bg-green-600 px-6 py-2 text-white hover:bg-green-700"
+                                                    >
+                                                        Generate QR Code
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
