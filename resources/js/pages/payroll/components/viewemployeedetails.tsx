@@ -94,7 +94,6 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
 
     // Flow helpers based on Work Status
     const hasWorkStatus = !!data.work_status;
-    const isAddCrew = data.work_status === 'Add Crew';
 
     useEffect(() => {
         if (employee) {

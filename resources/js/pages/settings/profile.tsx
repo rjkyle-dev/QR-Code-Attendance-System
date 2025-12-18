@@ -122,7 +122,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                     </div>
                                     <button
                                         type="button"
-                                        className="absolute -right-2 -bottom-2 flex h-8 w-8 items-center justify-center rounded-full border bg-white text-primary shadow hover:bg-gray-50"
+                                        className="absolute -right-2 -bottom-2 flex h-8 w-8 items-center justify-center rounded-full border bg-white text-primary shadow hover:bg-gray-50 dark:bg-card dark:border-gray-700 dark:hover:bg-gray-800"
                                         onClick={() => fileInputRef.current?.click()}
                                         aria-label="Change profile image"
                                     >
@@ -224,7 +224,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                 </p>
 
                                 {status === 'verification-link-sent' && (
-                                    <div className="mt-2 text-sm font-medium text-green-600">
+                                    <div className="mt-2 text-sm font-medium text-green-600 dark:text-green-400">
                                         A new verification link has been sent to your email address.
                                     </div>
                                 )}

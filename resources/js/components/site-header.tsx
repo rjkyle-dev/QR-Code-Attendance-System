@@ -6,7 +6,7 @@ import { ProfileDropdown } from './customize/profile-dropdown';
 // Add BreadcrumbItem type import if not present
 import { type BreadcrumbItem } from '@/types';
 import { useEffect, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { SidebarTrigger } from './ui/sidebar';
 
 interface Props {

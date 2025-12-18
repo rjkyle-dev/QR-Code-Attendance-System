@@ -3,7 +3,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Toaster } from '@/components/ui/sonner';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/employee-layout/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -125,8 +124,6 @@ export default function AbsenceRequestForm() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Absence Request Form" />
-            <Toaster position="top-right" richColors />
-
             <div className="w-full space-y-6">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xl font-semibold">

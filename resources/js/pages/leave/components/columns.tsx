@@ -56,7 +56,7 @@ const columns = (
                                 className="animate-scale-in border-main dark:border-darksMain h-12 w-12 rounded-full border-2 object-cover"
                             />
                         ) : (
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                                 <img
                                     src="\AGOC.png"
                                     className="animate-scale-in border-main dark:border-darksMain h-12 w-12 rounded-full border-2 object-cover"
@@ -65,7 +65,7 @@ const columns = (
                         )}
                     </div>
                     <div>
-                        <div className="text-sm font-medium text-gray-900">{name}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</div>
                     </div>
                 </div>
             );
@@ -80,8 +80,8 @@ const columns = (
 
             return (
                 <div>
-                    <div className="text-sm font-medium text-gray-900">{department || 'No Department'}</div>
-                    <div className="text-xs text-gray-500">{position || 'No Position'}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{department || 'No Department'}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{position || 'No Position'}</div>
                 </div>
             );
         },
@@ -102,10 +102,10 @@ const columns = (
             const total = row.original.total_credits || 12;
 
             const getCreditStatus = () => {
-                if (remaining === 0) return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' };
-                if (remaining <= 3) return { color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' };
-                if (remaining <= 6) return { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' };
-                return { color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' };
+                if (remaining === 0) return { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800' };
+                if (remaining <= 3) return { color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-yellow-200 dark:border-yellow-800' };
+                if (remaining <= 6) return { color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800' };
+                return { color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800' };
             };
 
             const status = getCreditStatus();
@@ -132,7 +132,7 @@ const columns = (
             const leave = row.original.leave_type;
 
             return (
-                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600">
+                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600 dark:bg-green-900/30 dark:text-green-400">
                     {leave}
                 </Badge>
             );
@@ -152,7 +152,7 @@ const columns = (
             const leave_days = row.original.leave_days;
 
             return (
-                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600">
+                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600 dark:bg-green-900/30 dark:text-green-400">
                     {leave_days}
                 </Badge>
             );
@@ -175,13 +175,13 @@ const columns = (
             let statusLeaveColors = '';
             let StatusIcon = null;
             if (leave_status === 'Pending') {
-                statusLeaveColors = 'bg-yellow-100 text-yellow-800 font-semibold text-lg p-3';
+                statusLeaveColors = 'bg-yellow-100 text-yellow-800 font-semibold text-lg p-3 dark:bg-yellow-900/30 dark:text-yellow-200';
                 StatusIcon = Clock;
             } else if (leave_status === 'Approved') {
-                statusLeaveColors = 'bg-green-100 text-green-800';
+                statusLeaveColors = 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200';
                 StatusIcon = CheckCircle;
             } else {
-                statusLeaveColors = 'bg-red-100 text-red-800';
+                statusLeaveColors = 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200';
                 StatusIcon = XCircle;
             }
             return (
@@ -210,7 +210,7 @@ const columns = (
             const leave = row.original.leave_date_reported;
 
             return (
-                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600">
+                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600 dark:bg-green-900/30 dark:text-green-400">
                     {leave}
                 </Badge>
             );

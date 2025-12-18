@@ -8,7 +8,7 @@ import { Head, router } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
 import { Users } from 'lucide-react';
 import { useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { DataTable } from './components/data-table';
 import { SectionCards } from './components/section-cards';
 import { serviceTenureColumns } from './components/service-tenure-columns';

@@ -6,13 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Briefcase, Edit, Plus, Trash2 } from 'lucide-react';
+import { Clock, Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
@@ -27,132 +26,117 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/system-settings',
     },
     {
-        title: 'Position Settings',
-        href: '/system-settings/position',
+        title: 'Work Status Settings',
+        href: '/system-settings/work-status',
     },
 ];
 
-interface Position {
+interface WorkStatus {
     id: number;
     name: string;
-    department: string;
     description: string | null;
     created_at: string;
     updated_at: string;
 }
 
-interface Department {
-    id: number;
-    name: string;
-}
-
 interface Props {
-    positions?: Position[];
-    departments?: Department[];
+    workStatuses?: WorkStatus[];
 }
 
-export default function PositionSettings({ positions: initialPositions = [], departments: initialDepartments = [] }: Props) {
-    const positions = initialPositions || [];
-    const departments = initialDepartments || [];
+export default function WorkStatusSettings({ workStatuses: initialWorkStatuses = [] }: Props) {
+    const workStatuses = initialWorkStatuses || [];
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+    const [selectedWorkStatus, setSelectedWorkStatus] = useState<WorkStatus | null>(null);
 
     const addForm = useForm({
         name: '',
-        department: '',
         description: '',
     });
 
     const editForm = useForm({
         name: '',
-        department: '',
         description: '',
     });
 
     const handleAddSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        addForm.post(route('system-settings.position.store'), {
+        addForm.post(route('system-settings.work-status.store'), {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Position created successfully!');
+                toast.success('Work status created successfully!');
                 setIsAddDialogOpen(false);
                 addForm.reset();
-                router.reload({ only: ['positions', 'departments'] });
+                router.reload({ only: ['workStatuses'] });
             },
             onError: (errors) => {
                 if (errors.name) {
                     toast.error(errors.name);
-                } else if (errors.department) {
-                    toast.error(errors.department);
                 } else {
-                    toast.error('Failed to create position. Please check your input.');
+                    toast.error('Failed to create work status. Please check your input.');
                 }
             },
         });
     };
 
-    const handleEditClick = (position: Position) => {
-        setSelectedPosition(position);
+    const handleEditClick = (workStatus: WorkStatus) => {
+        setSelectedWorkStatus(workStatus);
         editForm.setData({
-            name: position.name,
-            department: position.department,
-            description: position.description || '',
+            name: workStatus.name,
+            description: workStatus.description || '',
         });
         setIsEditDialogOpen(true);
     };
 
     const handleEditSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedPosition) return;
+        if (!selectedWorkStatus) return;
 
-        editForm.put(route('system-settings.position.update', selectedPosition.id), {
+        editForm.put(route('system-settings.work-status.update', selectedWorkStatus.id), {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Position updated successfully!');
+                toast.success('Work status updated successfully!');
                 setIsEditDialogOpen(false);
-                setSelectedPosition(null);
+                setSelectedWorkStatus(null);
                 editForm.reset();
-                router.reload({ only: ['positions', 'departments'] });
+                router.reload({ only: ['workStatuses'] });
             },
             onError: (errors) => {
                 if (errors.name) {
                     toast.error(errors.name);
-                } else if (errors.department) {
-                    toast.error(errors.department);
                 } else {
-                    toast.error('Failed to update position. Please check your input.');
+                    toast.error('Failed to update work status. Please check your input.');
                 }
             },
         });
     };
 
-    const handleDeleteClick = (position: Position) => {
-        setSelectedPosition(position);
+    const handleDeleteClick = (workStatus: WorkStatus) => {
+        setSelectedWorkStatus(workStatus);
         setIsDeleteDialogOpen(true);
     };
 
     const handleDeleteConfirm = () => {
-        if (!selectedPosition) return;
+        if (!selectedWorkStatus) return;
 
-        router.delete(route('system-settings.position.destroy', selectedPosition.id), {
+        router.delete(route('system-settings.work-status.destroy', selectedWorkStatus.id), {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Position deleted successfully!');
+                toast.success('Work status deleted successfully!');
                 setIsDeleteDialogOpen(false);
-                setSelectedPosition(null);
-                router.reload({ only: ['positions', 'departments'] });
+                setSelectedWorkStatus(null);
+                router.reload({ only: ['workStatuses'] });
             },
             onError: () => {
-                toast.error('Failed to delete position. It may be in use.');
+                toast.error('Failed to delete work status. It may be in use.');
             },
         });
     };
 
     return (
         <SidebarProvider>
-            <Head title="Position Settings" />
+            <Head title="Work Status Settings" />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />
@@ -162,30 +146,30 @@ export default function PositionSettings({ positions: initialPositions = [], dep
                                 <BackButton href="/system-settings" />
                                 <div>
                                     <div className="ms-2 flex items-center">
-                                        <Briefcase className="size-11" />
+                                        <Clock className="size-11" />
                                         <div className="ms-2">
-                                            <h2 className="flex text-2xl font-bold tracking-tight">Position Settings</h2>
-                                            <p className="text-muted-foreground">Manage position configurations</p>
+                                            <h2 className="flex text-2xl font-bold tracking-tight">Work Status Settings</h2>
+                                            <p className="text-muted-foreground">Manage work status configurations</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <Button onClick={() => setIsAddDialogOpen(true)} className="flex items-center gap-2">
                                 <Plus className="h-4 w-4" />
-                                Add Position
+                                Add Work Status
                             </Button>
                         </div>
                         <div className="m-3 no-scrollbar">
                             <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                 <CardHeader>
-                                    <CardTitle>Position Configuration</CardTitle>
-                                    <CardDescription>Add, edit, or delete positions</CardDescription>
+                                    <CardTitle>Work Status Configuration</CardTitle>
+                                    <CardDescription>Add, edit, or delete work statuses</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    {!positions || positions.length === 0 ? (
+                                    {!workStatuses || workStatuses.length === 0 ? (
                                         <div className="py-8 text-center text-muted-foreground">
-                                            <Briefcase className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                                            <p>No positions found. Click "Add Position" to create one.</p>
+                                            <Clock className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                                            <p>No work statuses found. Click "Add Work Status" to create one.</p>
                                         </div>
                                     ) : (
                                         <div className="overflow-x-auto">
@@ -194,26 +178,24 @@ export default function PositionSettings({ positions: initialPositions = [], dep
                                                     <TableRow>
                                                         <TableHead>ID</TableHead>
                                                         <TableHead>Name</TableHead>
-                                                        <TableHead>Department</TableHead>
                                                         <TableHead>Description</TableHead>
                                                         <TableHead className="text-right">Actions</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
-                                                    {positions.map((position) => (
-                                                        <TableRow key={position.id}>
-                                                            <TableCell className="font-medium">{position.id}</TableCell>
-                                                            <TableCell className="font-medium">{position.name}</TableCell>
-                                                            <TableCell>{position.department}</TableCell>
+                                                    {workStatuses.map((workStatus) => (
+                                                        <TableRow key={workStatus.id}>
+                                                            <TableCell className="font-medium">{workStatus.id}</TableCell>
+                                                            <TableCell className="font-medium">{workStatus.name}</TableCell>
                                                             <TableCell className="text-muted-foreground">
-                                                                {position.description || '-'}
+                                                                {workStatus.description || '-'}
                                                             </TableCell>
                                                             <TableCell className="text-right">
                                                                 <div className="flex justify-end gap-2">
                                                                     <Button
                                                                         variant="outline"
                                                                         size="sm"
-                                                                        onClick={() => handleEditClick(position)}
+                                                                        onClick={() => handleEditClick(workStatus)}
                                                                         className="flex items-center gap-1"
                                                                     >
                                                                         <Edit className="h-4 w-4" />
@@ -222,7 +204,7 @@ export default function PositionSettings({ positions: initialPositions = [], dep
                                                                     <Button
                                                                         variant="destructive"
                                                                         size="sm"
-                                                                        onClick={() => handleDeleteClick(position)}
+                                                                        onClick={() => handleDeleteClick(workStatus)}
                                                                         className="flex items-center gap-1"
                                                                     >
                                                                         <Trash2 className="h-4 w-4" />
@@ -243,45 +225,24 @@ export default function PositionSettings({ positions: initialPositions = [], dep
                 </SidebarInset>
             </SidebarHoverLogic>
 
-            {/* Add Position Dialog */}
+            {/* Add Work Status Dialog */}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Add New Position</DialogTitle>
-                        <DialogDescription>Create a new position for your organization.</DialogDescription>
+                        <DialogTitle>Add New Work Status</DialogTitle>
+                        <DialogDescription>Create a new work status for your organization.</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleAddSubmit}>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="add-department">
-                                    Department <span className="text-red-600">*</span>
-                                </Label>
-                                <Select
-                                    value={addForm.data.department}
-                                    onValueChange={(value) => addForm.setData('department', value)}
-                                >
-                                    <SelectTrigger className={addForm.errors.department ? 'border-red-500' : ''}>
-                                        <SelectValue placeholder="Select Department" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {departments.map((dept) => (
-                                            <SelectItem key={dept.id} value={dept.name}>
-                                                {dept.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={addForm.errors.department} />
-                            </div>
-                            <div className="space-y-2">
                                 <Label htmlFor="add-name">
-                                    Position Name <span className="text-red-600">*</span>
+                                    Work Status Name <span className="text-red-600">*</span>
                                 </Label>
                                 <Input
                                     id="add-name"
                                     value={addForm.data.name}
                                     onChange={(e) => addForm.setData('name', e.target.value)}
-                                    placeholder="e.g., Finance Supervisor"
+                                    placeholder="e.g., Regular, Add Crew, Probationary"
                                     className={addForm.errors.name ? 'border-red-500' : ''}
                                 />
                                 <InputError message={addForm.errors.name} />
@@ -292,7 +253,7 @@ export default function PositionSettings({ positions: initialPositions = [], dep
                                     id="add-description"
                                     value={addForm.data.description}
                                     onChange={(e) => addForm.setData('description', e.target.value)}
-                                    placeholder="Optional description for this position"
+                                    placeholder="Optional description for this work status"
                                     rows={3}
                                 />
                                 <InputError message={addForm.errors.description} />
@@ -303,52 +264,31 @@ export default function PositionSettings({ positions: initialPositions = [], dep
                                 Cancel
                             </Button>
                             <Button type="submit" disabled={addForm.processing}>
-                                {addForm.processing ? 'Creating...' : 'Create Position'}
+                                {addForm.processing ? 'Creating...' : 'Create Work Status'}
                             </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
-            {/* Edit Position Dialog */}
+            {/* Edit Work Status Dialog */}
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Edit Position</DialogTitle>
-                        <DialogDescription>Update position information.</DialogDescription>
+                        <DialogTitle>Edit Work Status</DialogTitle>
+                        <DialogDescription>Update work status information.</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleEditSubmit}>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="edit-department">
-                                    Department <span className="text-red-600">*</span>
-                                </Label>
-                                <Select
-                                    value={editForm.data.department}
-                                    onValueChange={(value) => editForm.setData('department', value)}
-                                >
-                                    <SelectTrigger className={editForm.errors.department ? 'border-red-500' : ''}>
-                                        <SelectValue placeholder="Select Department" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {departments.map((dept) => (
-                                            <SelectItem key={dept.id} value={dept.name}>
-                                                {dept.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={editForm.errors.department} />
-                            </div>
-                            <div className="space-y-2">
                                 <Label htmlFor="edit-name">
-                                    Position Name <span className="text-red-600">*</span>
+                                    Work Status Name <span className="text-red-600">*</span>
                                 </Label>
                                 <Input
                                     id="edit-name"
                                     value={editForm.data.name}
                                     onChange={(e) => editForm.setData('name', e.target.value)}
-                                    placeholder="e.g., Finance Supervisor"
+                                    placeholder="e.g., Regular, Add Crew, Probationary"
                                     className={editForm.errors.name ? 'border-red-500' : ''}
                                 />
                                 <InputError message={editForm.errors.name} />
@@ -359,7 +299,7 @@ export default function PositionSettings({ positions: initialPositions = [], dep
                                     id="edit-description"
                                     value={editForm.data.description}
                                     onChange={(e) => editForm.setData('description', e.target.value)}
-                                    placeholder="Optional description for this position"
+                                    placeholder="Optional description for this work status"
                                     rows={3}
                                 />
                                 <InputError message={editForm.errors.description} />
@@ -370,7 +310,7 @@ export default function PositionSettings({ positions: initialPositions = [], dep
                                 Cancel
                             </Button>
                             <Button type="submit" disabled={editForm.processing}>
-                                {editForm.processing ? 'Updating...' : 'Update Position'}
+                                {editForm.processing ? 'Updating...' : 'Update Work Status'}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -381,9 +321,9 @@ export default function PositionSettings({ positions: initialPositions = [], dep
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Position</DialogTitle>
+                        <DialogTitle>Delete Work Status</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete "{selectedPosition?.name}"? This action cannot be undone.
+                            Are you sure you want to delete "{selectedWorkStatus?.name}"? This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -411,3 +351,4 @@ function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
         </>
     );
 }
+

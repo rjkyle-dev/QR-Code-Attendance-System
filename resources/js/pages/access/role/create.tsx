@@ -15,7 +15,6 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, Search, ShieldCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Toaster } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -107,7 +106,6 @@ export default function CreateRole() {
     return (
         <SidebarProvider>
             <Head title="Create Role" />
-            <Toaster position="top-right" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />

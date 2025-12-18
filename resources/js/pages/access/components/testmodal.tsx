@@ -33,7 +33,7 @@ type Employees = {
 
 const TestModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
     const departmentses = ['Human Resources', 'Finance', 'IT', 'Operations', 'Production'];
-    const work_statuses = ['Regular', 'Add Crew'];
+    const work_statuses = ['Regular'];
     const positiones = [
         'Harvester',
         'Accounting',
@@ -407,7 +407,7 @@ const TestModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
                     </div>
                     <div className="space-y-4">
                         <div
-                            className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
+                            className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100 dark:border-green-700 dark:bg-green-900/20 dark:hover:bg-green-900/30"
                             onClick={handleProfileImageUpload}
                         >
                             {preview ? (
@@ -416,21 +416,21 @@ const TestModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
                                     <img
                                         src={preview}
                                         alt="Preview"
-                                        className="mx-auto mb-3 h-24 w-24 rounded-full border-2 border-green-300 object-cover"
+                                        className="mx-auto mb-3 h-24 w-24 rounded-full border-2 border-green-300 object-cover dark:border-green-700"
                                         onError={(e) => {
                                             e.currentTarget.src = `${'User'}&background=22c55e&color=fff`;
                                         }}
                                     />
-                                    <p className="font-medium text-green-800">Profile Image Selected</p>
-                                    <p className="text-sm text-green-600">Click to change</p>
+                                    <p className="font-medium text-green-800 dark:text-green-200">Profile Image Selected</p>
+                                    <p className="text-sm text-green-600 dark:text-green-400">Click to change</p>
                                 </div>
                             ) : (
                                 <div className="text-center">
-                                    <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                                        <User className="h-8 w-8 text-gray-400" />
+                                    <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                                        <User className="h-8 w-8 text-gray-400 dark:text-gray-500" />
                                     </div>
-                                    <p className="font-medium text-gray-600">No Profile Image</p>
-                                    <p className="text-sm text-gray-500">Click to select image</p>
+                                    <p className="font-medium text-gray-600 dark:text-gray-300">No Profile Image</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Click to select image</p>
                                 </div>
                             )}
                         </div>

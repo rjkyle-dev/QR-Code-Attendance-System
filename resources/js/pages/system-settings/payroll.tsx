@@ -11,7 +11,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { BanknoteIcon, RefreshCw, Save } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { SiteHeader } from '@/components/site-header';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -317,7 +317,6 @@ export default function PayrollSettings({ settings = {} }: Props) {
     return (
         <SidebarProvider>
             <Head title="Payroll Settings" />
-            <Toaster position="top-right" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />

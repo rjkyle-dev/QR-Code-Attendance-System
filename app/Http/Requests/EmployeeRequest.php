@@ -23,28 +23,26 @@ class EmployeeRequest extends FormRequest
     public function rules()
     {
         $employeeId = $this->route('id');
-        $workStatus = $this->input('work_status');
-        $isAddCrew = $workStatus === 'Add Crew';
 
         return [
-            'email' => $isAddCrew ? 'nullable|email' : ['required', 'email', Rule::unique('employees')->ignore($employeeId)],
-            'employeeid' => $isAddCrew ? 'nullable|string|max:255' : ['required', 'string', 'max:255', Rule::unique('employees')->ignore($employeeId)],
+            'email' => ['required', 'email', Rule::unique('employees')->ignore($employeeId)],
+            'employeeid' => ['required', 'string', 'max:255', Rule::unique('employees')->ignore($employeeId)],
             'firstname' => 'required|string|max:255',
             'middlename' => 'nullable|string|max:255',
             'lastname' => 'required|string|max:255',
             'phone' => 'nullable|string',
             'gender' => 'required|string|max:255',
-            'marital_status' => $isAddCrew ? 'nullable|string|max:255' : 'required|string|max:255',
+            'marital_status' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:255',
             'state' => 'nullable|string|max:255',
             'country' => 'nullable|string|max:255',
             'zip_code' => 'nullable|string|max:255',
             'work_status' => 'required|string|max:255',
-            'service_tenure' => $isAddCrew ? 'nullable|date' : 'required|date',
+            'service_tenure' => 'required|date',
             'date_of_birth' => 'required|date',
-            'department' => $isAddCrew ? 'nullable|string|max:255' : 'required|string|max:255',
-            'position' => $isAddCrew ? 'nullable|string|max:255' : 'required|string|max:255',
+            'department' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
             'picture' => 'nullable|image|max:2048',
             'gmail_password' => 'nullable|string|max:255',
             'nbi_clearance' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,bmp,tiff,txt,rtf|max:10240', // 10MB max
@@ -64,17 +62,14 @@ class EmployeeRequest extends FormRequest
 
     public function messages(): array
     {
-        $workStatus = $this->input('work_status');
-        $isAddCrew = $workStatus === 'Add Crew';
-
         return [
             // Email validation messages
-            'email.required' => $isAddCrew ? 'Email is optional for Add Crew employees.' : 'Please enter the employee email address.',
+            'email.required' => 'Please enter the employee email address.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email address is already registered to another employee.',
             
             // Employee ID validation messages
-            'employeeid.required' => $isAddCrew ? 'Employee ID is optional for Add Crew employees.' : 'Please enter the employee ID.',
+            'employeeid.required' => 'Please enter the employee ID.',
             'employeeid.string' => 'The employee ID must be a text value.',
             'employeeid.max' => 'The employee ID may not be greater than 255 characters.',
             'employeeid.unique' => 'This employee ID is already taken by another employee.',
@@ -100,7 +95,7 @@ class EmployeeRequest extends FormRequest
             'gender.max' => 'The gender may not be greater than 255 characters.',
             
             // Marital status validation messages
-            'marital_status.required' => $isAddCrew ? 'Marital status is optional for Add Crew employees.' : 'Please select the employee\'s marital status.',
+            'marital_status.required' => 'Please select the employee\'s marital status.',
             'marital_status.string' => 'The marital status must be a text value.',
             'marital_status.max' => 'The marital status may not be greater than 255 characters.',
             
@@ -126,18 +121,18 @@ class EmployeeRequest extends FormRequest
             'work_status.max' => 'The work status may not be greater than 255 characters.',
             
             // Date validation messages
-            'service_tenure.required' => $isAddCrew ? 'Service tenure is optional for Add Crew employees.' : 'Please select the length of service date.',
+            'service_tenure.required' => 'Please select the length of service date.',
             'service_tenure.date' => 'Please enter a valid service tenure date.',
             
             'date_of_birth.required' => 'Please select the employee\'s date of birth.',
             'date_of_birth.date' => 'Please enter a valid date of birth.',
             
             // Department and position validation messages
-            'department.required' => $isAddCrew ? 'Department is optional for Add Crew employees.' : 'Please select the employee\'s department.',
+            'department.required' => 'Please select the employee\'s department.',
             'department.string' => 'The department must be a text value.',
             'department.max' => 'The department may not be greater than 255 characters.',
             
-            'position.required' => $isAddCrew ? 'Position is optional for Add Crew employees.' : 'Please select the employee\'s position.',
+            'position.required' => 'Please select the employee\'s position.',
             'position.string' => 'The position must be a text value.',
             'position.max' => 'The position may not be greater than 255 characters.',
             

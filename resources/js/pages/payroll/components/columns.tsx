@@ -40,8 +40,8 @@ const columns = (
                             )}
                         </div>
                         <div>
-                            <div className="text-sm font-medium text-gray-900">{name}</div>
-                            <div className="text-xs text-gray-500">{empid}</div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{empid}</div>
                         </div>
                     </div>
                 );
@@ -56,8 +56,8 @@ const columns = (
 
                 return (
                     <div>
-                        <div className="text-sm font-medium text-gray-900">{department}</div>
-                        <div className="text-xs text-gray-500">{position}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{department}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{position}</div>
                     </div>
                 );
             },
@@ -75,12 +75,10 @@ const columns = (
 
                 const workStatusColor =
                     work_status === 'Regular'
-                        ? 'bg-green-100 text-green-800'
-                        : work_status === 'Add Crew'
-                          ? 'bg-blue-100 text-blue-800'
-                          : work_status === 'Probationary'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800';
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
+                        : work_status === 'Probationary'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
 
                 return <span className={`rounded px-2 py-1 text-xs font-medium ${workStatusColor}`}>{work_status}</span>;
             },
@@ -95,7 +93,7 @@ const columns = (
             header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title="Service Tenure" />,
             cell: ({ row }: { row: any }) => {
                 const serviceTenure = row.original.service_tenure;
-                if (!serviceTenure) return <span className="text-sm text-gray-500">N/A</span>;
+                if (!serviceTenure) return <span className="text-sm text-gray-500 dark:text-gray-400">N/A</span>;
 
                 const startDate = new Date(serviceTenure);
                 const today = new Date();
@@ -104,10 +102,10 @@ const columns = (
 
                 return (
                     <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {startDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                             {years > 0 ? `${years} year${years > 1 ? 's' : ''}` : ''} {months > 0 ? `${months} month${months > 1 ? 's' : ''}` : ''}
                         </div>
                     </div>

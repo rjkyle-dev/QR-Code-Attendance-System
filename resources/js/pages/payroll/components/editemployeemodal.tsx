@@ -106,55 +106,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
         }
     }, [employee]);
 
-    // Generate unique Add Crew employee ID (AC + 6 digits)
-    const generateAddCrewEmployeeId = async (): Promise<string> => {
-        const maxAttempts = 100;
-        let attempts = 0;
-
-        try {
-            // Fetch existing employees to check for uniqueness
-            const response = await fetch('/api/employee/all');
-            const employees = await response.json();
-            const existingIds = new Set(employees.map((emp: any) => emp.employeeid).filter(Boolean));
-
-            do {
-                // Generate a random 6-digit number
-                const randomDigits = Math.floor(Math.random() * 900000) + 100000; // 100000 to 999999
-                const employeeId = `AC${randomDigits.toString().padStart(6, '0')}`;
-
-                if (!existingIds.has(employeeId)) {
-                    return employeeId;
-                }
-                attempts++;
-            } while (attempts < maxAttempts);
-
-            // Fallback: use timestamp-based ID if too many collisions
-            const timestampDigits = Date.now().toString().slice(-6).padStart(6, '0');
-            const fallbackId = `AC${timestampDigits}`;
-            if (!existingIds.has(fallbackId)) {
-                return fallbackId;
-            }
-
-            // Last resort: timestamp + random digit
-            const lastResortDigits = (Date.now().toString().slice(-5) + Math.floor(Math.random() * 10)).padStart(6, '0');
-            return `AC${lastResortDigits}`;
-        } catch (error) {
-            console.error('Error generating employee ID:', error);
-            // Fallback to simple random generation if API fails
-            const randomDigits = Math.floor(Math.random() * 900000) + 100000;
-            return `AC${randomDigits.toString().padStart(6, '0')}`;
-        }
-    };
-
-    // Auto-generate employee ID when Add Crew is selected and no ID exists
-    useEffect(() => {
-        if (data.work_status === 'Add Crew' && !data.employeeid) {
-            generateAddCrewEmployeeId().then((employeeId) => {
-                setData('employeeid', employeeId);
-            });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data.work_status]);
 
     // Update available positions when department changes
     useEffect(() => {
@@ -168,7 +119,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
 
     // Flow helpers based on Work Status
     const hasWorkStatus = !!data.work_status;
-    const isAddCrew = data.work_status === 'Add Crew';
 
     const handleProfileImageUpload = () => {
         const input = document.createElement('input');

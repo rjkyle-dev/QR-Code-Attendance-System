@@ -174,9 +174,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // System Settings
     Route::middleware(['permission:View Settings'])->group(function () {
-        Route::get('system-settings', function () {
-            return Inertia::render('system-settings/index');
-        })->name('system-settings.index');
+        Route::get('system-settings', [\App\Http\Controllers\SystemSettingsController::class, 'index'])->name('system-settings.index');
         Route::get('system-settings/payroll', [\App\Http\Controllers\PayrollSettingsController::class, 'index'])->name('system-settings.payroll');
         Route::post('system-settings/payroll/update', [\App\Http\Controllers\PayrollSettingsController::class, 'update'])->name('system-settings.payroll.update');
         Route::post('system-settings/payroll/reset-all', [\App\Http\Controllers\PayrollSettingsController::class, 'resetAll'])->name('system-settings.payroll.reset-all');
@@ -188,6 +186,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('system-settings/position', [\App\Http\Controllers\PositionController::class, 'store'])->name('system-settings.position.store');
         Route::put('system-settings/position/{id}', [\App\Http\Controllers\PositionController::class, 'update'])->name('system-settings.position.update');
         Route::delete('system-settings/position/{id}', [\App\Http\Controllers\PositionController::class, 'destroy'])->name('system-settings.position.destroy');
+        Route::get('system-settings/marital-status', [\App\Http\Controllers\MaritalStatusController::class, 'index'])->name('system-settings.marital-status');
+        Route::post('system-settings/marital-status', [\App\Http\Controllers\MaritalStatusController::class, 'store'])->name('system-settings.marital-status.store');
+        Route::put('system-settings/marital-status/{id}', [\App\Http\Controllers\MaritalStatusController::class, 'update'])->name('system-settings.marital-status.update');
+        Route::delete('system-settings/marital-status/{id}', [\App\Http\Controllers\MaritalStatusController::class, 'destroy'])->name('system-settings.marital-status.destroy');
+        Route::get('system-settings/work-status', [\App\Http\Controllers\WorkStatusController::class, 'index'])->name('system-settings.work-status');
+        Route::post('system-settings/work-status', [\App\Http\Controllers\WorkStatusController::class, 'store'])->name('system-settings.work-status.store');
+        Route::put('system-settings/work-status/{id}', [\App\Http\Controllers\WorkStatusController::class, 'update'])->name('system-settings.work-status.update');
+        Route::delete('system-settings/work-status/{id}', [\App\Http\Controllers\WorkStatusController::class, 'destroy'])->name('system-settings.work-status.destroy');
     });
 });
 

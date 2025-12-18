@@ -72,7 +72,7 @@ const columns = (
                                 className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
                             />
                         ) : (
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                                 <img
                                     src="AGOC.png"
                                     className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
@@ -81,8 +81,8 @@ const columns = (
                         )}
                     </div>
                     <div>
-                        <div className="text-sm font-medium text-gray-900">{name}</div>
-                        <div className="text-xs text-gray-500">{empid}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{empid}</div>
                     </div>
                 </div>
             );
@@ -98,8 +98,8 @@ const columns = (
 
             return (
                 <div>
-                    <div className="text-sm font-medium text-gray-900">{department}</div>
-                    <div className="text-xs text-gray-500">{position}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{department}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{position}</div>
                 </div>
             );
         },
@@ -119,10 +119,8 @@ const columns = (
 
             const workStatusColor =
                 work_status === 'Regular'
-                    ? 'bg-green-100 text-green-800'
-                    : work_status === 'Add Crew'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800';
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
+                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
 
             return <span className={`rounded px-2 py-1 text-xs font-medium ${workStatusColor}`}>{work_status}</span>;
         },

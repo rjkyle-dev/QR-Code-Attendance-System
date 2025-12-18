@@ -69,7 +69,6 @@ class PayrollController extends Controller
 
     $workStatusCounts = [
       'Regular' => $employees->where('work_status', 'Regular')->count(),
-      'Add Crew' => $employees->where('work_status', 'Add Crew')->count(),
       'Probationary' => $employees->where('work_status', 'Probationary')->count(),
     ];
 

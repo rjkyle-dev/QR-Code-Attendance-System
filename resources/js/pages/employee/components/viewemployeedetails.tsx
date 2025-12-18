@@ -86,7 +86,6 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
 
     // Flow helpers based on Work Status
     const hasWorkStatus = !!data.work_status;
-    const isAddCrew = data.work_status === 'Add Crew';
 
     useEffect(() => {
         if (employee) {
@@ -223,15 +222,15 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onClose}>
-                <DialogContent className="max-h-[90vh] w-full overflow-y-auto border-2 border-green-200 bg-white shadow-2xl sm:max-w-[900px]">
-                    <DialogHeader className="flex items-center border-b border-green-200 pb-4">
-                        <User className="mr-3 h-6 w-6 text-green-600" />
-                        <DialogTitle className="text-2xl font-bold text-green-800">Employee Details</DialogTitle>
+                <DialogContent className="max-h-[90vh] w-full overflow-y-auto border-2 border-green-200 bg-white shadow-2xl dark:border-green-800 dark:bg-card sm:max-w-[900px]">
+                    <DialogHeader className="flex items-center border-b border-green-200 pb-4 dark:border-green-800">
+                        <User className="mr-3 h-6 w-6 text-green-600 dark:text-green-400" />
+                        <DialogTitle className="text-2xl font-bold text-green-800 dark:text-green-200">Employee Details</DialogTitle>
                     </DialogHeader>
 
                     <div className="space-y-6 p-6">
                         {/* Employee Details Section - Top Card */}
-                        <Card className="border-2 border-green-200 shadow-sm">
+                        <Card className="border-2 border-green-200 shadow-sm dark:border-green-800">
                             <CardContent className="p-6">
                                 <div className="flex flex-col space-y-6 lg:flex-row lg:space-y-0 lg:space-x-8">
                                     {/* Profile Picture */}
@@ -241,10 +240,10 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                                                 <img
                                                     src={data.picture}
                                                     alt="Profile"
-                                                    className="h-32 w-32 rounded-full border-4 border-green-300 object-cover shadow-lg"
+                                                    className="h-32 w-32 rounded-full border-4 border-green-300 object-cover shadow-lg dark:border-green-700"
                                                 />
                                             ) : (
-                                                <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-green-300 bg-green-50">
+                                                <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/20">
                                                     <img
                                                         src="AGOC.png"
                                                         className="animate-scale-in dark:border-darksMain h-32 w-32 rounded-full border-2 border-cfar-400 object-cover"
@@ -253,14 +252,12 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                                             )}
                                         </div>
                                         <div className="mt-3 text-center">
-                                            <h2 className="text-xl font-bold break-words text-green-800" title={data.employee_name}>
+                                            <h2 className="text-xl font-bold break-words text-green-800 dark:text-green-200" title={data.employee_name}>
                                                 {data.employee_name}
                                             </h2>
-                                            {!isAddCrew && (
-                                                <Badge className="mt-1 bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
-                                                    ID: {data.employeeid}
-                                                </Badge>
-                                            )}
+                                            <Badge className="mt-1 bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-200">
+                                                ID: {data.employeeid}
+                                            </Badge>
                                         </div>
                                     </div>
 
@@ -268,74 +265,68 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                                     <div className="min-w-0 flex-1">
                                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                             <div className="flex min-w-0 items-center space-x-3">
-                                                <User className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Gender:</span>
-                                                <span className="min-w-0 truncate text-sm text-gray-800" title={data.gender}>
+                                                <User className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400">Gender:</span>
+                                                <span className="min-w-0 truncate text-sm text-gray-800 dark:text-gray-200" title={data.gender}>
                                                     {data.gender}
                                                 </span>
                                             </div>
 
-                                            {!isAddCrew && (
-                                                <div className="flex min-w-0 items-center space-x-3">
-                                                    <Building className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Department:</span>
-                                                    <span className="min-w-0 truncate text-sm text-gray-800" title={data.department}>
-                                                        {data.department}
-                                                    </span>
-                                                </div>
-                                            )}
+                                            <div className="flex min-w-0 items-center space-x-3">
+                                                <Building className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400">Department:</span>
+                                                <span className="min-w-0 truncate text-sm text-gray-800 dark:text-gray-200" title={data.department}>
+                                                    {data.department}
+                                                </span>
+                                            </div>
 
                                             <div className="flex min-w-0 items-center space-x-3">
-                                                <Calendar className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Birth Date:</span>
+                                                <Calendar className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400">Birth Date:</span>
                                                 <span
-                                                    className="min-w-0 truncate text-sm text-gray-800"
+                                                    className="min-w-0 truncate text-sm text-gray-800 dark:text-gray-200"
                                                     title={data.date_of_birth ? formatDate(data.date_of_birth) : 'N/A'}
                                                 >
                                                     {data.date_of_birth ? formatDate(data.date_of_birth) : 'N/A'}
                                                 </span>
                                             </div>
 
-                                            {!isAddCrew && (
-                                                <div className="flex min-w-0 items-center space-x-3">
-                                                    <Briefcase className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Position:</span>
-                                                    <span className="min-w-0 truncate text-sm text-gray-800" title={data.position}>
-                                                        {data.position}
-                                                    </span>
-                                                </div>
-                                            )}
+                                            <div className="flex min-w-0 items-center space-x-3">
+                                                <Briefcase className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400">Position:</span>
+                                                <span className="min-w-0 truncate text-sm text-gray-800 dark:text-gray-200" title={data.position}>
+                                                    {data.position}
+                                                </span>
+                                            </div>
 
-                                            {!isAddCrew && (
-                                                <div className="flex min-w-0 items-center space-x-3">
-                                                    <User className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Marital Status:</span>
-                                                    <span className="min-w-0 truncate text-sm text-gray-800" title={data.marital_status}>
-                                                        {data.marital_status}
-                                                    </span>
-                                                </div>
-                                            )}
+                                            <div className="flex min-w-0 items-center space-x-3">
+                                                <User className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400">Marital Status:</span>
+                                                <span className="min-w-0 truncate text-sm text-gray-800 dark:text-gray-200" title={data.marital_status}>
+                                                    {data.marital_status}
+                                                </span>
+                                            </div>
 
                                             <div className="flex min-w-0 items-center space-x-3 sm:col-span-2">
-                                                <Mail className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Email:</span>
-                                                <span className="min-w-0 truncate text-sm text-gray-800" title={data.email}>
+                                                <Mail className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400">Email:</span>
+                                                <span className="min-w-0 truncate text-sm text-gray-800 dark:text-gray-200" title={data.email}>
                                                     {data.email}
                                                 </span>
                                             </div>
 
                                             <div className="flex min-w-0 items-center space-x-3 sm:col-span-2">
-                                                <Phone className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Phone:</span>
-                                                <span className="min-w-0 truncate text-sm text-gray-800" title={data.phone}>
+                                                <Phone className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400">Phone:</span>
+                                                <span className="min-w-0 truncate text-sm text-gray-800 dark:text-gray-200" title={data.phone}>
                                                     {data.phone}
                                                 </span>
                                             </div>
 
                                             <div className="flex min-w-0 items-center space-x-3 sm:col-span-2">
-                                                <Key className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">PIN:</span>
-                                                <span className="min-w-0 truncate font-mono text-sm text-gray-800" title={data.pin || 'Not set'}>
+                                                <Key className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400">PIN:</span>
+                                                <span className="min-w-0 truncate font-mono text-sm text-gray-800 dark:text-gray-200" title={data.pin || 'Not set'}>
                                                     {data.pin || 'Not set'}
                                                 </span>
                                             </div>
@@ -346,18 +337,17 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                         </Card>
 
                         {/* Employment Information Section - Middle Card */}
-                        {!isAddCrew && (
-                            <Card className="border-2 border-green-200 shadow-sm">
+                        <Card className="border-2 border-green-200 shadow-sm dark:border-green-800">
                                 <CardHeader>
-                                    <CardTitle className="text-lg font-semibold text-green-800">Employment Information</CardTitle>
+                                    <CardTitle className="text-lg font-semibold text-green-800 dark:text-green-200">Employment Information</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <div className="flex min-w-0 items-center space-x-3">
-                                            <Calendar className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                            <span className="flex-shrink-0 text-sm font-medium text-gray-600">Hired Date:</span>
+                                            <Calendar className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                                            <span className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400">Hired Date:</span>
                                             <span
-                                                className="min-w-0 truncate text-sm text-gray-800"
+                                                className="min-w-0 truncate text-sm text-gray-800 dark:text-gray-200"
                                                 title={data.service_tenure ? formatDate(data.service_tenure) : 'N/A'}
                                             >
                                                 {data.service_tenure ? formatDate(data.service_tenure) : 'N/A'}
@@ -365,19 +355,18 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                                         </div>
 
                                         <div className="flex min-w-0 flex-col items-start space-y-2">
-                                            <span className="text-sm font-medium text-gray-600">Employee Rating:</span>
+                                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Employee Rating:</span>
                                             {employee && employee.latest_rating ? (
-                                                <span className="min-w-0 truncate text-sm text-gray-800" title={employee.latest_rating}>
+                                                <span className="min-w-0 truncate text-sm text-gray-800 dark:text-gray-200" title={employee.latest_rating}>
                                                     {employee.latest_rating}
                                                 </span>
                                             ) : (
-                                                <span className="text-sm text-gray-500">No rating</span>
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">No rating</span>
                                             )}
                                         </div>
                                     </div>
                                 </CardContent>
                             </Card>
-                        )}
 
                         {/* Contact Information Section */}
                         <Card className="border-2 border-green-200 shadow-sm">
@@ -429,8 +418,8 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                             </CardContent>
                         </Card>
 
-                        {/* Government Accounts Section - Only for non-Add Crew */}
-                        {!isAddCrew && (data.philhealth_user_id || data.sss_user_id || data.hdmf_user_id || data.tin_user_id) && (
+                        {/* Government Accounts Section */}
+                        {(data.philhealth_user_id || data.sss_user_id || data.hdmf_user_id || data.tin_user_id) && (
                             <Card className="border-2 border-green-200 shadow-sm">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold text-green-800">Government Accounts</CardTitle>

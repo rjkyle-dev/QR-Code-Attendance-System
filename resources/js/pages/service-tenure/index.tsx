@@ -8,7 +8,6 @@ import { Head } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
 import { Users } from 'lucide-react';
 import { useState } from 'react';
-import { Toaster } from 'sonner';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import { SectionCards } from './components/section-cards';
@@ -31,7 +30,6 @@ export default function Index() {
     return (
         <SidebarProvider>
             <Head title="Service Tenure" />
-            <Toaster position="top-right" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     {/* <HeaderShrink/> */}

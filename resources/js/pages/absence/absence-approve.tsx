@@ -15,7 +15,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ArrowLeft, Calendar, Check, Clock, UserRound, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -693,7 +693,6 @@ export default function AbsenceApprove({ initialRequests = [], user_permissions 
     return (
         <SidebarProvider>
             <Head title="Absence Approvals" />
-            <Toaster position="top-center" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />

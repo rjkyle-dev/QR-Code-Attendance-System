@@ -83,7 +83,10 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
                     </Button>
                     
                     {can('Add Employee') && (
-                    <Button variant="main" className="" onClick={() => setIsModelOpen(true)}>
+                    <Button variant="main" className="" onClick={() => {
+                        console.log('[DataTable] Opening Add Employee Modal');
+                        setIsModelOpen(true);
+                    }}>
                         <Plus className="mr-2 h-4 w-4" />
                             Add Employee
                         </Button>

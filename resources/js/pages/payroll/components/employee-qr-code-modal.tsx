@@ -176,29 +176,28 @@ export default function EmployeeQrCodeModal({ isOpen, onClose, employee }: Emplo
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-h-[90vh] min-w-lg overflow-y-auto border-2 border-cfar-500 shadow-2xl">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-green-800">
+                    <DialogTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
                         <QrCode className="h-5 w-5" />
                         Employee QR Code
                     </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                     {/* Employee Info */}
-                    <div className="rounded-lg bg-green-50 p-4">
-                        <div className="font-semibold text-green-800">
+                    <div className="rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+                        <div className="font-semibold text-green-800 dark:text-green-200">
                             {employee.employeeid ? (
                                 <>
                                     Employee ID: {employee.employeeid}
-                                    {employee.work_status === 'Add Crew' && ' (Auto-generated)'}
                                 </>
                             ) : (
                                 <>Employee: #{employee.id}</>
                             )}
                         </div>
-                        <div className="mt-1 text-sm text-green-700">
+                        <div className="mt-1 text-sm text-green-700 dark:text-green-300">
                             {employee.firstname} {employee.lastname}
                         </div>
                         {employee.department && (
-                            <div className="mt-1 text-xs text-green-600">
+                            <div className="mt-1 text-xs text-green-600 dark:text-green-400">
                                 {employee.department}
                                 {employee.position && ` • ${employee.position}`}
                             </div>
@@ -229,8 +228,8 @@ export default function EmployeeQrCodeModal({ isOpen, onClose, employee }: Emplo
                     )}
 
                     {/* Instructions */}
-                    <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
-                        <div className="space-y-2 text-sm text-blue-900">
+                    <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+                        <div className="space-y-2 text-sm text-blue-900 dark:text-blue-200">
                             <p className="font-semibold">Instructions:</p>
                             <ul className="ml-2 list-inside list-disc space-y-1">
                                 <li>Employee can show this QR code at attendance stations</li>

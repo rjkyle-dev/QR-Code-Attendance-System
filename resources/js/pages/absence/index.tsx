@@ -12,7 +12,7 @@ import { Head, router } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
 import { Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import { columns, type Absence } from './components/columns';
 import { DataTable } from './components/data-table';
 import { SectionCards } from './components/section-cards';
@@ -160,7 +160,6 @@ export default function Index({ absences = [], employees = [], monthlyAbsenceSta
     return (
         <SidebarProvider>
             <Head title="Absence" />
-            <Toaster position="top-center" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />

@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 interface FingerprintCaptureProps {
     onFingerprintCaptured: (data: any) => void;
     employeeId?: string; // Employee ID (for Regular/Probationary)
-    employeeDatabaseId?: number | string; // Database ID (for Add Crew)
+    employeeDatabaseId?: number | string;
     workStatus?: string; // Work status to determine if EmployeeID is required
     onStartCapture?: () => void; // Optional callback when capture starts
     employeeFingerprints?: any[]; // Add this prop to check existing fingerprints
@@ -74,12 +74,12 @@ const FingerprintCapture: React.FC<FingerprintCaptureProps> = ({
     }, [onFingerprintCaptured]);
 
     // Check if capture is allowed
-    // All employees (including Add Crew) now have an employeeid
+        // All employees now have an employeeid
     const hasEmployeeId = employeeId && employeeId.trim() !== '';
     const isCaptureAllowed = hasEmployeeId;
 
     const handleCapture = () => {
-        // All employees require employeeId (Add Crew now has auto-generated ID)
+        // All employees require employeeId
         if (!isCaptureAllowed) {
             alert('Please save employee info first before capturing fingerprint.');
             return;
@@ -89,7 +89,7 @@ const FingerprintCapture: React.FC<FingerprintCaptureProps> = ({
             onStartCapture();
         }
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            // Send employeeid for all employees (Add Crew now has auto-generated ID)
+            // Send employeeid for all employees
             const message: any = {
                 type: 'start_registration',
                 employeeid: employeeId,

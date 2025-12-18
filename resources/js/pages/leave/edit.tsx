@@ -6,7 +6,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import LeaveEditPage from './components/leaveeditpage';
 
 import { Leave } from './types/leave';

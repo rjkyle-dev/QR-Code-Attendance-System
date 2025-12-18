@@ -10,7 +10,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { ArrowLeft, Calendar, Edit, FileText, Filter, Mail, Users, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import EditResumeModal from './components/edit-resume-modal';
 import PDFViewerModal from './components/pdf-viewer-modal';
 
@@ -215,7 +215,6 @@ export default function Index({ approvedLeaves = [], approvedAbsences = [], empl
     return (
         <SidebarProvider>
             <Head title="Resume to Work" />
-            <Toaster position="top-center" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />

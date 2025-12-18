@@ -2,11 +2,13 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { Main } from '@/components/customize/main';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { BanknoteIcon, Building2, Briefcase, Settings } from 'lucide-react';
-import { Toaster } from 'sonner';
+import { BanknoteIcon, Building2, Briefcase, Settings, Heart, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { SiteHeader } from '@/components/site-header';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -31,6 +33,12 @@ export default function Index() {
             case 'position':
                 router.visit('/system-settings/position');
                 break;
+            case 'marital-status':
+                router.visit('/system-settings/marital-status');
+                break;
+            case 'work-status':
+                router.visit('/system-settings/work-status');
+                break;
             default:
                 break;
         }
@@ -39,7 +47,6 @@ export default function Index() {
     return (
         <SidebarProvider>
             <Head title="System Settings" />
-            <Toaster position="top-right" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />
@@ -55,12 +62,12 @@ export default function Index() {
                                 </div>
                             </div>
                         </div>
-                        <div className="m-3 no-scrollbar">
+                        <div className="m-3 no-scrollbar space-y-4">
                             {/* Bento Grid Layout */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {/* Payroll Card */}
-                                <Card className="group relative overflow-hidden border-main bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-backgrounds dark:to-backgrounds transition-all duration-300 hover:shadow-xl hover:scale-105">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                <Card className="group relative overflow-hidden border-main bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-card dark:to-card dark:bg-card transition-all duration-300 hover:shadow-xl hover:scale-105">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 dark:from-blue-500/10 dark:to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                     <CardHeader className="relative">
                                         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
                                             <BanknoteIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -81,8 +88,8 @@ export default function Index() {
                                 </Card>
 
                                 {/* Department Card */}
-                                <Card className="group relative overflow-hidden border-main bg-gradient-to-br from-emerald-50 to-green-50 dark:from-backgrounds dark:to-backgrounds transition-all duration-300 hover:shadow-xl hover:scale-105">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                <Card className="group relative overflow-hidden border-main bg-gradient-to-br from-emerald-50 to-green-50 dark:from-card dark:to-card dark:bg-card transition-all duration-300 hover:shadow-xl hover:scale-105">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5 dark:from-emerald-500/10 dark:to-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                     <CardHeader className="relative">
                                         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
                                             <Building2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
@@ -103,8 +110,8 @@ export default function Index() {
                                 </Card>
 
                                 {/* Position Card */}
-                                <Card className="group relative overflow-hidden border-main bg-gradient-to-br from-purple-50 to-pink-50 dark:from-backgrounds dark:to-backgrounds transition-all duration-300 hover:shadow-xl hover:scale-105">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                <Card className="group relative overflow-hidden border-main bg-gradient-to-br from-purple-50 to-pink-50 dark:from-card dark:to-card dark:bg-card transition-all duration-300 hover:shadow-xl hover:scale-105">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 dark:from-purple-500/10 dark:to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                     <CardHeader className="relative">
                                         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
                                             <Briefcase className="h-6 w-6 text-purple-600 dark:text-purple-400" />
@@ -118,6 +125,50 @@ export default function Index() {
                                         <Button
                                             onClick={() => handleProceed('position')}
                                             className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800"
+                                        >
+                                            Proceed
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Marital Status Card */}
+                                <Card className="group relative overflow-hidden border-main bg-gradient-to-br from-orange-50 to-amber-50 dark:from-card dark:to-card dark:bg-card transition-all duration-300 hover:shadow-xl hover:scale-105">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-amber-500/5 dark:from-orange-500/10 dark:to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    <CardHeader className="relative">
+                                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                                            <Heart className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                                        </div>
+                                        <CardTitle className="text-xl font-bold">Marital Status</CardTitle>
+                                        <CardDescription className="mt-2">
+                                            Manage marital status options and configurations
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="relative">
+                                        <Button
+                                            onClick={() => handleProceed('marital-status')}
+                                            className="w-full bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-800"
+                                        >
+                                            Proceed
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Work Status Card */}
+                                <Card className="group relative overflow-hidden border-main bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-card dark:to-card dark:bg-card transition-all duration-300 hover:shadow-xl hover:scale-105">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-cyan-500/5 dark:from-teal-500/10 dark:to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    <CardHeader className="relative">
+                                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100 dark:bg-teal-900/30">
+                                            <Clock className="h-6 w-6 text-teal-600 dark:text-teal-400" />
+                                        </div>
+                                        <CardTitle className="text-xl font-bold">Work Status</CardTitle>
+                                        <CardDescription className="mt-2">
+                                            Configure work status options and employee status settings
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="relative">
+                                        <Button
+                                            onClick={() => handleProceed('work-status')}
+                                            className="w-full bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-800"
                                         >
                                             Proceed
                                         </Button>

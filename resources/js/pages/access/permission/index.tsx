@@ -10,7 +10,6 @@ import { SinglePermission } from '@/types/role_permission';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import { Toaster } from 'sonner';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import PermissionModal from './components/permission-modal';
@@ -56,7 +55,6 @@ export default function Index() {
     return (
         <SidebarProvider>
             <Head title="Permission Management" />
-            <Toaster position="top-right" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />

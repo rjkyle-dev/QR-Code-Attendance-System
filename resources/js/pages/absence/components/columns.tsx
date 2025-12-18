@@ -126,8 +126,8 @@ const columns = (
 
             return (
                 <div>
-                    <div className="text-sm font-medium text-gray-900">{department}</div>
-                    <div className="text-xs text-gray-500">{position}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{department}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{position}</div>
                 </div>
             );
         },
@@ -144,15 +144,15 @@ const columns = (
             const absenceType: string = row.getValue('absence_type');
 
             const typeColors = {
-                'Annual Leave': 'bg-purple-100 text-purple-800',
-                'Personal Leave': 'bg-blue-100 text-blue-800',
-                'Sick Leave': 'bg-yellow-100 text-yellow-800',
-                'Emergency Leave': 'bg-red-100 text-red-800',
-                'Maternity/Paternity': 'bg-pink-100 text-pink-800',
-                Other: 'bg-gray-100 text-gray-800',
+                'Annual Leave': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200',
+                'Personal Leave': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200',
+                'Sick Leave': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200',
+                'Emergency Leave': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200',
+                'Maternity/Paternity': 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-200',
+                Other: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
             };
 
-            const colorClass = typeColors[absenceType as keyof typeof typeColors] || 'bg-gray-100 text-gray-800';
+            const colorClass = typeColors[absenceType as keyof typeof typeColors] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
 
             return <Badge className={colorClass}>{absenceType}</Badge>;
         },

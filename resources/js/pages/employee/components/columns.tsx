@@ -69,7 +69,7 @@ const columns = (
                                     className="animate-scale-in dark:border-darksMain h-12 w-12 rounded-full border-2 border-cfar-400 object-cover"
                                 />
                             ) : (
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                                     <img
                                         src="AGOC.png"
                                         className="animate-scale-in dark:border-darksMain h-12 w-12 rounded-full border-2 border-cfar-400 object-cover"
@@ -78,9 +78,9 @@ const columns = (
                             )}
                         </div>
                         <div>
-                            <div className="text-sm font-medium text-gray-900">{name}</div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</div>
                             <div className="flex flex-1 space-x-1">
-                                <div className="text-xs text-gray-500">{empid}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">{empid}</div>
                                 <QrCode className={`size-4 ${row.original.id ? 'text-cfar-400' : 'text-red-500'}`} />
                             </div>
                         </div>
@@ -98,8 +98,8 @@ const columns = (
 
                 return (
                     <div>
-                        <div className="text-sm font-medium text-gray-900">{department}</div>
-                        <div className="text-xs text-gray-500">{position}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{department}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{position}</div>
                     </div>
                 );
             },
@@ -141,7 +141,7 @@ const columns = (
 
                 return (
                     <div>
-                        <div className="text-sm font-medium text-gray-900">{gender}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{gender}</div>
                     </div>
                 );
             },
@@ -163,10 +163,10 @@ const columns = (
 
                 return (
                     <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {date_of_birth ? new Date(date_of_birth).toLocaleDateString() : 'Not set'}
                         </div>
-                        <div className="text-xs text-gray-500">{calculatedAge > 0 ? `${calculatedAge} years old` : 'Age unknown'}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{calculatedAge > 0 ? `${calculatedAge} years old` : 'Age unknown'}</div>
                     </div>
                 );
             },
@@ -215,12 +215,10 @@ const columns = (
 
                 const workStatusColor =
                     work_status === 'Regular'
-                        ? 'bg-green-100 text-green-800'
-                        : work_status === 'Add Crew'
-                          ? 'bg-blue-100 text-blue-800'
-                          : work_status === 'Probationary'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800';
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
+                        : work_status === 'Probationary'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
 
                 return <span className={`rounded px-2 py-1 text-xs font-medium ${workStatusColor}`}>{work_status}</span>;
             },
@@ -242,8 +240,8 @@ const columns = (
 
                           return (
                               <div className="flex items-center space-x-2">
-                                  <Key className="h-4 w-4 text-gray-500" />
-                                  <span className="rounded bg-gray-100 px-2 py-1 font-mono text-sm">{pin ? pin : 'Not set'}</span>
+                                  <Key className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                  <span className="rounded bg-gray-100 px-2 py-1 font-mono text-sm dark:bg-gray-800 dark:text-gray-200">{pin ? pin : 'Not set'}</span>
                               </div>
                           );
                       },

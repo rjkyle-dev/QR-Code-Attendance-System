@@ -12,7 +12,6 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
 import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import { Toaster } from 'sonner';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import ViewRoleModal from './components/view-role-modal';
@@ -59,7 +58,6 @@ export default function Index() {
     return (
         <SidebarProvider>
             <Head title="Role Management" />
-            <Toaster position="top-right" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />

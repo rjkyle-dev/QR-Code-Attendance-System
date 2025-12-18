@@ -78,7 +78,6 @@ class PayrollSeeder extends Seeder
                 // Create salary setting based on work status
                 $rateType = match($employee->work_status) {
                     'Regular' => 'monthly',
-                    'Add Crew' => 'daily',
                     'Probationary' => 'daily',
                     default => 'daily',
                 };

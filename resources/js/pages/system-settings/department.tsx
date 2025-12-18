@@ -13,7 +13,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Building2, Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { SiteHeader } from '@/components/site-header';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -137,7 +137,6 @@ export default function DepartmentSettings({ departments: initialDepartments = [
     return (
         <SidebarProvider>
             <Head title="Department Settings" />
-            <Toaster position="top-right" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />

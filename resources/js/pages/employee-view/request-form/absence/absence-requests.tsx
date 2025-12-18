@@ -1,7 +1,6 @@
 ﻿import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Toaster } from '@/components/ui/sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/employee-layout/app-layout';
@@ -161,8 +160,6 @@ export default function AbsenceRequests({ employee, absenceRequests = [] }: Prop
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Absence Requests" />
-            <Toaster position="top-center" richColors />
-
             <div className="w-full space-y-6">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">

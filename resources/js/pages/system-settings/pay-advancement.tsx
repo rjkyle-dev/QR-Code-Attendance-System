@@ -17,7 +17,7 @@ import { Head, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { AlertCircle, CalendarIcon, CheckCircle, PhilippinePeso, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

@@ -98,55 +98,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
         }
     }, [employee]);
 
-    // Generate unique Add Crew employee ID (AC + 6 digits)
-    const generateAddCrewEmployeeId = async (): Promise<string> => {
-        const maxAttempts = 100;
-        let attempts = 0;
-
-        try {
-            // Fetch existing employees to check for uniqueness
-            const response = await fetch('/api/employee/all');
-            const employees = await response.json();
-            const existingIds = new Set(employees.map((emp: any) => emp.employeeid).filter(Boolean));
-
-            do {
-                // Generate a random 6-digit number
-                const randomDigits = Math.floor(Math.random() * 900000) + 100000; // 100000 to 999999
-                const employeeId = `AC${randomDigits.toString().padStart(6, '0')}`;
-
-                if (!existingIds.has(employeeId)) {
-                    return employeeId;
-                }
-                attempts++;
-            } while (attempts < maxAttempts);
-
-            // Fallback: use timestamp-based ID if too many collisions
-            const timestampDigits = Date.now().toString().slice(-6).padStart(6, '0');
-            const fallbackId = `AC${timestampDigits}`;
-            if (!existingIds.has(fallbackId)) {
-                return fallbackId;
-            }
-
-            // Last resort: timestamp + random digit
-            const lastResortDigits = (Date.now().toString().slice(-5) + Math.floor(Math.random() * 10)).padStart(6, '0');
-            return `AC${lastResortDigits}`;
-        } catch (error) {
-            console.error('Error generating employee ID:', error);
-            // Fallback to simple random generation if API fails
-            const randomDigits = Math.floor(Math.random() * 900000) + 100000;
-            return `AC${randomDigits.toString().padStart(6, '0')}`;
-        }
-    };
-
-    // Auto-generate employee ID when Add Crew is selected and no ID exists
-    useEffect(() => {
-        if (data.work_status === 'Add Crew' && !data.employeeid) {
-            generateAddCrewEmployeeId().then((employeeId) => {
-                setData('employeeid', employeeId);
-            });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data.work_status]);
 
     // Update available positions when department changes
     useEffect(() => {
@@ -160,7 +111,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
 
     // Flow helpers based on Work Status
     const hasWorkStatus = !!data.work_status;
-    const isAddCrew = data.work_status === 'Add Crew';
 
     const handleProfileImageUpload = () => {
         const input = document.createElement('input');
@@ -211,29 +161,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
     const handleSubmit: FormEventHandler = (event: React.FormEvent) => {
         event.preventDefault();
         setLoading(true);
-
-        // Prepare form data with all required field fixes for Add Crew
-        const formData = { ...data };
-        if (isAddCrew) {
-            if (!formData.email || formData.email === null) {
-                formData.email = '';
-            }
-            if (!formData.employeeid || formData.employeeid === null) {
-                formData.employeeid = '';
-            }
-            if (!formData.department || formData.department === null) {
-                formData.department = '';
-            }
-            if (!formData.position || formData.position === null) {
-                formData.position = '';
-            }
-            if (!formData.service_tenure || formData.service_tenure === null) {
-                formData.service_tenure = '';
-            }
-            if (!formData.marital_status || formData.marital_status === null) {
-                formData.marital_status = '';
-            }
-        }
 
         // Update the form data before submission
         setData(formData);
@@ -345,7 +272,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-2">
                         {message && (
-                            <div className={`rounded p-2 ${message.type === 'success' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
+                            <div className={`rounded p-2 ${message.type === 'success' ? 'bg-green-200 text-green-800 dark:bg-green-900/30 dark:text-green-200' : 'bg-red-200 text-red-800 dark:bg-red-900/30 dark:text-red-200'}`}>
                                 {message.text}
                             </div>
                         )}
@@ -353,7 +280,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                             <div className="md:col-span-2">
                                 <div className="flex">
                                     <Label className="mb-3 flex items-center gap-2">
-                                        <User className="h-4 w-4 text-green-600" />
+                                        <User className="h-4 w-4 text-green-600 dark:text-green-400" />
                                         Profile Image
                                         <span className="text-[15px] font-medium text-muted-foreground">(optional)</span>
                                     </Label>
@@ -362,7 +289,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 {/* <Input type="file" name="picture" onChange={handleFileChange} className="w-full" accept="image/*" /> */}
                             </div>
                             <div
-                                className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
+                                className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100 dark:border-green-700 dark:bg-green-900/20 dark:hover:bg-green-900/30"
                                 onClick={handleProfileImageUpload}
                             >
                                 {preview ? (
@@ -376,15 +303,15 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                                 e.currentTarget.src = `${'User'}&background=22c55e&color=fff`;
                                             }}
                                         />
-                                        <p className="font-medium text-green-800">Profile Image Selected</p>
-                                        <p className="text-sm text-green-600">Click to change</p>
+                                        <p className="font-medium text-green-800 dark:text-green-200">Profile Image Selected</p>
+                                        <p className="text-sm text-green-600 dark:text-green-400">Click to change</p>
                                     </div>
                                 ) : (
                                     <div className="text-center">
-                                        <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                                        <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
                                             <User className="h-8 w-8 text-gray-400" />
                                         </div>
-                                        <p className="font-medium text-gray-600">No Profile Image</p>
+                                        <p className="font-medium text-gray-600 dark:text-gray-300">No Profile Image</p>
                                         <p className="text-sm text-gray-500">Click to select image</p>
                                     </div>
                                 )}
@@ -394,35 +321,19 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                             <h3 className="text-lg font-bold">Personal Information</h3>
                         </div>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            {!isAddCrew && (
-                                <div>
-                                    <Label>Employee ID</Label>
-                                    <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                                    <Input
-                                        type="text"
-                                        placeholder="Enter employee id...."
-                                        value={data.employeeid}
-                                        onChange={(e) => setData('employeeid', e.target.value)}
-                                        className={`border-main focus:border-green-500 ${errors.employeeid ? 'border-red-500 focus:border-red-500' : ''}`}
-                                        aria-invalid={!!errors.employeeid}
-                                    />
-                                    <InputError message={errors.employeeid} />
-                                </div>
-                            )}
-                            {isAddCrew && (
-                                <div>
-                                    <Label>Employee ID {data.employeeid ? '(Auto-generated)' : ''}</Label>
-                                    <Input
-                                        type="text"
-                                        value={data.employeeid || 'Generating...'}
-                                        readOnly
-                                        className="border-main bg-gray-50 focus:border-green-500"
-                                        aria-invalid={!!errors.employeeid}
-                                    />
-                                    <InputError message={errors.employeeid} />
-                                    {data.employeeid && <p className="mt-1 text-xs text-green-600">Auto-generated ID: {data.employeeid}</p>}
-                                </div>
-                            )}
+                            <div>
+                                <Label>Employee ID</Label>
+                                <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
+                                <Input
+                                    type="text"
+                                    placeholder="Enter employee id...."
+                                    value={data.employeeid}
+                                    onChange={(e) => setData('employeeid', e.target.value)}
+                                    className={`border-main focus:border-green-500 ${errors.employeeid ? 'border-red-500 focus:border-red-500' : ''}`}
+                                    aria-invalid={!!errors.employeeid}
+                                />
+                                <InputError message={errors.employeeid} />
+                            </div>
                             <div>
                                 <Label>Firstname</Label>
                                 <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
@@ -518,44 +429,42 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                     <InputError message={errors.date_of_birth} />
                                 </div>
                             </div>
-                            {!isAddCrew && (
-                                <div>
-                                    <div className="flex flex-col gap-3">
-                                        <Label htmlFor="date" className="px-1">
-                                            Lenght of Service
-                                        </Label>
-                                        <Popover open={open} onOpenChange={setOpen}>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    id="date"
-                                                    className="border-main w-48 justify-between font-normal sm:w-auto"
-                                                    aria-invalid={!!errors.service_tenure}
-                                                >
-                                                    {date ? date.toLocaleDateString() : 'Select date'}
-                                                    <ChevronDownIcon />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={date}
-                                                    captionLayout="dropdown"
-                                                    onSelect={(selectedDate: Date | undefined) => {
-                                                        setDate(selectedDate);
-                                                        setOpen(false);
-                                                        if (selectedDate) {
-                                                            const localDateString = selectedDate.toLocaleDateString('en-CA');
-                                                            setData('service_tenure', localDateString);
-                                                        }
-                                                    }}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        <InputError message={errors.service_tenure} />
-                                    </div>
+                            <div>
+                                <div className="flex flex-col gap-3">
+                                    <Label htmlFor="date" className="px-1">
+                                        Lenght of Service
+                                    </Label>
+                                    <Popover open={open} onOpenChange={setOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                id="date"
+                                                className="border-main w-48 justify-between font-normal sm:w-auto"
+                                                aria-invalid={!!errors.service_tenure}
+                                            >
+                                                {date ? date.toLocaleDateString() : 'Select date'}
+                                                <ChevronDownIcon />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={date}
+                                                captionLayout="dropdown"
+                                                onSelect={(selectedDate: Date | undefined) => {
+                                                    setDate(selectedDate);
+                                                    setOpen(false);
+                                                    if (selectedDate) {
+                                                        const localDateString = selectedDate.toLocaleDateString('en-CA');
+                                                        setData('service_tenure', localDateString);
+                                                    }
+                                                }}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <InputError message={errors.service_tenure} />
                                 </div>
-                            )}
+                            </div>
 
                             <div>
                                 <Label htmlFor="work_status">Work Status</Label>
@@ -579,82 +488,76 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 <InputError message={errors.work_status} />
                             </div>
 
-                            {!isAddCrew && (
-                                <div>
-                                    <Label htmlFor="departments">Departments</Label>
-                                    <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                                    <Select
-                                        value={data.department}
-                                        onValueChange={(value) => setData('department', value)}
-                                        aria-invalid={!!errors.department}
-                                    >
-                                        <SelectTrigger className="border-main focus:border-green-500">
-                                            <SelectValue placeholder="Select Departments" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {departmentsData.map((dept) => (
-                                                <SelectItem key={dept} value={dept}>
-                                                    {dept}
+                            <div>
+                                <Label htmlFor="departments">Departments</Label>
+                                <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
+                                <Select
+                                    value={data.department}
+                                    onValueChange={(value) => setData('department', value)}
+                                    aria-invalid={!!errors.department}
+                                >
+                                    <SelectTrigger className="border-main focus:border-green-500">
+                                        <SelectValue placeholder="Select Departments" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {departmentsData.map((dept) => (
+                                            <SelectItem key={dept} value={dept}>
+                                                {dept}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.department} />
+                            </div>
+                            <div>
+                                <Label htmlFor="positions">Positions</Label>
+                                <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
+                                <Select
+                                    value={data.position}
+                                    onValueChange={(value) => setData('position', value)}
+                                    disabled={!data.department}
+                                    aria-invalid={!!errors.position}
+                                >
+                                    <SelectTrigger className="border-main focus:border-green-500">
+                                        <SelectValue placeholder={data.department ? 'Select Positions' : 'Select Department first'} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {availablePositions.length > 0 ? (
+                                            availablePositions.map((pos) => (
+                                                <SelectItem key={pos} value={pos}>
+                                                    {pos}
                                                 </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <InputError message={errors.department} />
-                                </div>
-                            )}
-                            {!isAddCrew && (
-                                <div>
-                                    <Label htmlFor="positions">Positions</Label>
-                                    <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                                    <Select
-                                        value={data.position}
-                                        onValueChange={(value) => setData('position', value)}
-                                        disabled={!data.department}
-                                        aria-invalid={!!errors.position}
-                                    >
-                                        <SelectTrigger className="border-main focus:border-green-500">
-                                            <SelectValue placeholder={data.department ? 'Select Positions' : 'Select Department first'} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availablePositions.length > 0 ? (
-                                                availablePositions.map((pos) => (
-                                                    <SelectItem key={pos} value={pos}>
-                                                        {pos}
-                                                    </SelectItem>
-                                                ))
-                                            ) : (
-                                                <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                                                    {data.department ? 'No positions available' : 'Select Department first'}
-                                                </div>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    <InputError message={errors.position} />
-                                </div>
-                            )}
-                            {!isAddCrew && (
-                                <div>
-                                    <Label htmlFor="status">Marital Status</Label>
-                                    <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                                    <Select
-                                        value={data.marital_status}
-                                        onValueChange={(value) => setData('marital_status', value)}
-                                        aria-invalid={!!errors.marital_status}
-                                    >
-                                        <SelectTrigger className="border-main focus:border-green-500">
-                                            <SelectValue placeholder="Select Status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {maritalStatusData.map((stat) => (
-                                                <SelectItem key={stat} value={stat}>
-                                                    {stat}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <InputError message={errors.marital_status} />
-                                </div>
-                            )}
+                                            ))
+                                        ) : (
+                                            <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                                                {data.department ? 'No positions available' : 'Select Department first'}
+                                            </div>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.position} />
+                            </div>
+                            <div>
+                                <Label htmlFor="status">Marital Status</Label>
+                                <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
+                                <Select
+                                    value={data.marital_status}
+                                    onValueChange={(value) => setData('marital_status', value)}
+                                    aria-invalid={!!errors.marital_status}
+                                >
+                                    <SelectTrigger className="border-main focus:border-green-500">
+                                        <SelectValue placeholder="Select Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {maritalStatusData.map((stat) => (
+                                            <SelectItem key={stat} value={stat}>
+                                                {stat}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.marital_status} />
+                            </div>
                             {/* <div>
                             <Label>Nationality</Label>
                             // {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> *
@@ -782,64 +685,59 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 <InputError message={errors.gmail_password} />
                             </div>
                         </div>
-                        {!isAddCrew && (
-                            <>
+                        <div>
+                            <h3 className="text-lg font-bold">Gov Account:</h3>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <h3 className="text-lg font-bold">Gov Account:</h3>
+                                    <Label>HDMF Number</Label>
+                                    <Input
+                                        type="text"
+                                        placeholder="Enter number..."
+                                        value={data.hdmf_user_id}
+                                        onChange={(e) => setData('hdmf_user_id', e.target.value)}
+                                        className={`border-green-300 focus:border-cfar-500 ${errors.hdmf_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
+                                        aria-invalid={!!errors.hdmf_user_id}
+                                    />
+                                    <InputError message={errors.hdmf_user_id} />
                                 </div>
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <div>
-                                        <Label>HDMF Number</Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter number..."
-                                            value={data.hdmf_user_id}
-                                            onChange={(e) => setData('hdmf_user_id', e.target.value)}
-                                            className={`border-green-300 focus:border-cfar-500 ${errors.hdmf_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
-                                            aria-invalid={!!errors.hdmf_user_id}
-                                        />
-                                        <InputError message={errors.hdmf_user_id} />
-                                    </div>
-                                    <div>
-                                        <Label>SSS Number</Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter number..."
-                                            value={data.sss_user_id}
-                                            onChange={(e) => setData('sss_user_id', e.target.value)}
-                                            className={`border-green-300 focus:border-cfar-500 ${errors.sss_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
-                                            aria-invalid={!!errors.sss_user_id}
-                                        />
-                                        <InputError message={errors.sss_user_id} />
-                                    </div>
-                                    <div>
-                                        <Label>Philhealth Number</Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter number..."
-                                            value={data.philhealth_user_id}
-                                            onChange={(e) => setData('philhealth_user_id', e.target.value)}
-                                            className="border-green-300 focus:border-cfar-500"
-                                            aria-invalid={!!errors.philhealth_user_id}
-                                        />
-                                        <InputError message={errors.philhealth_user_id} />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="state">Tin Number</Label>
-                                        <Input
-                                            type="number"
-                                            placeholder="Enter number.."
-                                            value={data.tin_user_id}
-                                            onChange={(e) => setData('tin_user_id', e.target.value)}
-                                            className="border-green-300 focus:border-cfar-500"
-                                            aria-invalid={!!errors.tin_user_id}
-                                        />
-                                        <InputError message={errors.tin_user_id} />
-                                    </div>
+                                <div>
+                                    <Label>SSS Number</Label>
+                                    <Input
+                                        type="text"
+                                        placeholder="Enter number..."
+                                        value={data.sss_user_id}
+                                        onChange={(e) => setData('sss_user_id', e.target.value)}
+                                        className={`border-green-300 focus:border-cfar-500 ${errors.sss_user_id ? 'border-red-500 focus:border-red-500' : ''}`}
+                                        aria-invalid={!!errors.sss_user_id}
+                                    />
+                                    <InputError message={errors.sss_user_id} />
                                 </div>
-                            </>
-                        )}
-
+                                <div>
+                                    <Label>Philhealth Number</Label>
+                                    <Input
+                                        type="text"
+                                        placeholder="Enter number..."
+                                        value={data.philhealth_user_id}
+                                        onChange={(e) => setData('philhealth_user_id', e.target.value)}
+                                        className="border-green-300 focus:border-cfar-500"
+                                        aria-invalid={!!errors.philhealth_user_id}
+                                    />
+                                    <InputError message={errors.philhealth_user_id} />
+                                </div>
+                                <div>
+                                    <Label htmlFor="state">Tin Number</Label>
+                                    <Input
+                                        type="number"
+                                        placeholder="Enter number.."
+                                        value={data.tin_user_id}
+                                        onChange={(e) => setData('tin_user_id', e.target.value)}
+                                        className="border-green-300 focus:border-cfar-500"
+                                        aria-invalid={!!errors.tin_user_id}
+                                    />
+                                    <InputError message={errors.tin_user_id} />
+                                </div>
+                            </div>
                         <DialogFooter>
                             <Button variant="outline" type="button" onClick={() => closeModalWithDelay(0)} disabled={processing}>
                                 Cancel

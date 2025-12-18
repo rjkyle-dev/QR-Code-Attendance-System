@@ -50,7 +50,7 @@ const columns = (
                                 className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
                             />
                         ) : (
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                                 <img
                                     src="\AGOC.png"
                                     className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
@@ -59,7 +59,7 @@ const columns = (
                         )}
                     </div>
                     <div>
-                        <div className="text-sm font-medium text-gray-900">{name}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</div>
                     </div>
                 </div>
             );
@@ -75,7 +75,7 @@ const columns = (
             const leave = row.original.leave_type;
 
             return (
-                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600">
+                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600 dark:bg-green-900/30 dark:text-green-400">
                     {leave}
                 </Badge>
             );
@@ -95,7 +95,7 @@ const columns = (
             const leave_days = row.original.leave_days;
 
             return (
-                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600">
+                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600 dark:bg-green-900/30 dark:text-green-400">
                     {leave_days}
                 </Badge>
             );
@@ -118,13 +118,13 @@ const columns = (
             let statusLeaveColors = '';
             let StatusIcon = null;
             if (leave_status === 'Pending') {
-                statusLeaveColors = 'bg-yellow-100 text-yellow-800 font-semibold text-lg p-3';
+                statusLeaveColors = 'bg-yellow-100 text-yellow-800 font-semibold text-lg p-3 dark:bg-yellow-900/30 dark:text-yellow-200';
                 StatusIcon = Clock;
             } else if (leave_status === 'Approved') {
-                statusLeaveColors = 'bg-green-100 text-green-800';
+                statusLeaveColors = 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200';
                 StatusIcon = CheckCircle;
             } else {
-                statusLeaveColors = 'bg-red-100 text-red-800';
+                statusLeaveColors = 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200';
                 StatusIcon = XCircle;
             }
             return (
@@ -153,7 +153,7 @@ const columns = (
             const leave = row.original.leave_date_reported;
 
             return (
-                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600">
+                <Badge variant="outline" className="bg-green-100 px-5 py-2 text-sm font-semibold text-green-600 dark:bg-green-900/30 dark:text-green-400">
                     {leave}
                 </Badge>
             );

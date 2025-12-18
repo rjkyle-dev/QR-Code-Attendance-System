@@ -14,10 +14,10 @@ import { FormEventHandler, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
     gender as genderData,
-    maritalStatus as maritalStatusData,
-    workStatus as workStatusData,
 } from '../../../hooks/data';
 import { useDepartments } from '../../../hooks/use-departments';
+import { useMaritalStatuses } from '../../../hooks/use-marital-statuses';
+import { useWorkStatuses } from '../../../hooks/use-work-statuses';
 import { usePositionsByDepartment } from '../../../hooks/use-positions';
 import EmployeeQrCodeModal from './employee-qr-code-modal';
 
@@ -28,8 +28,11 @@ interface EmployeeDetails {
 }
 
 const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
+
     const { can } = usePermission();
     const { departments: departmentsData } = useDepartments();
+    const { maritalStatuses: maritalStatusData } = useMaritalStatuses();
+    const { workStatuses: workStatusData } = useWorkStatuses();
     const [openService, setOpenService] = useState(false);
     const [openBirth, setOpenBirth] = useState(false);
     const [date, setDate] = useState<Date | undefined>(undefined);
@@ -64,14 +67,11 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
         
         input.onchange = (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
-            console.log('Selected file:', file);
             if (file) {
                 setSelectedFile(file);
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const result = e.target?.result as string;
-                    console.log('Selected file:', result);
-
                     setPreview(result);
                 };
                 reader.readAsDataURL(file);
@@ -136,51 +136,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
         input.click();
     };
 
-    const generateAddCrewEmployeeId = async (): Promise<string> => {
-        const maxAttempts = 100;
-        let attempts = 0;
-
-        try {
-            const response = await fetch('/api/employee/all');
-            const employees = await response.json();
-            const existingIds = new Set(employees.map((emp: any) => emp.employeeid).filter(Boolean));
-
-            do {
-                const randomDigits = Math.floor(Math.random() * 9999) + 1;
-                const employeeId = `AC${randomDigits.toString().padStart(4, '0')}`;
-
-                if (!existingIds.has(employeeId)) {
-                    return employeeId;
-                }
-                attempts++;
-            } while (attempts < maxAttempts);
-
-            const timestampDigits = Date.now().toString().slice(-4).padStart(4, '0');
-            const fallbackId = `AC${timestampDigits}`;
-            if (!existingIds.has(fallbackId)) {
-                return fallbackId;
-            }
-
-            const lastResortDigits = (Date.now().toString().slice(-3) + Math.floor(Math.random() * 10)).padStart(4, '0');
-            return `AC${lastResortDigits}`;
-        } catch (error) {
-            console.error('Error generating employee ID:', error);
-            const randomDigits = Math.floor(Math.random() * 9999) + 1;
-            return `AC${randomDigits.toString().padStart(4, '0')}`;
-        }
-    };
-
-    useEffect(() => {
-        if (data.work_status === 'Add Crew' && !data.employeeid) {
-            generateAddCrewEmployeeId().then((employeeId) => {
-                setData('employeeid', employeeId);
-            });
-        } else if (data.work_status !== 'Add Crew' && data.employeeid?.startsWith('AC')) {
-            setData('employeeid', '');
-        }
-    }, [data.work_status]);
 
     const { positions: availablePositions } = usePositionsByDepartment(data.department);
+
 
     useEffect(() => {
         if (data.department) {
@@ -189,9 +147,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
             setData('position', '');
         }
     }, [data.department, setData]);
-
-    const hasWorkStatus = !!data.work_status;
-    const isAddCrew = data.work_status === 'Add Crew';
 
     const closeModalWithDelay = (delay: number = 1000) => {
         setTimeout(() => {
@@ -211,39 +166,18 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
 
     const handleSaveInfo: FormEventHandler = async (event) => {
         event.preventDefault();
-        if (savedEmployee) return;
-
-        const formData = { ...data };
-        if (isAddCrew) {
-            if (!formData.email || formData.email === null) {
-                formData.email = '';
-            }
-            if (!formData.employeeid || formData.employeeid === null) {
-                formData.employeeid = '';
-            }
-            if (!formData.department || formData.department === null) {
-                formData.department = '';
-            }
-            if (!formData.position || formData.position === null) {
-                formData.position = '';
-            }
-            if (!formData.service_tenure || formData.service_tenure === null) {
-                formData.service_tenure = '';
-            }
-            if (!formData.marital_status || formData.marital_status === null) {
-                formData.marital_status = '';
-            }
+        if (savedEmployee) {
+            console.warn('[AddEmployeeModal] Form submission blocked - employee already saved');
+            return;
         }
 
-        console.log('Form data being submitted:', formData);
-
+        const formData = { ...data };
         setData(formData);
 
         post(route('employee.store'), {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: async (page) => {
-                console.log('Employee created successfully:', formData);
 
                 try {
                     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -252,21 +186,16 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
 
                     let foundEmployee = null;
 
-                    if (isAddCrew) {
-                        const matchingEmployees = employees
-                            .filter(
-                                (emp: any) =>
-                                    emp.firstname === formData.firstname &&
-                                    emp.lastname === formData.lastname &&
-                                    emp.work_status === formData.work_status,
-                            )
-                            .sort((a: any, b: any) => b.id - a.id);
-                        foundEmployee = matchingEmployees[0];
-                    } else {
-                        if (formData.employeeid) {
-                            foundEmployee = employees.find((emp: any) => emp.employeeid === formData.employeeid);
-                        }
+                    if (formData.employeeid) {
+                        foundEmployee = employees.find((emp: any) => emp.employeeid === formData.employeeid);
                     }
+
+                    // DEBUG: Log employee lookup
+                    console.log('[AddEmployeeModal] Employee lookup after save', {
+                        searchedId: formData.employeeid,
+                        foundEmployee: foundEmployee ? { id: foundEmployee.id, employeeid: foundEmployee.employeeid } : null,
+                        totalEmployees: employees.length,
+                    });
 
                     if (foundEmployee) {
                         setSavedEmployee({
@@ -274,16 +203,19 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                             employeeid: foundEmployee.employeeid,
                             id: foundEmployee.id,
                         });
-
-                        if (isAddCrew) {
-                            toast.success(` Add Crew saved! Add Crew ID: ${foundEmployee.employeeid}`);
-                        }
+                        console.log('[AddEmployeeModal] Employee found and saved to state', {
+                            employeeid: foundEmployee.employeeid,
+                            id: foundEmployee.id,
+                        });
                     } else {
                         setSavedEmployee({ ...formData });
-                        console.warn('Could not find created employee in API response');
+                        console.warn('[AddEmployeeModal] Could not find created employee in API response', {
+                            searchedId: formData.employeeid,
+                            availableIds: employees.map((emp: any) => emp.employeeid).slice(0, 10),
+                        });
                     }
                 } catch (error) {
-                    console.error('Error fetching employee:', error);
+                    console.error('[AddEmployeeModal] Error fetching employee:', error);
                     setSavedEmployee({ ...formData });
                 }
 
@@ -313,11 +245,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                 }
             },
             onError: (errors) => {
-                console.error('Validation errors:', errors);
-                console.log('Form data that failed:', formData);
 
                 Object.keys(errors).forEach((key) => {
-                    console.error(`Error for ${key}:`, errors[key]);
+                    console.error(`[AddEmployeeModal] Error for ${key}:`, errors[key]);
                 });
 
                 if (errors.employeeid) {
@@ -370,11 +300,11 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
             <Dialog open={isOpen} onOpenChange={onClose}>
                 <DialogContent className="max-h-[90vh] min-w-2xl overflow-y-auto border-2 border-cfar-500 shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle className="text-green-800">Add New Employee</DialogTitle>
+                        <DialogTitle className="text-green-800 dark:text-green-200">Add New Employee</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSaveInfo} className="space-y-2">
                         {message && (
-                            <div className={`rounded p-2 ${message.type === 'success' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
+                            <div className={`rounded p-2 ${message.type === 'success' ? 'bg-green-200 text-green-800 dark:bg-green-900/30 dark:text-green-200' : 'bg-red-200 text-red-800 dark:bg-red-900/30 dark:text-red-200'}`}>
                                 {message.text}
                             </div>
                         )}
@@ -382,14 +312,14 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                             <div className="md:col-span-2">
                                 <div className="flex">
                                     <Label className="mb-3 flex items-center gap-2">
-                                        <User className="h-4 w-4 text-green-600" />
+                                        <User className="h-4 w-4 text-green-600 dark:text-green-400" />
                                         Profile Image
                                         <span className="text-[15px] font-medium text-muted-foreground">(optional)</span>
                                     </Label>
                                 </div>
                             </div>
                             <div
-                                className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
+                                className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100 dark:border-green-700 dark:bg-green-900/20 dark:hover:bg-green-900/30"
                                 onClick={handleProfileImageUpload}
                             >
                                 {preview ? (
@@ -403,24 +333,25 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                 e.currentTarget.src = `${'User'}&background=22c55e&color=fff`;
                                             }}
                                         />
-                                        <p className="font-medium text-green-800">Profile Image Selected</p>
-                                        <p className="text-sm text-green-600">Click to change</p>
+                                        <p className="font-medium text-green-800 dark:text-green-200">Profile Image Selected</p>
+                                        <p className="text-sm text-green-600 dark:text-green-400">Click to change</p>
                                     </div>
                                 ) : (
                                     <div className="text-center">
-                                        <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                                            <User className="h-8 w-8 text-gray-400" />
+                                        <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                                            <User className="h-8 w-8 text-gray-400 dark:text-gray-500" />
                                         </div>
-                                        <p className="font-medium text-gray-600">No Profile Image</p>
-                                        <p className="text-sm text-gray-500">Click to select image</p>
+                                        <p className="font-medium text-gray-600 dark:text-gray-300">No Profile Image</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">Click to select image</p>
                                     </div>
                                 )}
                             </div>
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold">Personal Information</h3>
+                            <h3 className="text-lg font-bold dark:text-foreground">Personal Information</h3>
                         </div>
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2"> <div className="">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className="">
                                     <Label>Employee ID</Label>
                                     <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                                     <Input
@@ -479,7 +410,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                     <Select
                                         value={data.gender}
                                         onValueChange={(value) => {
-                                            console.log('Selected Gender:', value);
                                             setData('gender', value);
                                         }}
                                         aria-invalid={!!errors.gender}
@@ -528,7 +458,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                         setOpenBirth(false);
                                                         if (selectedBirth) {
                                                             const localDateString = selectedBirth.toLocaleDateString('en-CA');
-                                                            console.log('Selected Local Date:', localDateString);
                                                             setData('date_of_birth', localDateString);
                                                         }
                                                     }}
@@ -567,7 +496,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                             setOpenService(false);
                                                             if (selectedDate) {
                                                                 const localDateString = selectedDate.toLocaleDateString('en-CA');
-                                                                console.log('Selected Local Date:', localDateString);
                                                                 setData('service_tenure', localDateString);
                                                             }
                                                         }}
@@ -586,7 +514,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         <Select
                                             value={data.department}
                                             onValueChange={(value) => {
-                                                console.log('Selected Departments:', value);
                                                 setData('department', value);
                                             }}
                                             aria-invalid={!!errors.department}
@@ -612,7 +539,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         <Select
                                             value={data.position}
                                             onValueChange={(value) => {
-                                                console.log('Selected Positions:', value);
                                                 setData('position', value);
                                             }}
                                             disabled={!data.department}
@@ -645,7 +571,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                         <Select
                                             value={data.marital_status}
                                             onValueChange={(value) => {
-                                                console.log('Selected Marital Status:', value);
                                                 setData('marital_status', value);
                                             }}
                                             aria-invalid={!!errors.marital_status}
@@ -669,7 +594,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                 <Select
                                     value={data.work_status}
                                     onValueChange={(value) => {
-                                        console.log('Selected Work Status:', value);
                                         setData('work_status', value);
                                     }}
                                     aria-invalid={!!errors.work_status}
@@ -774,7 +698,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                 </div>
                             </div>
                         </>
-                        <div><h3 className="text-lg font-bold">Gmail Account</h3></div>
+                        <div><h3 className="text-lg font-bold dark:text-foreground">Gmail Account</h3></div>
                         
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
@@ -805,7 +729,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                 </div>
                             </div>
                      
-                            <div><h3 className="text-lg font-bold">Gov Account:</h3></div>
+                            <div><h3 className="text-lg font-bold dark:text-foreground">Gov Account:</h3></div>
             
                          
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -861,19 +785,19 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                 </div>
                                 </div>
                             
-                        <div><h3 className="text-lg font-bold">NBI Clearance</h3></div>
+                        <div><h3 className="text-lg font-bold dark:text-foreground">NBI Clearance</h3></div>
                       
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="col-span-2">
                                     <Label>Upload NBI Clearance</Label>
                                     <div
-                                        className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
+                                        className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100 dark:border-green-700 dark:bg-green-900/20 dark:hover:bg-green-900/30"
                                         onClick={handleNbiClearanceUpload}
                                     >
                                         {selectedNbiClearanceFile ? (
                                             <div className="text-center">
-                                                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                                                    <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                                                    <svg className="h-8 w-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path
                                                             strokeLinecap="round"
                                                             strokeLinejoin="round"
@@ -882,14 +806,14 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                         />
                                                     </svg>
                                                 </div>
-                                                <p className="font-medium text-green-800">File Selected</p>
-                                                <p className="text-sm text-green-600">{nbiClearanceFileName}</p>
-                                                <p className="text-xs text-gray-500">Click to change</p>
+                                                <p className="font-medium text-green-800 dark:text-green-200">File Selected</p>
+                                                <p className="text-sm text-green-600 dark:text-green-400">{nbiClearanceFileName}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">Click to change</p>
                                             </div>
                                         ) : (
                                             <div className="text-center">
-                                                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                                                    <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                                                    <svg className="h-8 w-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path
                                                             strokeLinecap="round"
                                                             strokeLinejoin="round"
@@ -898,17 +822,17 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                         />
                                                     </svg>
                                                 </div>
-                                                <p className="font-medium text-gray-600">No File Selected</p>
-                                                <p className="text-sm text-gray-500">Click to select file (PDF, Word, Image, or Text)</p>
-                                                <p className="text-xs text-gray-400">Max size: 10MB</p>
+                                                <p className="font-medium text-gray-600 dark:text-gray-300">No File Selected</p>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">Click to select file (PDF, Word, Image, or Text)</p>
+                                                <p className="text-xs text-gray-400 dark:text-gray-500">Max size: 10MB</p>
                                             </div>
                                         )}
                                     </div>
                                 </div>
                                 {nbiClearancePreview && (
                                     <div className="col-span-2">
-                                        <div className="mb-2 font-medium text-green-800">File Preview:</div>
-                                        <div className="flex items-center justify-center rounded-md border bg-gray-50 p-4">
+                                        <div className="mb-2 font-medium text-green-800 dark:text-green-200">File Preview:</div>
+                                        <div className="flex items-center justify-center rounded-md border bg-gray-50 p-4 dark:bg-gray-800 dark:border-gray-700">
                                             {nbiClearancePreview.startsWith('data:image/') ? (
                                                 <img
                                                     src={nbiClearancePreview}
@@ -917,7 +841,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                 />
                                             ) : (
                                                 <div className="flex items-center space-x-3">
-                                                    <svg className="h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="h-12 w-12 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path
                                                             strokeLinecap="round"
                                                             strokeLinejoin="round"
@@ -926,8 +850,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }: EmployeeDetails) => {
                                                         />
                                                     </svg>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">{nbiClearanceFileName}</p>
-                                                        <p className="text-sm text-gray-500">
+                                                        <p className="font-medium text-gray-900 dark:text-gray-100">{nbiClearanceFileName}</p>
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400">
                                                             {selectedNbiClearanceFile?.size
                                                                 ? (selectedNbiClearanceFile.size / 1024 / 1024).toFixed(2)
                                                                 : '0'}{' '}

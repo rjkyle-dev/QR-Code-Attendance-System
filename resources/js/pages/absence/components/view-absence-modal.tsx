@@ -21,41 +21,41 @@ const ViewAbsenceModal = ({ isOpen, onClose, absence }: ViewAbsenceModalProps) =
         switch (status) {
             case 'approved':
                 return {
-                    bgColor: 'bg-green-50',
-                    textColor: 'text-green-800',
-                    borderColor: 'border-green-200',
+                    bgColor: 'bg-green-50 dark:bg-green-900/20',
+                    textColor: 'text-green-800 dark:text-green-200',
+                    borderColor: 'border-green-200 dark:border-green-800',
                     icon: UserCheck,
-                    iconColor: 'text-green-600'
+                    iconColor: 'text-green-600 dark:text-green-400'
                 };
             case 'rejected':
                 return {
-                    bgColor: 'bg-red-50',
-                    textColor: 'text-red-800',
-                    borderColor: 'border-red-200',
+                    bgColor: 'bg-red-50 dark:bg-red-900/20',
+                    textColor: 'text-red-800 dark:text-red-200',
+                    borderColor: 'border-red-200 dark:border-red-800',
                     icon: UserX,
-                    iconColor: 'text-red-600'
+                    iconColor: 'text-red-600 dark:text-red-400'
                 };
             default:
                 return {
-                    bgColor: 'bg-yellow-50',
-                    textColor: 'text-yellow-800',
-                    borderColor: 'border-yellow-200',
+                    bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
+                    textColor: 'text-yellow-800 dark:text-yellow-200',
+                    borderColor: 'border-yellow-200 dark:border-yellow-800',
                     icon: Clock,
-                    iconColor: 'text-yellow-600'
+                    iconColor: 'text-yellow-600 dark:text-yellow-400'
                 };
         }
     };
 
     const getTypeColor = (type: string) => {
         const typeColors = {
-            'Annual Leave': 'bg-purple-100 text-purple-800 border-purple-200',
-            'Personal Leave': 'bg-blue-100 text-blue-800 border-blue-200',
-            'Sick Leave': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            'Emergency Leave': 'bg-red-100 text-red-800 border-red-200',
-            'Maternity/Paternity': 'bg-pink-100 text-pink-800 border-pink-200',
-            'Other': 'bg-gray-100 text-gray-800 border-gray-200',
+            'Annual Leave': 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/20 dark:text-purple-200 dark:border-purple-800',
+            'Personal Leave': 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-800',
+            'Sick Leave': 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-200 dark:border-yellow-800',
+            'Emergency Leave': 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800',
+            'Maternity/Paternity': 'bg-pink-100 text-pink-800 border-pink-200 dark:bg-pink-900/20 dark:text-pink-200 dark:border-pink-800',
+            'Other': 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700',
         };
-        return typeColors[type as keyof typeof typeColors] || 'bg-gray-100 text-gray-800 border-gray-200';
+        return typeColors[type as keyof typeof typeColors] || 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700';
     };
 
     const statusConfig = getStatusConfig(absence.status);
@@ -65,24 +65,24 @@ const ViewAbsenceModal = ({ isOpen, onClose, absence }: ViewAbsenceModalProps) =
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border-2 border-cfar-400">
                 <DialogHeader className="pb-4">
-                    <DialogTitle className="text-2xl font-bold text-gray-900">Absence Request Details</DialogTitle>
-                    <DialogDescription className="text-gray-600">Complete information about the absence request</DialogDescription>
+                    <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">Absence Request Details</DialogTitle>
+                    <DialogDescription className="text-gray-600 dark:text-gray-400">Complete information about the absence request</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6">
                     {/* Employee Information Card */}
-                    <Card className="border-2 border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <Card className="border-2 border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-900/20 dark:to-indigo-900/20">
                         <CardHeader className="pb-4">
-                            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-blue-900">
+                            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-blue-900 dark:text-blue-200">
                                 <User className="h-5 w-5" />
                                 Employee Information
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-start space-x-4">
-                                <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
+                                <Avatar className="h-20 w-20 border-4 border-white shadow-lg dark:border-gray-800">
                                     <AvatarImage src={absence.picture} />
-                                    <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
+                                    <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold dark:bg-blue-900/30 dark:text-blue-300">
                                         {(absence.full_name || absence.employee_name)
                                             ? (absence.full_name || absence.employee_name)
                                                 .split(' ')
@@ -94,18 +94,18 @@ const ViewAbsenceModal = ({ isOpen, onClose, absence }: ViewAbsenceModalProps) =
                                 </Avatar>
                                 <div className="flex-1 space-y-3">
                                     <div>
-                                        <h3 className="text-xl font-bold text-gray-900">
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                                             {absence.full_name || absence.employee_name}
                                         </h3>
-                                        <p className="text-sm text-gray-600">Employee ID: {absence.employee_id_number}</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">Employee ID: {absence.employee_id_number}</p>
                                     </div>
                                     <div className="flex flex-wrap gap-4 text-sm">
-                                        <div className="flex items-center gap-2 text-gray-700">
-                                            <Building className="h-4 w-4 text-blue-600" />
+                                        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                                            <Building className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                             <span>{absence.department}</span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-gray-700">
-                                            <Briefcase className="h-4 w-4 text-blue-600" />
+                                        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                                            <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                             <span>{absence.position}</span>
                                         </div>
                                     </div>
@@ -115,9 +115,9 @@ const ViewAbsenceModal = ({ isOpen, onClose, absence }: ViewAbsenceModalProps) =
                     </Card>
 
                     {/* Absence Details Card */}
-                    <Card className="border-2 border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
+                    <Card className="border-2 border-green-100 bg-gradient-to-r from-green-50 to-emerald-50 dark:border-green-800 dark:from-green-900/20 dark:to-emerald-900/20">
                         <CardHeader className="pb-4">
-                            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-green-900">
+                            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-green-900 dark:text-green-200">
                                 <Calendar className="h-5 w-5" />
                                 Absence Request Details
                             </CardTitle>
@@ -127,7 +127,7 @@ const ViewAbsenceModal = ({ isOpen, onClose, absence }: ViewAbsenceModalProps) =
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div>
-                                        <span className="text-sm font-medium text-gray-700">Absence Type</span>
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Absence Type</span>
                                         <div className="mt-1">
                                             <Badge className={`${getTypeColor(absence.absence_type)} border px-3 py-1 text-sm font-semibold`}>
                                                 {absence.absence_type}
@@ -136,7 +136,7 @@ const ViewAbsenceModal = ({ isOpen, onClose, absence }: ViewAbsenceModalProps) =
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-sm font-medium text-gray-700">Request Status</span>
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Request Status</span>
                                     <div className="mt-1">
                                         <Badge 
                                             className={`${statusConfig.bgColor} ${statusConfig.textColor} ${statusConfig.borderColor} border px-4 py-2 text-sm font-semibold`}

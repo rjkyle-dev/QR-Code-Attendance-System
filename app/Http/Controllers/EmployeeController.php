@@ -7,6 +7,7 @@ use App\Http\Requests\EmployeeRequest;
 use Inertia\Inertia;
 use App\Models\Employee;
 use App\Models\Fingerprint;
+use App\Models\SystemSetting;
 use App\Traits\EmployeeFilterTrait;
 use Inertia\Response;
 use Illuminate\Support\Facades\Log;
@@ -34,6 +35,35 @@ class EmployeeController extends Controller
             if (Employee::where('employeeid', $employeeId)->exists()) {
                 $fallbackDigits = str_pad(substr(time(), -4) . rand(0, 9), 4, '0', STR_PAD_LEFT);
                 $employeeId = 'AC' . $fallbackDigits;
+            }
+        }
+
+        return $employeeId;
+    }
+
+    /**
+     * Generate employee ID based on system settings
+     */
+    private function generateEmployeeId(int $length = 6): string
+    {
+        $maxAttempts = 100;
+        $attempts = 0;
+
+        do {
+            // Generate random numeric ID with specified length
+            $randomNumber = rand(0, pow(10, $length) - 1);
+            $employeeId = str_pad((string)$randomNumber, $length, '0', STR_PAD_LEFT);
+            $exists = Employee::where('employeeid', $employeeId)->exists();
+            $attempts++;
+        } while ($exists && $attempts < $maxAttempts);
+
+        // Fallback: use timestamp if all attempts fail
+        if ($attempts >= $maxAttempts) {
+            $timestampDigits = substr(time(), -min($length, strlen((string)time())));
+            $employeeId = str_pad($timestampDigits, $length, '0', STR_PAD_LEFT);
+            if (Employee::where('employeeid', $employeeId)->exists()) {
+                $fallbackDigits = substr(time() . rand(0, 9), -min($length, strlen((string)time()) + 1));
+                $employeeId = str_pad($fallbackDigits, $length, '0', STR_PAD_LEFT);
             }
         }
 
@@ -131,6 +161,10 @@ class EmployeeController extends Controller
             ? count($supervisedDepartments)
             : $prevDepartmentQuery->distinct('department')->count();
 
+        // Get employee ID settings for frontend
+        $autoGenerate = SystemSetting::getSetting('auto_generate_employee_id', false);
+        $employeeIdLength = (int) SystemSetting::getSetting('employee_id_length', 6);
+
         return Inertia::render('employee/index', [
             'employee'        => $transformedEmployees,
             'totalEmployee'   => $totalEmployee,
@@ -138,6 +172,10 @@ class EmployeeController extends Controller
             'totalDepartment' => $totalDepartment,
             'prevTotalDepartment' => $prevTotalDepartment,
             'workStatusCounts' => $workStatusCounts,
+            'employeeIdSettings' => [
+                'autoGenerate' => $autoGenerate,
+                'employeeIdLength' => $employeeIdLength,
+            ],
             'user_permissions' => [
                 'is_supervisor' => $isSupervisor,
                 'is_super_admin' => $isSuperAdmin,
@@ -240,7 +278,20 @@ class EmployeeController extends Controller
                 . $request->lastname;
 
             $employeeId = $request->employeeid;
-            if ($request->work_status === 'Add Crew' && empty($employeeId)) {
+            
+            // Check system setting for auto-generation
+            $autoGenerate = SystemSetting::getSetting('auto_generate_employee_id', false);
+            
+            if ($autoGenerate && empty($employeeId)) {
+                // Use system setting for ID length
+                $employeeIdLength = (int) SystemSetting::getSetting('employee_id_length', 6);
+                $employeeId = $this->generateEmployeeId($employeeIdLength);
+                \Log::info('Auto-generated employee ID from system settings', [
+                    'employeeid' => $employeeId,
+                    'length' => $employeeIdLength
+                ]);
+            } elseif ($request->work_status === 'Add Crew' && empty($employeeId)) {
+                // Fallback: legacy Add Crew generation
                 $employeeId = $this->generateAddCrewEmployeeId();
                 \Log::info('Auto-generated employee ID for Add Crew', ['employeeid' => $employeeId]);
             }

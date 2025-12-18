@@ -19,6 +19,5 @@ export const departments = [
 
 export const workStatus = [
     { label: 'Regular', value: 'Regular' },
-    { label: 'Add Crew', value: 'Add Crew' },
 ];
 

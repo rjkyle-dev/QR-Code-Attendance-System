@@ -39,6 +39,8 @@ Route::get('/employees', [ApiEmployeeController::class, 'index']); // Alias for 
 Route::get('/departments/all', [\App\Http\Controllers\DepartmentController::class, 'getAll']);
 Route::get('/positions/all', [\App\Http\Controllers\PositionController::class, 'getAll']);
 Route::get('/positions/by-department', [\App\Http\Controllers\PositionController::class, 'getByDepartment']);
+Route::get('/marital-statuses/all', [\App\Http\Controllers\MaritalStatusController::class, 'getAll']);
+Route::get('/work-statuses/all', [\App\Http\Controllers\WorkStatusController::class, 'getAll']);
 Route::get('/employees/packing-plant', function (Request $request) {
     $startDate = $request->query('start_date');
     $endDate = $request->query('end_date');
@@ -49,11 +51,10 @@ Route::get('/employees/packing-plant', function (Request $request) {
             ->distinct()
             ->pluck('employee_id');
 
-        // Include Packing Plant and Coop Area department employees AND Add Crew employees
+        // Include Packing Plant and Coop Area department employees
         $employees = Employee::where(function ($query) {
             $query->where('department', 'Packing Plant')
-                ->orWhere('department', 'Coop Area')
-                ->orWhere('work_status', 'Add Crew');
+                ->orWhere('department', 'Coop Area');
         })
             ->whereIn('id', $employeeIds)
             ->select('id', 'employeeid', 'employee_name', 'firstname', 'middlename', 'lastname', 'department', 'position', 'work_status')
@@ -91,11 +92,10 @@ Route::get('/employees/packing-plant', function (Request $request) {
         return response()->json($employeesWithAttendance);
     }
 
-    // If no date range, return all Packing Plant and Coop Area employees AND Add Crew employees
+    // If no date range, return all Packing Plant and Coop Area employees
     $employees = Employee::where(function ($query) {
         $query->where('department', 'Packing Plant')
-            ->orWhere('department', 'Coop Area')
-            ->orWhere('work_status', 'Add Crew');
+            ->orWhere('department', 'Coop Area');
     })
         ->select('id', 'employeeid', 'employee_name', 'firstname', 'middlename', 'lastname', 'department', 'position', 'work_status')
         ->orderBy('employee_name', 'asc')

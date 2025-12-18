@@ -7,7 +7,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Camera, Eye, EyeOff } from 'lucide-react';
 import React from 'react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 
 interface Employee {
     id: number;
@@ -95,7 +95,6 @@ export default function ProfileSettings() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile Settings" />
-            <Toaster position="top-center" richColors />
             <div className="grid gap-6 md:grid-cols-2">
                 <Card>
                     <CardHeader>

@@ -12,7 +12,6 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
 import { Users } from 'lucide-react';
 import { useState } from 'react';
-import { Toaster } from 'sonner';
 import AddUserModal from './components/add-user-modal';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
@@ -67,7 +66,6 @@ export default function Index() {
     return (
         <SidebarProvider>
             <Head title="User Management" />
-            <Toaster position="top-right" richColors />
             <SidebarHoverLogic>
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />

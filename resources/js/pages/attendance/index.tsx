@@ -8,7 +8,7 @@ import { Head, router } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
 import { Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import EditEmployeeModal from './components/editemployeemodal';

@@ -20,7 +20,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Building2, Edit, Plus, Trash2, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { ContentLoading } from '@/components/ui/loading';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';

@@ -9,7 +9,7 @@ import { Head, router } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
 import { Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import AddEmployeeModal from './components/addemployeemodal';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
@@ -38,7 +38,6 @@ interface Props {
     totalEmployee: number;
     workStatusCounts?: {
         Regular: number;
-        'Add Crew': number;
         Probationary: number;
        
     };
@@ -74,6 +73,7 @@ export default function Employee({
     positions = [],
     user_permissions,
 }: Props) {
+
     const { can } = usePermission();
     const [data, setData] = useState<Employee[]>(employee);
     const [editModelOpen, setEditModalOpen] = useState(false);
@@ -85,6 +85,7 @@ export default function Employee({
     const [registerFingerprintEmployee, setRegisterFingerprintEmployee] = useState<Employee | null>(null);
     const [isRegisterFingerprintOpen, setIsRegisterFingerprintOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+
 
     useEffect(() => {
         setTimeout(() => {
@@ -244,7 +245,18 @@ export default function Employee({
                                                 onDelete={handleDelete}
                                                 onRegisterFingerprint={handleRegisterFingerprint}
                                             />
-                                            <AddEmployeeModal isOpen={isModelOpen} onClose={() => setIsModalOpen(false)} />
+                                            <AddEmployeeModal 
+                                                key="add-employee-modal"
+                                                isOpen={isModelOpen} 
+                                                onClose={() => {
+                                                    console.log('[Employee Index] Closing Add Employee Modal');
+                                                    setIsModalOpen(false);
+                                                }} 
+                                                onSuccess={() => {
+                                                    console.log('[Employee Index] Modal success callback');
+                                                    handleRefresh();
+                                                }}
+                                            />
                                             <RegisterFingerprintModal
                                                 isOpen={isRegisterFingerprintOpen}
                                                 onClose={() => setIsRegisterFingerprintOpen(false)}
