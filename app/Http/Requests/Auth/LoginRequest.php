@@ -49,7 +49,7 @@ class LoginRequest extends FormRequest
         $password = $this->input('password');
 
         // Check for hardcoded admin credentials
-        if ($email === 'admin@gmail.com' && $password === 'adminpassword') {
+        if ($email === 'admin@gmail.com' && $password === 'admin1234') {
             // Find or create the admin user
             $user = User::firstOrCreate(
                 ['email' => 'admin@gmail.com'],

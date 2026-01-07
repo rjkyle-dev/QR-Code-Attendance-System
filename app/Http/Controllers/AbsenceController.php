@@ -168,9 +168,9 @@ class AbsenceController extends Controller
                 'to_date' => $validated['to_date'],
                 'is_partial_day' => $validated['is_partial_day'] ?? false,
                 'reason' => $validated['reason'],
-                'status' => 'Pending Supervisor Approval',
-                'supervisor_status' => 'pending',
-                'hr_status' => null,
+                'status' => 'Pending HR Approval',
+                'supervisor_status' => null,
+                'hr_status' => 'pending',
                 'submitted_at' => now(),
             ]);
 
@@ -179,21 +179,19 @@ class AbsenceController extends Controller
             Log::info('Absence created successfully:', ['id' => $absence->id, 'days' => $absence->days]);
 
             $employee = Employee::find($validated['employee_id']);
-            $supervisor = User::getSupervisorForDepartment($validated['department']);
+            $hrUsers = User::getAllHRForDepartment($validated['department']);
 
-            Log::info('Absence submission - Supervisor lookup:', [
+            Log::info('Absence submission - HR lookup:', [
                 'employee_id' => $validated['employee_id'],
                 'employee_name' => $employee ? $employee->employee_name : 'N/A',
                 'department' => $validated['department'],
-                'supervisor_id' => $supervisor ? $supervisor->id : 'NONE',
-                'supervisor_name' => $supervisor ? $supervisor->name : 'NONE',
+                'hr_count' => $hrUsers->count(),
             ]);
 
             try {
                 Log::info('Broadcasting AbsenceRequested event...', [
                     'absence_id' => $absence->id,
                     'department' => $validated['department'],
-                    'supervisor_id' => $supervisor ? $supervisor->id : null,
                 ]);
 
                 event(new AbsenceRequested($absence));
@@ -207,10 +205,10 @@ class AbsenceController extends Controller
             }
 
             try {
-                if ($supervisor) {
+                foreach ($hrUsers as $hrUser) {
                     Notification::create([
                         'type' => 'absence_request',
-                        'user_id' => $supervisor->id,
+                        'user_id' => $hrUser->id,
                         'data' => [
                             'absence_id' => $absence->id,
                             'employee_name' => $employee ? $employee->employee_name : $validated['full_name'],
@@ -220,9 +218,10 @@ class AbsenceController extends Controller
                             'department' => $validated['department'],
                         ],
                     ]);
-                    Log::info('Notification created for supervisor:', ['supervisor_id' => $supervisor->id]);
-                } else {
-                    Log::warning('No supervisor found for department:', ['department' => $validated['department']]);
+                    Log::info('Notification created for HR:', ['hr_id' => $hrUser->id]);
+                }
+                if ($hrUsers->isEmpty()) {
+                    Log::warning('No HR found for department:', ['department' => $validated['department']]);
                 }
             } catch (Exception $notificationError) {
                 Log::error('Failed to create notification:', ['error' => $notificationError->getMessage()]);
@@ -428,80 +427,7 @@ class AbsenceController extends Controller
             'request_data' => $request->all(),
         ]);
 
-        if (($isSupervisor || $isSuperAdmin) && $request->has('supervisor_status')) {
-            $validated = $request->validate([
-                'supervisor_status' => 'required|in:approved,rejected',
-                'supervisor_comments' => 'nullable|string',
-            ]);
-
-            if (!$isSuperAdmin && !$user->canEvaluateDepartment($absence->department)) {
-                $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
-                if (!in_array($absence->department, $supervisedDepartments)) {
-                    Log::warning('[ABSENCE UPDATE] Supervisor cannot approve absence for department:', [
-                        'supervisor_id' => $user->id,
-                        'department' => $absence->department,
-                        'supervised_departments' => $supervisedDepartments,
-                    ]);
-                    return redirect()->back()->withErrors(['error' => 'You do not have permission to approve absences for this department.']);
-                }
-            }
-
-            $oldStatus = $absence->status;
-            $supervisorStatus = $validated['supervisor_status'];
-
-            Log::info('[ABSENCE UPDATE] Processing supervisor approval:', [
-                'absence_id' => $absence->id,
-                'supervisor_status' => $supervisorStatus,
-                'old_status' => $oldStatus,
-            ]);
-
-            $absence->update([
-                'supervisor_status' => $supervisorStatus,
-                'supervisor_approved_by' => $user->id,
-                'supervisor_approved_at' => now(),
-                'supervisor_comments' => $validated['supervisor_comments'] ?? null,
-                'status' => $supervisorStatus === 'approved' ? 'Pending HR Approval' : 'Rejected by Supervisor',
-            ]);
-
-            $absence->load(['supervisorApprover', 'hrApprover', 'employee']);
-
-            event(new AbsenceSupervisorApproved($absence));
-
-            event(new RequestStatusUpdated(
-                'absence',
-                $absence->status,
-                (int) $absence->employee_id,
-                $absence->id,
-                [
-                    'absence_type' => $absence->absence_type,
-                    'from_date' => $absence->from_date->format('Y-m-d'),
-                    'to_date' => $absence->to_date->format('Y-m-d'),
-                    'supervisor_comments' => $validated['supervisor_comments'] ?? null,
-                ]
-            ));
-        } elseif (($isHR || $isSuperAdmin) && $request->has('hr_status')) {
-            if ($absence->supervisor_status === 'rejected') {
-                if (!$isSuperAdmin) {
-                    Log::warning('[ABSENCE UPDATE] HR cannot approve/reject when supervisor rejected:', [
-                        'absence_id' => $absence->id,
-                        'supervisor_status' => $absence->supervisor_status,
-                        'user_id' => $user->id,
-                        'is_hr' => $isHR,
-                        'is_super_admin' => $isSuperAdmin,
-                    ]);
-                    return redirect()->back()->withErrors(['error' => 'This absence request was rejected by the supervisor. HR cannot perform any actions on rejected requests.']);
-                }
-            } elseif ($absence->supervisor_status !== 'approved') {
-                if (!$isSuperAdmin) {
-                    Log::warning('[ABSENCE UPDATE] HR cannot approve before supervisor:', [
-                        'absence_id' => $absence->id,
-                        'supervisor_status' => $absence->supervisor_status,
-                        'user_id' => $user->id,
-                    ]);
-                    return redirect()->back()->withErrors(['error' => 'Supervisor must approve this absence request before HR can make a decision.']);
-                }
-            }
-
+        if (($isHR || $isSuperAdmin) && $request->has('hr_status')) {
             $validated = $request->validate([
                 'hr_status' => 'required|in:approved,rejected',
                 'hr_comments' => 'nullable|string',

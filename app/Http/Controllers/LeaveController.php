@@ -164,9 +164,9 @@ class LeaveController extends Controller
             $leave->leave_days = $request->leave_days;
             $leave->leave_reason = $request->leave_reason;
             $leave->leave_date_reported = $request->leave_date_reported;
-            $leave->leave_status = 'Pending Supervisor Approval';
-            $leave->supervisor_status = 'pending';
-            $leave->hr_status = null;
+            $leave->leave_status = 'Pending HR Approval';
+            $leave->supervisor_status = null;
+            $leave->hr_status = 'pending';
             $leave->leave_comments = $request->leave_comments ?? '';
 
             $leave->save();
@@ -180,21 +180,20 @@ class LeaveController extends Controller
             ]);
 
             $employee = Employee::find($request->employee_id);
-            $supervisor = User::getSupervisorForDepartment($employee->department);
+            $hrUsers = User::getAllHRForDepartment($employee->department);
 
-            Log::info('[LEAVE STORE] Supervisor lookup:', [
+            Log::info('[LEAVE STORE] HR lookup:', [
                 'leave_id' => $leave->id,
                 'employee_id' => $request->employee_id,
                 'employee_name' => $employee ? $employee->employee_name : 'N/A',
                 'department' => $employee->department,
-                'supervisor_id' => $supervisor ? $supervisor->id : 'NONE',
-                'supervisor_name' => $supervisor ? $supervisor->fullname : 'NONE',
+                'hr_count' => $hrUsers->count(),
             ]);
 
-            if ($supervisor) {
+            foreach ($hrUsers as $hrUser) {
                 Notification::create([
                     'type' => 'leave_request',
-                    'user_id' => $supervisor->id,
+                    'user_id' => $hrUser->id,
                     'data' => [
                         'leave_id' => $leave->id,
                         'employee_name' => $employee ? $employee->employee_name : null,
@@ -202,16 +201,17 @@ class LeaveController extends Controller
                         'leave_start_date' => $leave->leave_start_date,
                         'leave_end_date' => $leave->leave_end_date,
                         'department' => $employee->department,
-                        'stage' => 'supervisor_approval',
+                        'stage' => 'hr_approval',
                     ],
                 ]);
-                Log::info('[LEAVE STORE] Notification created for supervisor:', [
+                Log::info('[LEAVE STORE] Notification created for HR:', [
                     'leave_id' => $leave->id,
-                    'supervisor_id' => $supervisor->id,
-                    'supervisor_name' => $supervisor->fullname,
+                    'hr_id' => $hrUser->id,
+                    'hr_name' => $hrUser->fullname,
                 ]);
-            } else {
-                Log::warning('[LEAVE STORE] No supervisor found for department:', [
+            }
+            if ($hrUsers->isEmpty()) {
+                Log::warning('[LEAVE STORE] No HR found for department:', [
                     'leave_id' => $leave->id,
                     'department' => $employee->department,
                 ]);
@@ -350,99 +350,6 @@ class LeaveController extends Controller
                 $leave->leave_date_reported = $request->leave_date_reported;
                 $leave->leave_reason = $request->leave_reason;
 
-                if ($request->has('supervisor_status') && ($isSupervisor || $isSuperAdmin)) {
-                    if (!$isSuperAdmin) {
-                        $employee = $leave->employee;
-                        if (!$employee || !$user->canEvaluateDepartment($employee->department)) {
-                            $supervisedDepartments = $this->getEvaluableDepartmentsForUser($user);
-                            Log::warning('[LEAVE UPDATE] User attempted to approve leave outside their department:', [
-                                'leave_id' => $leave->id,
-                                'user_id' => $user->id,
-                                'employee_department' => $employee ? $employee->department : 'N/A',
-                                'supervised_departments' => $supervisedDepartments,
-                            ]);
-                            return redirect()->back()->with('error', 'You do not have permission to approve leaves for this department.');
-                        }
-                    }
-
-                    $supervisorStatus = strtolower($request->supervisor_status);
-
-                    Log::info('[LEAVE UPDATE] Processing supervisor approval:', [
-                        'leave_id' => $leave->id,
-                        'supervisor_status' => $supervisorStatus,
-                        'old_supervisor_status' => $oldSupervisorStatus,
-                        'supervisor_id' => $user->id,
-                        'employee_department' => $leave->employee ? $leave->employee->department : 'N/A',
-                    ]);
-
-                    if (in_array($supervisorStatus, ['approved', 'rejected'])) {
-                        $leave->supervisor_status = $supervisorStatus;
-                        $leave->supervisor_approved_by = $user->id;
-                        $leave->supervisor_approved_at = now();
-                        $leave->supervisor_comments = $request->supervisor_comments ?? $leave->supervisor_comments;
-
-                        if ($supervisorStatus === 'approved') {
-                            $leave->leave_status = 'Pending HR Approval';
-                            $leave->hr_status = 'pending';
-
-                            Log::info('[LEAVE UPDATE] Supervisor approved, moving to HR approval:', [
-                                'leave_id' => $leave->id,
-                                'new_status' => $leave->leave_status,
-                                'hr_status' => $leave->hr_status,
-                            ]);
-
-                            $employee = $leave->employee;
-                            if ($employee) {
-                                $hrPersonnel = User::getAllHRForDepartment($employee->department);
-
-                                Log::info('[LEAVE UPDATE] Notifying HR personnel:', [
-                                    'leave_id' => $leave->id,
-                                    'department' => $employee->department,
-                                    'hr_count' => $hrPersonnel->count(),
-                                    'hr_ids' => $hrPersonnel->pluck('id')->toArray(),
-                                ]);
-
-                                foreach ($hrPersonnel as $hr) {
-                                    Notification::create([
-                                        'type' => 'leave_request',
-                                        'user_id' => $hr->id,
-                                        'data' => [
-                                            'leave_id' => $leave->id,
-                                            'employee_name' => $employee->employee_name,
-                                            'leave_type' => $leave->leave_type,
-                                            'leave_start_date' => $leave->leave_start_date,
-                                            'leave_end_date' => $leave->leave_end_date,
-                                            'department' => $employee->department,
-                                            'supervisor_approved' => true,
-                                            'supervisor_name' => $user->fullname,
-                                        ],
-                                    ]);
-                                }
-
-                                event(new LeaveRequested($leave));
-                            }
-                        } elseif ($supervisorStatus === 'rejected') {
-                            $leave->leave_status = 'Rejected by Supervisor';
-                            $leave->hr_status = null;
-
-                            Log::info('[LEAVE UPDATE] Supervisor rejected:', [
-                                'leave_id' => $leave->id,
-                                'new_status' => $leave->leave_status,
-                                'comments' => $leave->supervisor_comments,
-                            ]);
-
-                            event(new RequestStatusUpdated('leave', 'Rejected by Supervisor', $leave->employee_id, $leave->id, [
-                                'leave_type' => $leave->leave_type,
-                                'leave_start_date' => $leave->leave_start_date,
-                                'leave_end_date' => $leave->leave_end_date,
-                                'reason' => $leave->supervisor_comments,
-                                'rejected_by' => 'Supervisor',
-                                'rejected_by_name' => $user->fullname,
-                            ]));
-                        }
-                    }
-                }
-
                 if ($request->has('hr_status') && ($isHR || $isSuperAdmin)) {
                     $hrStatus = strtolower($request->hr_status);
 
@@ -450,16 +357,7 @@ class LeaveController extends Controller
                         'leave_id' => $leave->id,
                         'hr_status' => $hrStatus,
                         'old_hr_status' => $oldHRStatus,
-                        'supervisor_status' => $leave->supervisor_status,
                     ]);
-
-                    if ($leave->supervisor_status !== 'approved') {
-                        Log::warning('[LEAVE UPDATE] HR attempted approval but supervisor has not approved:', [
-                            'leave_id' => $leave->id,
-                            'supervisor_status' => $leave->supervisor_status,
-                        ]);
-                        return redirect()->back()->with('error', 'Supervisor approval is required before HR can approve.');
-                    }
 
                     if (in_array($hrStatus, ['approved', 'rejected'])) {
                         $leave->hr_status = $hrStatus;
@@ -523,8 +421,7 @@ class LeaveController extends Controller
 
                 if (
                     $isSuperAdmin && $request->has('leave_status') &&
-                    !($request->has('hr_status') && in_array(strtolower($request->hr_status), ['approved', 'rejected'])) &&
-                    !($request->has('supervisor_status') && in_array(strtolower($request->supervisor_status), ['approved', 'rejected']))
+                    !($request->has('hr_status') && in_array(strtolower($request->hr_status), ['approved', 'rejected']))
                 ) {
                     $newStatus = $request->leave_status;
 

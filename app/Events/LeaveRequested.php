@@ -41,21 +41,20 @@ class LeaveRequested implements ShouldBroadcastNow
 
   public function broadcastOn(): array
   {
-    $supervisor = \App\Models\User::getSupervisorForDepartment($this->leave->employee->department);
+    $hrUsers = \App\Models\User::getAllHRForDepartment($this->leave->employee->department);
 
     Log::info('LeaveRequested event broadcasting', [
       'leave_id' => $this->leave->id,
       'department' => $this->leave->employee->department,
-      'supervisor_found' => $supervisor ? $supervisor->id : 'none',
-      'channels' => $supervisor ? ['supervisor.' . $supervisor->id, 'notifications'] : ['notifications']
+      'hr_count' => $hrUsers->count(),
     ]);
 
     // Always broadcast to notifications channel for general access
     $channels = [new Channel('notifications')];
 
-    // Also broadcast to supervisor's private channel if supervisor exists
-    if ($supervisor) {
-      $channels[] = new PrivateChannel('supervisor.' . $supervisor->id);
+    // Broadcast to HR users' private channels
+    foreach ($hrUsers as $hrUser) {
+      $channels[] = new PrivateChannel('hr.' . $hrUser->id);
     }
 
     return $channels;

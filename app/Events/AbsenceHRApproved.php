@@ -62,11 +62,6 @@ class AbsenceHRApproved implements ShouldBroadcastNow
     {
         $channels = [new Channel('notifications')];
 
-        // Broadcast to supervisor who approved
-        if ($this->absence->supervisor_approved_by) {
-            $channels[] = new PrivateChannel('supervisor.' . $this->absence->supervisor_approved_by);
-        }
-
         // Broadcast to employee
         if ($this->absence->employee_id) {
             $channels[] = new Channel('employee.' . $this->absence->employee_id);
@@ -74,7 +69,6 @@ class AbsenceHRApproved implements ShouldBroadcastNow
 
         Log::info('AbsenceHRApproved event broadcasting', [
             'absence_id' => $this->absence->id,
-            'supervisor_id' => $this->absence->supervisor_approved_by,
             'employee_id' => $this->absence->employee_id,
             'channels_count' => count($channels),
         ]);

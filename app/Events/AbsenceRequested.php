@@ -86,22 +86,20 @@ class AbsenceRequested implements ShouldBroadcastNow
 
   public function broadcastOn(): array
   {
-    $supervisor = \App\Models\User::getSupervisorForDepartment($this->absence->department);
+    $hrUsers = \App\Models\User::getAllHRForDepartment($this->absence->department);
 
     Log::info('AbsenceRequested event broadcasting', [
       'absence_id' => $this->absence->id,
       'department' => $this->absence->department,
-      'supervisor_found' => $supervisor ? $supervisor->id : 'none',
-      'channels' => $supervisor ? ['supervisor.' . $supervisor->id, 'notifications'] : ['notifications']
+      'hr_count' => $hrUsers->count(),
     ]);
 
     // Always broadcast to notifications channel for general access
     $channels = [new Channel('notifications')];
 
-    // Also broadcast to supervisor's private channel if supervisor exists
-    if ($supervisor) {
-      // Use just the identifier - Laravel will handle the 'supervisor.' prefix from channels.php
-      $channels[] = new PrivateChannel('supervisor.' . $supervisor->id);
+    // Broadcast to HR users' private channels
+    foreach ($hrUsers as $hrUser) {
+      $channels[] = new PrivateChannel('hr.' . $hrUser->id);
     }
 
     return $channels;
